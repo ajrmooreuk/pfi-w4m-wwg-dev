@@ -1,0 +1,15 @@
+{
+  "pfiId": "pfi-w4m-wwg",
+  "pfiName": "w4m-wwg",
+  "org": "ajrmooreuk",
+  "license": "pfc-enterprise",
+  "pin": "latest",
+  "ontologySeries": ["VE-Series","PE-Series","RCSG-Series","Foundation","Orchestration"],
+  "repos": {
+    "dev": "ajrmooreuk/pfi-w4m-wwg-dev",
+    "test": "ajrmooreuk/pfi-w4m-wwg-test",
+    "prod": "ajrmooreuk/pfi-w4m-wwg-prod"
+  },
+  "createdAt": "2026-02-17T16:22:18Z",
+  "createdBy": "bootstrap-triad.sh v1.0.0"
+}

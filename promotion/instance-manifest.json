@@ -1,0 +1,15 @@
+{
+  "version": "1.0.0",
+  "description": "Files promoted across the PFI w4m-wwg triad (dev -> test -> prod)",
+  "instance": "pfi-w4m-wwg",
+  "files": [
+    "instance-data/config/pfi-config.json",
+    "instance-data/ontologies/**",
+    "instance-data/tokens/**",
+    "pfc-core/azlan-workflow-version",
+    "promotion/promotion.env",
+    "promotion/instance-manifest.json",
+    "supabase/migrations/**",
+    "tools/custom/**"
+  ]
+}

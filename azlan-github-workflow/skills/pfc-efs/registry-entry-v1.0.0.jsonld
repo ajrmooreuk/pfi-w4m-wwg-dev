@@ -1,0 +1,155 @@
+{
+  "@context": "https://baiv.co.uk/context/uniregistry/v1",
+  "@type": "UniRegistryEntry",
+  "@id": "baiv:uniregistry:skill:pfc-efs",
+  "registryMetadata": {
+    "entryType": "skill",
+    "entryId": "Entry-SKL-001",
+    "name": "PFC-EFS: Epic-Feature-Story Generator",
+    "version": "1.0.0",
+    "status": "active",
+    "domain": "pf-core",
+    "tier": "tier1",
+    "dateCreated": "2026-02-25T00:00:00Z",
+    "lastModified": "2026-02-25T00:00:00Z",
+    "createdBy": "claude-opus-4.6",
+    "description": "Generates PRDs with Epic-Feature-Story hierarchies from Terms of Reference and VSOM context. Follows EFS-ONT v2.0.0 lineage specification with 5-layer traceability (VSOM→OKR/KPI→VP→ICP→EFS). Outputs GitHub-ready issue creation scripts.",
+    "tags": [
+      "efs",
+      "prd",
+      "epic",
+      "feature",
+      "story",
+      "agile",
+      "lineage",
+      "vsom",
+      "github-issues",
+      "skill-standalone"
+    ]
+  },
+  "artifactDefinition": {
+    "skillType": "SKILL_STANDALONE",
+    "dtreeClassification": {
+      "autonomy": 4,
+      "orchestration": "none",
+      "bundling": 3,
+      "recommendation": "SKILL_STANDALONE"
+    },
+    "technology": {
+      "runtime": "claude-code-cli",
+      "format": "SKILL.md",
+      "allowedTools": ["Bash(gh *)", "Read", "Grep", "Glob", "Write"]
+    },
+    "capabilities": [
+      {
+        "name": "Context Ingestion",
+        "description": "Reads ToR, VSOM context, VP briefs, or existing PRDs and extracts structured context"
+      },
+      {
+        "name": "5-Layer Lineage Mapping",
+        "description": "Maps context to VSOM→OKR/KPI→VP→ICP→EFS lineage with VP-RRR alignment"
+      },
+      {
+        "name": "Epic Decomposition",
+        "description": "Decomposes scope into MECE epics with business outcomes and VSOM traceability"
+      },
+      {
+        "name": "Feature Breakdown",
+        "description": "Breaks epics into functional capabilities with acceptance criteria"
+      },
+      {
+        "name": "User Story Generation",
+        "description": "Generates As/Want/SoThat stories with INVEST criteria and RRR alignment"
+      },
+      {
+        "name": "PRD Assembly",
+        "description": "Assembles full PRD document from EFS-PRD template"
+      },
+      {
+        "name": "GitHub Issue Generation",
+        "description": "Generates gh CLI commands for epic/feature/story issues with auto-numbering"
+      }
+    ],
+    "qualityGates": [
+      { "id": "G1", "name": "Context Completeness", "section": 1 },
+      { "id": "G2", "name": "Strategic Traceability", "section": 2 },
+      { "id": "G3", "name": "Epic Alignment", "section": 3 },
+      { "id": "G4", "name": "Feature Completeness", "section": 4 },
+      { "id": "G5", "name": "Story Quality", "section": 5 }
+    ],
+    "invocation": "/azlan-github-workflow:pfc-efs",
+    "source": "azlan-github-workflow/skills/pfc-efs/SKILL.md"
+  },
+  "crossArtifactRelationships": {
+    "consumes": [
+      {
+        "@ref": "baiv:uniregistry:ontology:efs-ont",
+        "relationshipType": "ontology-schema",
+        "version": "2.0.0",
+        "namespace": "efs:"
+      },
+      {
+        "@ref": "baiv:uniregistry:ontology:vsom-ont",
+        "relationshipType": "lineage-L1",
+        "namespace": "vsom:"
+      },
+      {
+        "@ref": "baiv:uniregistry:ontology:vp-ont",
+        "relationshipType": "lineage-L3",
+        "namespace": "vp:"
+      },
+      {
+        "@ref": "baiv:uniregistry:ontology:rrr-ont",
+        "relationshipType": "alignment-join",
+        "namespace": "rrr:",
+        "joinPattern": "JP-VP-RRR-001"
+      }
+    ],
+    "produces": [
+      {
+        "@ref": "baiv:uniregistry:artifact:prd",
+        "relationshipType": "document-output",
+        "format": "markdown"
+      },
+      {
+        "@ref": "baiv:uniregistry:artifact:gh-issues",
+        "relationshipType": "issue-creation-script",
+        "format": "bash"
+      }
+    ],
+    "distributedVia": [
+      {
+        "@ref": "baiv:uniregistry:workflow:pfc-release",
+        "relationshipType": "ci-cd-distribution",
+        "description": "Copied to PFI dev repos via pfc-release.yml"
+      },
+      {
+        "@ref": "baiv:uniregistry:workflow:promote",
+        "relationshipType": "triad-promotion",
+        "description": "Promoted dev→test→prod within each PFI triad"
+      }
+    ]
+  },
+  "qualityMetrics": {
+    "overallScore": 80,
+    "completenessScore": 85,
+    "validationStatus": "pass",
+    "gatesPassed": 5,
+    "gatesFailed": 0,
+    "lastValidated": "2026-02-25T00:00:00Z"
+  },
+  "changeControl": {
+    "changeReason": "Initial registration of PFC-EFS skill — first skill in the azlan-github-workflow skills framework",
+    "approvalStatus": "draft",
+    "breakingChanges": false
+  },
+  "versionHistory": [],
+  "artifacts": {
+    "specification": "PBS/ONTOLOGIES/ontology-library/PE-Series/EFS-ONT/EFS-ONTOLOGY-SPEC.md",
+    "lineage": "PBS/ONTOLOGIES/ontology-library/PE-Series/EFS-ONT/EFS-Lineage-Specification-v3.0.0.md",
+    "prdTemplate": "PBS/ONTOLOGIES/ontology-library/PE-Series/EFS-ONT/EFS-PRD-Template-v1.0.0.md",
+    "ghIntegration": "PBS/ONTOLOGIES/ontology-library/PE-Series/EFS-ONT/EFS-GitHub-Projects-Integration-v1.0.0.md",
+    "implementation": "azlan-github-workflow/skills/pfc-efs/SKILL.md",
+    "registryEntry": "azlan-github-workflow/skills/pfc-efs/registry-entry-v1.0.0.jsonld"
+  }
+}

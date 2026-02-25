@@ -1,0 +1,6 @@
+# CODEOWNERS — PFI-W4M-WWG-DEV
+# PFC-Core owned paths require PFC admin approval to merge changes.
+# Changes to these paths are overwritten by pfc-release.yml on each release.
+
+# PFC-Core managed skills
+azlan-github-workflow/skills/pfc-efs/ @ajrmooreuk

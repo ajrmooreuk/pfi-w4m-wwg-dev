@@ -175,6 +175,24 @@ Supabase Tables:
   audit_logs                          -- Immutable audit trail (input/reasoning/output)
 ```
 
+### 3.5 Tier Ownership Model (CI/CD vs Self-Service)
+
+The FairSlice quasi-OO cascade (section 5.1) maps directly to the Epic 59 data ownership model. Every FairSlice row has a `source` field that determines who can write it and how it is distributed:
+
+| Row Type | Source Tag | Owner | Delivery Path | PFI Admin Can Override? |
+|----------|-----------|-------|--------------|------------------------|
+| Base WaterfallRule templates (7-step default) | `pfc-core` | PFC | CI/CD → PFC-prod → all PFI-dev | No (read-only) |
+| Core SmartContract definitions (PFC-published) | `pfc-core` | PFC | CI/CD → PFC-prod → subscribed PFI-dev | No (license only) |
+| PFI WaterfallRule overrides (custom steps, priority) | `pfi-{code}` | PFI admin | PFI-dev → PFI-test → PFI-prod via `promote-db.yml` | Yes |
+| PFI SmartContract customisations (instance multipliers) | `pfi-{code}` | PFI admin | PFI-dev → PFI-test → PFI-prod | Yes |
+| PFI CommissionRule definitions | `pfi-{code}` | PFI admin | PFI-dev → PFI-test → PFI-prod | Yes |
+| Pie-level overrides (startup-specific) | `pie-{id}` | Pie admin | Not promoted — per-pie |  Yes |
+| Audit logs | `system` | Append-only | Not promoted — per-environment | No |
+
+**Guard-core rule:** Rows with `source = 'pfc-core'` are protected by RLS in every PFI database — only `service_role` (CI/CD) can insert or update them. PFI users can read and install smart contracts but never modify PFC-core definitions.
+
+**Delivery dependency:** FairSlice base config (PFC-owned waterfall templates + published smart contracts) is seeded to subscribed PFI-dev environments as part of the Epic 59 PFC→PFI distribution pipeline (S59.3, Phase 3). This is **not** a one-time manual step — it must be reproducible on every PFC-prod release.
+
 ---
 
 ## 4. Ontology Model Summary
@@ -296,6 +314,9 @@ Rainmaker commission: 10% of GBP 5,000 = GBP 500 (from dividend pool or separate
 | OBJ-FS-IP2 | Smart contract publish-to-install < 1 hour | Q3 2026 | Medium | Epic 34 OBJ-IP2 |
 | OBJ-FS-IP3 | 100% distribution audit trail coverage | Ongoing | Critical | Epic 34 OBJ-IP1 |
 | OBJ-FS-IP4 | AI Judge cost < $0.05 per claim (three-tier) | Ongoing | High | Epic 34 OBJ-IP5 |
+| **OBJ-FS-IP5** | **FairSlice base config seeded to all subscribed PFI-dev via CI/CD** | **Q2 2026** | **P1** | **Epic 59 S59.3** |
+
+> **OBJ-FS-IP5 rationale:** The quasi-OO cascade (section 5.1) only delivers value if PFC-core waterfall templates and published smart contract definitions actually reach PFI databases. This must happen automatically on every PFC-prod release via the Epic 59 `pfc-db-release.yml` pipeline — not as a manual seed. Without this objective, FairSlice PFI overrides have no base to override and the cascade silently fails.
 
 ### 6.4 Learning & Growth
 
@@ -589,6 +610,7 @@ FairSlice tables ARE the JSONB graph storage PoC (F34.5). The `pies.ontology_con
 - [ ] Agency dashboard: toggle between client pies, inject management fee
 - [ ] Stripe Connect: automated split payments for waterfall distributions
 - [ ] E2E: BAIV worked example passes full cycle (claim to distribution to payout)
+- [ ] FairSlice base config (waterfall templates + core smart contracts) seeded to all subscribed PFI-dev via Epic 59 CI/CD pipeline (OBJ-FS-IP5)
 - [ ] VP-RRR alignment maintained throughout
 
 ---
@@ -600,6 +622,8 @@ FairSlice tables ARE the JSONB graph storage PoC (F34.5). The `pies.ontology_con
 | Epic 34 (#518) | Parent strategy — OBJ-SH2, OBJ-F4, BSC Chain 3, S4 Instance Customisation |
 | Epic 34 F34.5 | JSONB Graph Storage PoC — FairSlice tables converge with this |
 | Epic 34 F34.3 | Agent Architecture — AI Judge follows Agent Template v6.0.0 |
+| **Epic 59 (#840)** | **Delivery dependency — PFC→PFI DB distribution pipeline (S59.3) seeds FairSlice base config to PFI-dev; tier ownership model in section 3.5 maps to Epic 59 data ownership model; OBJ-FS-IP5 traces here** |
+| **Epic 51** | **Upstream patterns — VE Skill Chain collaboration; F59.18 (cross-PFI royalty) depends on Epic 51 patterns** |
 | Epic 30 (#370) | GRC Series — audit trail governance via GRC-FW |
 | Epic 40 (#577) | Workbench — FairSlice dashboard as workbench zone (future) |
 | Epic 49 | Application Planner — FairSlice as target application for the planner pipeline |

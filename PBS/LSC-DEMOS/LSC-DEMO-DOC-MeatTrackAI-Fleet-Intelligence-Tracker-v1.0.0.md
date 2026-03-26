@@ -369,7 +369,31 @@ renderMap  renderStats  renderAlerts renderDetail renderCharts
 
 ---
 
-## 9. File Inventory
+## 9. Epic 90 Integration
+
+This tracker is the foundation demo artefact for **Epic 90: W4M-WWG-LSC — Live API Integration, App Skeleton Components & Microsoft Deployment**.
+
+### Tracker Evolution Path
+
+| Phase | State | Features |
+|-------|-------|----------|
+| **Current** | Simulation-only HTML (this file) | 12 containers, 8 scenarios, 6 risk events, fullscreen panels |
+| **Phase 1** | Live/sim toggle | API connector (SKL-154) + AIS adapter (SKL-155) inject live vessel positions |
+| **Phase 2** | App Skeleton version | TS-React replatform via PfcShell, 9 new LSC components, DS-ONT brand tokens |
+| **Phase 3** | Microsoft embedded | Teams tab, Outlook notifications, SharePoint page, Power Automate flows |
+| **Phase 3** | PDF reporting | Fleet status, risk/impact assessment, RAID log, requirements traceability (F90.7) |
+
+### Related Strategy Documents
+
+| Document | Location |
+|----------|----------|
+| Epic Plan (7 features, 48 stories, RAID log) | PBS/STRATEGY/PFC-ARCH-PLAN-W4M-WWG-LSC-Integration-Epic-Plan-v1.0.0.md |
+| API Integration Dtree Review (SKL-154/155) | PBS/STRATEGY/PFC-ARCH-BRIEF-API-Integration-Skill-Dtree-Review-v1.0.0.md |
+| Microsoft VE/QVF Strategy Brief | PBS/STRATEGY/PFC-STRAT-BRIEF-W4M-WWG-Microsoft-VE-QVF-Strategy-v1.0.0.md |
+
+---
+
+## 10. File Inventory
 
 ```
 PBS/LSC-DEMOS/

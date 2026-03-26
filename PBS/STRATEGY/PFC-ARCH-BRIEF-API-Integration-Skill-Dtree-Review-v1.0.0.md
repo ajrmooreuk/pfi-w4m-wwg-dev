@@ -479,7 +479,20 @@ All adapters consume the same `pfc-api-connector` (SKL-154). The connector handl
 5. Implement AIS adapter with Datalastic response mapping to tracker data model
 6. Test in W4M-WWG dev triad with Datalastic trial key
 7. Update `lsc-shipping-tracker.html` to accept live data via adapter output
+8. Implement PDF shipping status & risk/impact report generation (F90.7)
+9. Auto-generate RAID log from tracker data for governance reporting
 
 ---
 
-*Decision record generated from Dtree evaluation using PFC Skill Builder (decision-tree.js v1.0.0, skill-builder.js v1.0.0). URG intake governed by PE-ONT v4.2.0 ProcessPath.*
+## 13. Document Cross-References
+
+| Document | Location | Relationship |
+|----------|----------|-------------|
+| Epic Plan (7 features, 48 stories, RAID log) | PBS/STRATEGY/PFC-ARCH-PLAN-W4M-WWG-LSC-Integration-Epic-Plan-v1.0.0.md | F90.1/F90.2 skill stories, F90.7 PDF reporting, requirements register, RAID log |
+| Microsoft VE/QVF Strategy Brief | PBS/STRATEGY/PFC-STRAT-BRIEF-W4M-WWG-Microsoft-VE-QVF-Strategy-v1.0.0.md | Macro context, VP-RRR analysis, QVF financial model, Kano classification |
+| Fleet Intelligence Tracker Doc | PBS/LSC-DEMOS/LSC-DEMO-DOC-MeatTrackAI-Fleet-Intelligence-Tracker-v1.0.0.md | Tracker architecture, data model, scenario engine |
+| Live Demo (GitHub Pages) | PBS/LSC-DEMOS/lsc-shipping-tracker.html | Interactive simulation tracker |
+
+---
+
+*Decision record generated from Dtree evaluation using PFC Skill Builder (decision-tree.js v1.0.0, skill-builder.js v1.0.0). URG intake governed by PE-ONT v4.2.0 ProcessPath. Cross-referenced to Epic 90 plan (7 features, 48 stories) and RAID log (RAID-ONT, GRC-Series).*

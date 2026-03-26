@@ -338,17 +338,40 @@ Delivering logistics intelligence inside the Microsoft environment eliminates th
 
 6. **Register VP instance** (F90.6 S90.6.1) immediately to formalise the value proposition in the ontology. This enables consistent messaging across demos, investor materials, and customer proposals.
 
+7. **Deploy PDF reporting early** (F90.7) — branded fleet status and risk/impact PDFs are the highest-value sales artefact. Customers who receive a professional PDF risk assessment during a demo conversation convert faster than those shown a dashboard alone. The RAID log auto-generation (S90.7.5) and requirements traceability (S90.7.6) add governance credibility for enterprise buyers.
+
+8. **Use the QVF financial impact section in PDFs** (S90.7.4) as the closing argument in every customer proposal — spoilage cost waterfall, demurrage avoidance, and margin impact quantified per container. Board-ready evidence, not operational data.
+
 ---
 
-## 9. Document Cross-References
+## 9. Epic 90 Feature Summary
+
+| Feature | Title | Stories | Phase |
+|---------|-------|---------|-------|
+| F90.1 | API Connector Skill (SKL-154) | 6 | Phase 1 |
+| F90.2 | AIS Adapter Skill (SKL-155) | 7 | Phase 1 |
+| F90.3 | App Skeleton LSC Components | 10 | Phase 2 |
+| F90.4 | Live Dashboard Deployment | 6 | Phase 2 |
+| F90.5 | Microsoft Environment Integration | 6 | Phase 3 |
+| F90.6 | VE/QVF Value Realisation Metrics | 5 | Phase 3 |
+| F90.7 | PDF Shipping Status & Risk/Impact Assessment | 8 | Phase 3 |
+| **Total** | | **48** | |
+
+Full feature/story detail, requirements register, and RAID log in the Epic Plan document.
+
+---
+
+## 10. Document Cross-References
 
 | Document | Location | Relationship |
 |----------|----------|-------------|
-| Epic Plan & Cross-Reference | PBS/STRATEGY/PFC-ARCH-PLAN-W4M-WWG-LSC-Integration-Epic-Plan-v1.0.0.md | Epic 90 features, stories, dependencies |
-| API Integration Dtree Review | PBS/STRATEGY/PFC-ARCH-BRIEF-API-Integration-Skill-Dtree-Review-v1.0.0.md | SKL-154/155 classification |
-| Fleet Intelligence Tracker Doc | PBS/LSC-DEMOS/LSC-DEMO-DOC-MeatTrackAI-Fleet-Intelligence-Tracker-v1.0.0.md | Tracker architecture |
+| Epic Plan & Cross-Reference | PBS/STRATEGY/PFC-ARCH-PLAN-W4M-WWG-LSC-Integration-Epic-Plan-v1.0.0.md | Epic 90: 7 features, 48 stories, requirements register, RAID log |
+| API Integration Dtree Review | PBS/STRATEGY/PFC-ARCH-BRIEF-API-Integration-Skill-Dtree-Review-v1.0.0.md | SKL-154/155 Dtree classification |
+| Fleet Intelligence Tracker Doc | PBS/LSC-DEMOS/LSC-DEMO-DOC-MeatTrackAI-Fleet-Intelligence-Tracker-v1.0.0.md | Tracker architecture, data model, scenario engine |
 | lsc-shipping-tracker.html | PBS/LSC-DEMOS/lsc-shipping-tracker.html | Live demo (GitHub Pages) |
 | MeatTrackAI Documentation | PBS/LSC-DEMOS/MeatTrackAI/MeatTrackAI-Documentation.md | AIS API setup, trade lanes, carriers |
+| MeatTrackAI Microsoft Demo | PBS/LSC-DEMOS/MeatTrackAI/MeatTrackAI_Microsoft_Demo.html | Microsoft environment integration demo |
+| MeatTrackAI Presentation | PBS/LSC-DEMOS/MeatTrackAI/MeatTrackAI_Microsoft_Presentation.pptx | Stakeholder presentation deck |
 
 ---
 

@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>MeatTrackAI — Microsoft Outlook + Excel Demo</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+:root{
+  --navy:#0D2B4E;--teal:#0A7A8A;--teal-d:#065F6B;--teal-l:#E0F7FA;--teal-b:rgba(10,122,138,.18);
+  --green:#16A34A;--gl:#DCFCE7;--gd:#14532D;
+  --amber:#B45309;--al:#FEF3C7;--ad:#78350F;
+  --red:#C0392B;--rl:#FEE2E2;--rd:#7F1D1D;
+  --blue:#1D4ED8;--bl:#DBEAFE;
+  --bg:#F8FAFC;--w:#FFFFFF;--bg3:#F1F5F9;--bg4:#E8EEF5;
+  --brd:#CBD5E1;--brd-l:#E2E8F0;
+  --text:#1E293B;--t2:#475569;--t3:#64748B;--t4:#94A3B8;
+  --mono:'IBM Plex Mono',monospace;--sans:'DM Sans',sans-serif;
+  --sh:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.05);
+  --sh2:0 4px 8px rgba(0,0,0,.08),0 2px 4px rgba(0,0,0,.05);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.6}
+
+/* ── TOP NAV ── */
+.nav{background:var(--w);border-bottom:2px solid var(--brd);display:flex;align-items:center;
+  padding:0 24px;position:sticky;top:0;z-index:200;box-shadow:var(--sh)}
+.brand{display:flex;align-items:center;gap:10px;padding:12px 0;margin-right:28px}
+.hex{width:28px;height:28px;background:var(--teal);clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%)}
+.bt{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--teal)}
+.bs{font-size:10px;color:var(--t3);letter-spacing:.1em;text-transform:uppercase}
+.tabs{display:flex}
+.tab{padding:14px 16px;font-size:13px;font-weight:500;cursor:pointer;
+  border-bottom:2px solid transparent;color:var(--t2);background:none;border-top:none;border-left:none;border-right:none;
+  transition:all .15s}
+.tab:hover{color:var(--teal);background:var(--teal-l)}
+.tab.on{color:var(--teal);border-bottom-color:var(--teal);font-weight:600}
+.nb{font-size:10px;background:var(--teal-l);color:var(--teal);padding:1px 6px;border-radius:10px;margin-left:4px;font-family:var(--mono)}
+.nb.r{background:var(--rl);color:var(--red)}
+
+/* ── PAGES ── */
+.pg{display:none}.pg.on{display:block}
+.wrap{max-width:1200px;margin:0 auto;padding:24px}
+.ptitle{font-size:22px;font-weight:700;color:var(--navy);margin-bottom:3px}
+.psub{font-size:13px;color:var(--t3);margin-bottom:22px}
+
+/* ── CARDS ── */
+.card{background:var(--w);border:1px solid var(--brd);border-radius:8px;padding:18px;box-shadow:var(--sh)}
+.card+.card{margin-top:14px}
+.ctitle{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--t3);margin-bottom:12px;font-family:var(--mono)}
+
+/* ── GRID ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+
+/* ── STAT CARDS ── */
+.sc{background:var(--w);border:1px solid var(--brd);border-radius:8px;padding:14px;text-align:center;border-top:3px solid}
+.sc.t{border-top-color:var(--teal)}.sc.a{border-top-color:var(--amber)}
+.sc.r{border-top-color:var(--red)}.sc.g{border-top-color:var(--green)}
+.sn{font-size:30px;font-weight:700;font-family:var(--mono);line-height:1}
+.sn.t{color:var(--teal)}.sn.a{color:var(--amber)}.sn.r{color:var(--red)}.sn.g{color:var(--green)}
+.sl{font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-top:3px;font-weight:600}
+
+/* ── BADGES ── */
+.bdg{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:4px;
+  font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;border:1px solid}
+.bdg.g{background:var(--gl);color:var(--gd);border-color:rgba(22,163,74,.2)}
+.bdg.a{background:var(--al);color:var(--ad);border-color:rgba(180,83,9,.2)}
+.bdg.r{background:var(--rl);color:var(--rd);border-color:rgba(192,57,43,.2)}
+.bdg.t{background:var(--teal-l);color:var(--teal-d);border-color:var(--teal-b)}
+.bdg.b{background:var(--bl);color:var(--blue);border-color:rgba(29,78,216,.2)}
+.bdg.x{background:var(--bg3);color:var(--t2);border-color:var(--brd)}
+.dot{width:5px;height:5px;border-radius:50%;background:currentColor;display:inline-block}
+
+/* ── OUTLOOK CHROME ── */
+.ol-shell{display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--brd);border-radius:8px;box-shadow:var(--sh2)}
+.ol-topbar{background:#1E3A5F;padding:8px 16px;display:flex;align-items:center;gap:12px}
+.ol-logo{font-family:var(--mono);font-size:13px;font-weight:700;color:#fff}
+.ol-breadcrumb{font-size:11px;color:rgba(255,255,255,.6)}
+.ol-status{font-family:var(--mono);font-size:10px;color:#7DD3FC;margin-left:auto}
+.ol-body{display:grid;grid-template-columns:56px 240px 1fr;min-height:560px}
+.ol-icons{background:#1E3A5F;padding:12px 0;display:flex;flex-direction:column;align-items:center;gap:4px}
+.ol-icon{width:36px;height:36px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;transition:background .15s;color:rgba(255,255,255,.7)}
+.ol-icon:hover,.ol-icon.on{background:rgba(255,255,255,.15);color:#fff}
+.ol-sidebar{background:#F3F4F6;border-right:1px solid var(--brd);padding:0}
+.ol-folder{display:flex;align-items:center;gap:8px;padding:8px 12px;font-size:13px;cursor:pointer;transition:background .15s}
+.ol-folder:hover{background:#E5E7EB}
+.ol-folder.on{background:#DBEAFE;color:#1D4ED8;font-weight:600}
+.ol-ficon{font-size:14px;width:20px;text-align:center}
+.ol-fcount{margin-left:auto;font-size:11px;font-family:var(--mono);font-weight:600}
+.ol-main{display:flex;flex-direction:column;overflow:hidden}
+.ol-toolbar{background:var(--w);border-bottom:1px solid var(--brd);padding:8px 14px;display:flex;align-items:center;gap:6px}
+.ol-tbtn{padding:5px 10px;border:1px solid var(--brd);border-radius:4px;background:var(--w);
+  font-family:var(--sans);font-size:12px;cursor:pointer;color:var(--t2);display:flex;align-items:center;gap:4px;transition:background .15s}
+.ol-tbtn:hover{background:var(--bg3)}
+.ol-split{display:grid;grid-template-columns:380px 1fr;flex:1;overflow:hidden}
+.email-list{border-right:1px solid var(--brd);overflow-y:auto;background:var(--w)}
+.email-row{padding:10px 14px;border-bottom:1px solid var(--brd-l);cursor:pointer;transition:background .1s}
+.email-row:hover{background:var(--teal-l)}
+.email-row.on{background:var(--teal-l);border-left:3px solid var(--teal)}
+.email-row.unread{font-weight:700}
+.email-row.blocked{opacity:.5;background:#FFF8F8}
+.er-top{display:flex;justify-content:space-between;margin-bottom:2px}
+.er-from{font-size:13px;font-weight:600;color:var(--text)}
+.er-time{font-size:11px;color:var(--t3);font-family:var(--mono)}
+.er-subj{font-size:12px;color:var(--text);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.er-labels{display:flex;gap:4px;flex-wrap:wrap}
+.er-lbl{font-size:10px;padding:1px 6px;border-radius:3px;font-weight:600;white-space:nowrap}
+.er-lbl.ship{background:#DBEAFE;color:#1D4ED8}
+.er-lbl.reef{background:var(--rl);color:var(--rd);animation:lbl-pulse 2s infinite}
+.er-lbl.comp{background:var(--gl);color:var(--gd)}
+.er-lbl.blk{background:#F3F4F6;color:#6B7280}
+@keyframes lbl-pulse{0%,100%{opacity:1}50%{opacity:.7}}
+.email-detail{overflow-y:auto;padding:20px;background:var(--w)}
+.ed-subject{font-size:18px;font-weight:600;color:var(--navy);margin-bottom:10px;line-height:1.3}
+.ed-meta{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--t2);margin-bottom:16px}
+.ed-avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0}
+.ed-body{font-size:13px;line-height:1.6;color:var(--t2)}
+.ed-card{border:1px solid var(--brd);border-radius:6px;overflow:hidden;margin-bottom:12px}
+.ed-card-hdr{padding:10px 14px;color:#fff;font-weight:700;font-size:13px}
+.ed-fields{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:12px;background:var(--bg3)}
+.ed-field{background:var(--w);border-radius:4px;padding:7px 10px;border:1px solid var(--brd-l)}
+.ed-fk{font-size:10px;color:var(--t3);margin-bottom:2px;text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.ed-fv{font-size:12px;color:var(--text);font-family:var(--mono)}
+.ed-fv.ok{color:var(--green);font-weight:700}
+.ed-fv.warn{color:var(--amber);font-weight:700}
+.ed-fv.crit{color:var(--red);font-weight:700}
+.ed-parse{font-size:11px;color:var(--t3);margin-top:8px;padding:6px 10px;background:var(--bg3);border-radius:4px}
+.ed-parse span{font-family:var(--mono);font-weight:600}
+.alert-bar{padding:8px 12px;border-radius:5px;font-size:12px;border-left:4px solid;margin-bottom:10px}
+.alert-bar.r{background:var(--rl);border-color:var(--red);color:var(--rd)}
+.alert-bar.a{background:var(--al);border-color:var(--amber);color:var(--ad)}
+.alert-bar.g{background:var(--gl);border-color:var(--green);color:var(--gd)}
+.alert-bar.b{background:var(--bl);border-color:var(--blue);color:var(--blue)}
+
+/* ── EXCEL CHROME ── */
+.xl-shell{border:1px solid var(--brd);border-radius:8px;overflow:hidden;box-shadow:var(--sh2)}
+.xl-topbar{background:#217346;padding:0 14px;height:38px;display:flex;align-items:center;gap:8px}
+.xl-logo{font-size:20px}
+.xl-title{font-family:var(--sans);font-size:14px;font-weight:600;color:#fff;flex:1}
+.xl-tabs{display:flex;background:#185D38;padding-top:4px}
+.xl-tab{padding:5px 14px;font-size:11px;font-weight:600;cursor:pointer;color:rgba(255,255,255,.75);
+  border-radius:4px 4px 0 0;margin-right:2px;transition:all .15s;background:transparent}
+.xl-tab:hover{background:rgba(255,255,255,.15);color:#fff}
+.xl-tab.on{background:#fff;color:#217346}
+.xl-body{overflow-x:auto;background:#fff}
+.xl-table{border-collapse:collapse;font-size:11px;width:100%;font-family:var(--mono)}
+.xl-table th{padding:5px 9px;text-align:center;font-size:10px;font-weight:700;
+  background:#F2F2F2;border:1px solid #D0D0D0;color:#444;position:sticky;top:0;z-index:1}
+.xl-table td{border:1px solid #D0D0D0;padding:3px 8px;height:22px;white-space:nowrap;font-size:11px;cursor:cell}
+.xl-table td.rn{background:#F2F2F2;color:#666;text-align:center;width:28px;font-size:10px}
+.xl-table tr:hover td:not(.rn){outline:1px solid #217346;outline-offset:-1px}
+.xr{background:#DCFCE7!important;color:#14532D!important;font-weight:700}
+.xa{background:#FEF3C7!important;color:#78350F!important;font-weight:700}
+.xrd{background:#FEE2E2!important;color:#7F1D1D!important;font-weight:700}
+.xb{background:#DBEAFE!important;color:#1D4ED8!important;font-weight:700}
+.xt{background:#E0F7FA!important;color:#065F6B!important;font-weight:700}
+.xhdr{background:#0D2B4E!important;color:#fff!important;font-weight:700;font-family:'DM Sans',sans-serif}
+.xthdr{background:#1A7A8A!important;color:#fff!important;font-weight:700;font-family:'DM Sans',sans-serif}
+
+/* ── TERMINAL ── */
+.term{background:#0F172A;border-radius:8px;overflow:hidden;box-shadow:var(--sh2)}
+.tbar{background:#1E293B;padding:8px 14px;display:flex;align-items:center;gap:6px}
+.tdot{width:10px;height:10px;border-radius:50%}
+.ttitle{font-family:var(--mono);font-size:11px;color:#64748B;margin-left:6px}
+.tbody{padding:12px 14px;font-family:var(--mono);font-size:12px;line-height:1.8;color:#CBD5E1;max-height:340px;overflow-y:auto}
+.tp{color:#7DD3FC}.to{color:#94A3B8}.tok{color:#4ADE80}.tw{color:#FCD34D}.te{color:#F87171}.td{color:#475569}
+.tbody::-webkit-scrollbar{width:4px}
+.tbody::-webkit-scrollbar-track{background:#1E293B}
+.tbody::-webkit-scrollbar-thumb{background:#334155;border-radius:2px}
+
+/* ── CODE ── */
+pre.cb{background:#0F172A;color:#E2E8F0;font-family:var(--mono);font-size:12px;padding:12px 14px;
+  border-radius:8px;overflow-x:auto;line-height:1.7;white-space:pre}
+.cc{color:#64748B}.ck{color:#FCA5A5}.cv{color:#FDE68A}.cs{color:#86EFAC}.cd{color:#7DD3FC}
+
+/* ── FLOW ── */
+.flow{display:flex;align-items:center;flex-wrap:wrap;gap:0;margin:12px 0}
+.fb{background:var(--teal-l);border:2px solid var(--teal-b);border-radius:6px;padding:7px 12px;font-size:12px;font-weight:600;color:var(--teal-d);text-align:center}
+.fb.ms{background:#E8F4FF;border-color:rgba(30,58,95,.2);color:#1E3A5F}
+.fb.xl{background:#E8F5E9;border-color:rgba(33,115,70,.2);color:#185D38}
+.fb.gn{background:var(--gl);border-color:rgba(22,163,74,.2);color:var(--gd)}
+.fa{font-size:16px;color:var(--t3);padding:0 6px}
+
+/* ── NOTIFICATION EMAIL ── */
+.notif-email{border:1px solid var(--brd);border-radius:8px;overflow:hidden;font-size:13px;margin-bottom:14px}
+.ne-hdr{padding:14px 18px;color:#fff}
+.ne-hdr.r{background:#B91C1C}.ne-hdr.a{background:#B45309}.ne-hdr.g{background:#16A34A}
+.ne-meta{font-size:10px;opacity:.8;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px}
+.ne-title{font-size:16px;font-weight:700}
+.ne-sub{font-size:12px;opacity:.85;margin-top:2px}
+.ne-body{padding:14px 18px;background:#fff}
+.ne-kv{display:grid;grid-template-columns:140px 1fr;gap:4px;font-size:12px;padding:3px 0;border-bottom:1px solid var(--bg3)}
+.ne-kv:last-child{border-bottom:none}
+.ne-k{font-weight:600;color:var(--t2)}.ne-v{color:var(--text)}
+.ne-v.hot{color:var(--amber);font-weight:700}
+.ne-v.crit{color:var(--red);font-weight:700}
+.or{display:grid;grid-template-columns:100px 1fr 90px 75px;gap:6px;padding:5px 0;border-bottom:1px solid var(--bg3);font-size:12px}
+.ne-foot{padding:8px 18px;background:var(--bg3);font-size:11px;color:var(--t3);border-top:1px solid var(--brd)}
+
+/* ── STEP LIST ── */
+.step{display:flex;gap:12px;align-items:flex-start;margin-bottom:14px}
+.snum{width:26px;height:26px;border-radius:50%;background:var(--teal);color:#fff;font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--mono)}
+.stitle{font-weight:600;font-size:14px;color:var(--navy);margin-bottom:2px}
+.sdesc{font-size:13px;color:var(--t2)}
+.cmd{background:var(--navy);color:#7DD3FC;font-family:var(--mono);font-size:12px;padding:7px 12px;border-radius:5px;margin-top:5px;position:relative;cursor:pointer}
+.cmd:hover{opacity:.9}
+
+/* ── TABLE ── */
+.dt{width:100%;border-collapse:collapse;font-size:13px}
+.dt th{background:var(--bg3);padding:7px 10px;text-align:left;font-size:11px;
+  text-transform:uppercase;letter-spacing:.07em;color:var(--t3);border-bottom:2px solid var(--brd);font-weight:600}
+.dt td{padding:9px 10px;border-bottom:1px solid var(--brd-l);vertical-align:middle}
+.dt tr:last-child td{border-bottom:none}
+.dt tr:hover td{background:var(--bg3)}
+.mono{font-family:var(--mono);font-size:12px}
+
+/* ── SIM CONTROLS ── */
+.sim-bar{background:var(--navy);color:#fff;padding:8px 16px;display:flex;align-items:center;gap:12px;border-radius:6px;margin-bottom:16px}
+.sim-date{font-family:var(--mono);font-size:14px;color:#7DD3FC;font-weight:600;min-width:140px}
+.sim-btns{display:flex;gap:4px}
+.sim-btn{width:30px;height:30px;border:none;border-radius:4px;cursor:pointer;background:rgba(255,255,255,.1);color:#fff;font-size:13px;display:flex;align-items:center;justify-content:center;transition:background .15s}
+.sim-btn:hover{background:rgba(255,255,255,.2)}
+.sim-btn.play{background:var(--green)}
+.sim-slider{flex:1;height:4px;-webkit-appearance:none;appearance:none;background:linear-gradient(90deg,#7DD3FC var(--pct,0%),rgba(255,255,255,.2) var(--pct,0%));border-radius:2px;cursor:pointer;outline:none;max-width:380px}
+.sim-slider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#7DD3FC;cursor:pointer}
+.sim-stats{display:flex;gap:10px;margin-left:auto}
+.ss{font-size:11px;display:flex;align-items:center;gap:4px}
+.ss-dot{width:7px;height:7px;border-radius:50%}
+
+@media(max-width:900px){.g2,.g3,.g4{grid-template-columns:1fr}.ol-split{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav class="nav">
+  <div class="brand">
+    <div class="hex"></div>
+    <div><div class="bt">MeatTrackAI</div><div class="bs">Microsoft Demo</div></div>
+  </div>
+  <div class="tabs">
+    <button class="tab on"  onclick="go('setup')">① Architecture<span class="nb">Overview</span></button>
+    <button class="tab"     onclick="go('outlook')">② Outlook Inbox<span class="nb">Simulated</span></button>
+    <button class="tab"     onclick="go('parse')">③ PDF Parsing<span class="nb r">3 PDFs</span></button>
+    <button class="tab"     onclick="go('excel')">④ Excel Tracker<span class="nb">7 Sheets</span></button>
+    <button class="tab"     onclick="go('pipeline')">⑤ Pipeline Demo<span class="nb">Live Sim</span></button>
+    <button class="tab"     onclick="go('notify')">⑥ Notifications<span class="nb r">8 sent</span></button>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════
+  PAGE 1 — ARCHITECTURE
+══════════════════════════════════════════════════════ -->
+<div class="pg on" id="pg-setup">
+<div class="wrap">
+  <div class="ptitle">Microsoft Integration Architecture</div>
+  <div class="psub">Outlook 365 → Graph API → PDF Parser → Excel → Client Notifications. No Azure admin required for PoC.</div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div class="ctitle">End-to-End Pipeline</div>
+    <div class="flow">
+      <div class="fb ms">📧 Outlook 365<br><small>Carrier PDFs arrive</small></div><div class="fa">→</div>
+      <div class="fb ms">🔐 Graph API<br><small>OAuth 2.0 read</small></div><div class="fa">→</div>
+      <div class="fb">🐍 PDF Parser<br><small>pdfplumber · 48 fields</small></div><div class="fa">→</div>
+      <div class="fb">🗄 JSON Tracker<br><small>schema.org/Trip</small></div><div class="fa">→</div>
+      <div class="fb xl">📊 Excel<br><small>7-sheet workbook</small></div><div class="fa">→</div>
+      <div class="fb ms">✉ Graph API<br><small>sendMail HTML</small></div><div class="fa">→</div>
+      <div class="fb gn">✅ Client<br><small>Notification sent</small></div>
+    </div>
+    <div class="alert-bar b" style="margin:8px 0 0">
+      <strong>One credential, two jobs:</strong> The same Microsoft Graph API OAuth token that reads carrier emails also sends client notification emails — no separate SMTP setup required.
+    </div>
+  </div>
+
+  <div class="g2" style="gap:16px">
+  <div>
+    <div class="card" style="margin-bottom:14px">
+      <div class="ctitle">Azure Setup — One Time (15 min)</div>
+      <div class="step"><div class="snum">1</div><div>
+        <div class="stitle">Register App in Azure Entra ID</div>
+        <div class="sdesc">portal.azure.com → App registrations → New registration. Name it "MeatTrackAI-Pipeline".</div>
+      </div></div>
+      <div class="step"><div class="snum">2</div><div>
+        <div class="stitle">Grant API permissions</div>
+        <div class="sdesc">API permissions → Add → Microsoft Graph → Application: <code>Mail.Read</code> · <code>Mail.ReadWrite</code> · <code>Mail.Send</code> → Grant admin consent</div>
+      </div></div>
+      <div class="step"><div class="snum">3</div><div>
+        <div class="stitle">Create client secret</div>
+        <div class="sdesc">Certificates &amp; secrets → New client secret → Copy value immediately (shown once).</div>
+      </div></div>
+      <div class="step"><div class="snum">4</div><div>
+        <div class="stitle">Configure .env</div>
+        <div class="cmd">AZURE_TENANT_ID=your-tenant-id
+AZURE_CLIENT_ID=your-client-id
+AZURE_CLIENT_SECRET=your-secret
+MAILBOX_EMAIL=reefer@yourcompany.co.uk</div>
+      </div></div>
+      <div class="step"><div class="snum">5</div><div>
+        <div class="stitle">Test connection</div>
+        <div class="cmd">python src/outlook_reader.py --test-connection</div>
+      </div></div>
+    </div>
+  </div>
+  <div>
+    <div class="card" style="margin-bottom:14px">
+      <div class="ctitle">Domain Governance Rules</div>
+      <table class="dt">
+        <thead><tr><th>Domain</th><th>Direction</th><th>Rule</th><th>Action</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">@maersk.com</td><td><span class="bdg t">Inbound</span></td><td>Approved carrier</td><td><span class="bdg g">ALLOW</span></td></tr>
+          <tr><td class="mono">@hapag-lloyd.com</td><td><span class="bdg t">Inbound</span></td><td>Approved carrier</td><td><span class="bdg g">ALLOW</span></td></tr>
+          <tr><td class="mono">@msc.com</td><td><span class="bdg t">Inbound</span></td><td>Approved carrier</td><td><span class="bdg g">ALLOW</span></td></tr>
+          <tr><td class="mono">@cma-cgm.com</td><td><span class="bdg t">Inbound</span></td><td>Approved carrier</td><td><span class="bdg g">ALLOW</span></td></tr>
+          <tr><td class="mono">@gmail.com</td><td><span class="bdg t">Inbound</span></td><td>Consumer domain</td><td><span class="bdg r">BLOCK</span></td></tr>
+          <tr><td class="mono">@freightnews.com</td><td><span class="bdg t">Inbound</span></td><td>Not approved</td><td><span class="bdg r">BLOCK</span></td></tr>
+          <tr><td class="mono">@tesco.co.uk</td><td><span class="bdg x">Outbound</span></td><td>Approved client</td><td><span class="bdg g">ALLOW</span></td></tr>
+          <tr><td class="mono">@unknown.io</td><td><span class="bdg x">Outbound</span></td><td>Not in approved list</td><td><span class="bdg r">BLOCK</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="ctitle">vs Google gws — Quick Comparison</div>
+      <table class="dt">
+        <thead><tr><th>Factor</th><th>Outlook / Graph</th><th>Google gws</th></tr></thead>
+        <tbody>
+          <tr><td>Setup time</td><td><span class="bdg a">~15 min</span></td><td><span class="bdg g">~5 min</span></td></tr>
+          <tr><td>Admin consent</td><td>Required (M365)</td><td>Not required</td></tr>
+          <tr><td>Best for</td><td>Enterprise M365 clients</td><td>PoC / Google shops</td></tr>
+          <tr><td>Inbox routing</td><td>Exchange rules / folders</td><td>Gmail labels</td></tr>
+          <tr><td>Notifications</td><td>Send from corporate address</td><td>Send from Gmail address</td></tr>
+          <tr><td>PDF parsing</td><td colspan="2" style="text-align:center;font-style:italic">Identical — pdfplumber</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+  PAGE 2 — OUTLOOK INBOX SIMULATION
+══════════════════════════════════════════════════════ -->
+<div class="pg" id="pg-outlook">
+<div class="wrap">
+  <div class="ptitle">Outlook Inbox — Simulated</div>
+  <div class="psub">Microsoft 365 inbox with domain governance, LSC labels, and Graph API PDF extraction. Click any email to view extracted data.</div>
+
+  <div class="ol-shell">
+    <div class="ol-topbar">
+      <span class="ol-logo">⬡ Outlook</span>
+      <span class="ol-breadcrumb">UK Premium Meats Ltd · reefer-inbox@ukpremiummeats.co.uk</span>
+      <span class="ol-status">● Graph API Connected · MeatTrackAI-Pipeline</span>
+    </div>
+    <div class="ol-body">
+      <!-- Icons -->
+      <div class="ol-icons">
+        <div class="ol-icon on" title="Mail">✉</div>
+        <div class="ol-icon" title="Calendar">📅</div>
+        <div class="ol-icon" title="Files">📁</div>
+      </div>
+      <!-- Sidebar -->
+      <div class="ol-sidebar">
+        <div style="padding:10px 12px;font-size:11px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:.08em">Folders</div>
+        <div class="ol-folder on"><span class="ol-ficon">📥</span>Inbox<span class="ol-fcount" style="color:#1D4ED8">11</span></div>
+        <div class="ol-folder"><span class="ol-ficon">🚫</span>Blocked<span class="ol-fcount" style="color:#DC2626">2</span></div>
+        <div class="ol-folder"><span class="ol-ficon">📤</span>Sent Items<span class="ol-fcount">8</span></div>
+        <div class="ol-folder"><span class="ol-ficon">📦</span>Processed<span class="ol-fcount">23</span></div>
+        <div style="padding:10px 12px 4px;font-size:11px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:.08em;margin-top:8px;border-top:1px solid #E5E7EB">LSC Labels</div>
+        <div class="ol-folder" onclick="filterLabel('ship')"><span style="width:10px;height:10px;background:#1D4ED8;border-radius:50%;display:inline-block;flex-shrink:0"></span>&nbsp;lsc-shipping<span class="ol-fcount">8</span></div>
+        <div class="ol-folder" onclick="filterLabel('reef')"><span style="width:10px;height:10px;background:#C0392B;border-radius:50%;display:inline-block;flex-shrink:0"></span>&nbsp;lsc-reefer<span class="ol-fcount">2</span></div>
+        <div class="ol-folder" onclick="filterLabel('comp')"><span style="width:10px;height:10px;background:#16A34A;border-radius:50%;display:inline-block;flex-shrink:0"></span>&nbsp;lsc-compliance<span class="ol-fcount">1</span></div>
+      </div>
+      <!-- Main -->
+      <div class="ol-main">
+        <div class="ol-toolbar">
+          <button class="ol-tbtn" onclick="filterLabel('all')">☐ All</button>
+          <button class="ol-tbtn" onclick="filterLabel('ship')">🚢 Shipping</button>
+          <button class="ol-tbtn" onclick="filterLabel('reef')">🌡 Reefer Alerts</button>
+          <button class="ol-tbtn" onclick="filterLabel('comp')">✅ Compliance</button>
+          <button class="ol-tbtn" onclick="filterLabel('blocked')" style="color:#DC2626">🚫 Blocked</button>
+          <span style="margin-left:auto;font-size:12px;color:var(--t3)" id="email-count-lbl">Showing all</span>
+        </div>
+        <div class="ol-split">
+          <div class="email-list" id="email-list"></div>
+          <div class="email-detail" id="email-detail">
+            <div style="text-align:center;padding:60px 20px;color:var(--t3)">
+              <div style="font-size:48px;margin-bottom:12px">📬</div>
+              <div style="font-size:16px;margin-bottom:6px">Select a message</div>
+              <div style="font-size:13px">Click any carrier email to view extracted data and Graph API parse output</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+  PAGE 3 — PDF PARSING
+══════════════════════════════════════════════════════ -->
+<div class="pg" id="pg-parse">
+<div class="wrap">
+  <div class="ptitle">PDF Data Capture — pdfplumber Extraction</div>
+  <div class="psub">3 carrier PDFs parsed. SHIPPING REFERENCE and 47 additional fields extracted automatically.</div>
+
+  <div class="alert-bar b" style="margin-bottom:16px">
+    <strong>Parse strategy:</strong> Body text parsed first (fast, no attachment needed). PDF fills supplementary fields (HS code, exact weight, voyage). Body wins on conflict. Each field tagged [body] or [pdf] for audit trail.
+  </div>
+
+  <!-- PDF 1 -->
+  <div class="card" style="margin-bottom:14px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:8px;height:8px;border-radius:50%;background:#003087"></div>
+        <span style="font-family:var(--mono);font-size:12px;font-weight:600;color:var(--t2)">SHIPPING_MRKU4821073_Maersk_ArrivalNotice.pdf</span>
+      </div>
+      <div style="display:flex;gap:6px"><span class="bdg a">+4.5 days</span><span class="bdg t">Port Approach</span><span class="bdg g">No Breach</span></div>
+    </div>
+    <div class="alert-bar a" style="margin-bottom:12px">⚠ ETA REVISED — Cape of Good Hope reroute — +4.5 days vs original ETA</div>
+    <div class="g2">
+      <div>
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);margin-bottom:8px">SHIPPING REFERENCE (Primary Key)</div>
+        <div style="background:var(--teal-l);border:2px solid var(--teal-b);border-radius:6px;padding:10px 14px;margin-bottom:8px">
+          <div style="font-size:11px;color:var(--teal-d);font-weight:600;margin-bottom:3px">Shipping Reference [body+pdf]</div>
+          <div style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--teal-d)">MAEU1234567890</div>
+        </div>
+        <table class="dt" style="font-size:12px">
+          <tr><td style="width:130px;color:var(--t3);font-weight:600">Container No.</td><td class="mono" style="color:var(--teal-d);font-weight:700">MRKU4821073</td></tr>
+          <tr><td style="color:var(--t3);font-weight:600">Vessel</td><td>MV Maersk Hobart</td></tr>
+          <tr><td style="color:var(--t3);font-weight:600">Voyage</td><td class="mono">426W</td></tr>
+          <tr><td style="color:var(--t3);font-weight:600">ATD</td><td class="mono">2026-01-14 08:00 UTC</td></tr>
+          <tr><td style="color:var(--t3);font-weight:600">HS Code [pdf]</td><td class="mono">0202.30.00</td></tr>
+          <tr><td style="color:var(--t3);font-weight:600">Gross Weight [pdf]</td><td>24,840 kg</td></tr>
+        </table>
+      </div>
+      <div>
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);margin-bottom:8px">ETA & COLD CHAIN</div>
+        <table class="dt" style="font-size:12px">
+          <tr><td style="width:130px;color:var(--t3);font-weight:600">Original ETA</td><td class="mono">2026-03-22</td></tr>
+          <tr><td style="color:var(--t3);font-weight:600">Revised ETA</td><td class="mono" style="color:var(--amber);font-weight:700">2026-03-26 (+4.5d)</td></tr>
+          <tr><td style="color:var(--t3);font-weight:600">Set Point</td><td class="mono">-18.0°C</td></tr>
+          <tr><td style="color:var(--t3);font-weight:600">Latest Temp</td><td class="mono" style="color:var(--green);font-weight:700">-17.8°C ✓ OK</td></tr>
+          <tr><td style="color:var(--t3);font-weight:600">Breach Active</td><td style="color:var(--green);font-weight:700">NO</td></tr>
+          <tr><td style="color:var(--t3);font-weight:600">IPAFFS</td><td style="color:var(--green);font-weight:600;font-size:11px">SUBMITTED ✓</td></tr>
+        </table>
+        <div style="margin-top:8px;background:var(--bg3);border-radius:4px;padding:7px 10px;font-size:11px;color:var(--t3)">
+          Parse source: <strong style="color:var(--green)">BODY+PDF MERGED</strong> · Fields extracted: <strong>46/48</strong> · Domain: <strong style="color:var(--green)">@maersk.com ✓ ALLOWED</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PDF 2 -->
+  <div class="card" style="margin-bottom:14px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:8px;height:8px;border-radius:50%;background:#E2001A"></div>
+        <span style="font-family:var(--mono);font-size:12px;font-weight:600;color:var(--t2)">SHIPPING_HLXU9901234_HapagLloyd_TempAlert.pdf</span>
+      </div>
+      <div style="display:flex;gap:6px"><span class="bdg r">+6 days</span><span class="bdg r">At Sea — ALERT</span><span class="bdg r">⚠ BREACH</span></div>
+    </div>
+    <div class="alert-bar r" style="margin-bottom:12px">🚨 CRITICAL — Temperature deviation +1.8°C above set point. 150hrs cumulative. Shelf-life impact est. -7.5 days. QA assessment required.</div>
+    <div class="g2">
+      <div>
+        <div style="background:var(--rl);border:2px solid rgba(192,57,43,.2);border-radius:6px;padding:10px 14px;margin-bottom:8px">
+          <div style="font-size:11px;color:var(--rd);font-weight:600;margin-bottom:3px">Shipping Reference [body+pdf]</div>
+          <div style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--rd)">HLBU9901234001</div>
+        </div>
+        <table class="dt" style="font-size:12px">
+          <tr><td style="width:130px;color:var(--t3);font-weight:600">Container No.</td><td class="mono" style="color:var(--teal-d);font-weight:700">HLXU9901234</td></tr>
+          <tr><td style="color:var(--t3);font-weight:600">Vessel</td><td>MV Hapag San Francisco</td></tr>
+          <tr><td style="color:var(--t3);font-weight:600">Voyage</td><td class="mono">214WB</td></tr>
+          <tr><td style="color:var(--t3);font-weight:600">HS Code [pdf]</td><td class="mono">0201.30.00</td></tr>
+          <tr><td style="color:var(--t3);font-weight:600">Gross Weight [pdf]</td><td>20,900 kg</td></tr>
+        </table>
+      </div>
+      <div>
+        <table class="dt" style="font-size:12px">
+          <tr><td style="width:130px;color:var(--t3);font-weight:600">Revised ETA</td><td class="mono" style="color:var(--red);font-weight:700">2026-04-16 (+6d)</td></tr>
+          <tr><td style="color:var(--t3);font-weight:600">Set Point</td><td class="mono">+1.0°C</td></tr>
+          <tr><td style="color:var(--t3);font-weight:600">Current Temp</td><td class="mono" style="color:var(--red);font-weight:700">+2.8°C ⚠ +1.8°C OVER</td></tr>
+          <tr><td style="color:var(--t3);font-weight:600">Breach Hours</td><td style="color:var(--red);font-weight:700">150 hours cumulative</td></tr>
+          <tr><td style="color:var(--t3);font-weight:600">Shelf Life Impact</td><td style="color:var(--red);font-weight:700">Est. -7.5 days</td></tr>
+          <tr><td style="color:var(--t3);font-weight:600">CHED-PP</td><td style="color:var(--red);font-weight:700">MANDATORY — declare breach</td></tr>
+        </table>
+        <div style="margin-top:8px;background:var(--rl);border-radius:4px;padding:7px 10px;font-size:11px;color:var(--rd)">
+          Parse source: <strong>BODY+PDF MERGED</strong> · Fields extracted: <strong>48/48</strong> · Domain: <strong>@hapag-lloyd.com ✓ ALLOWED</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PDF 3 -->
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:8px;height:8px;border-radius:50%;background:#1B3E8A"></div>
+        <span style="font-family:var(--mono);font-size:12px;font-weight:600;color:var(--t2)">SHIPPING_MSCU5512087_MSC_DepartureConf.pdf</span>
+      </div>
+      <div style="display:flex;gap:6px"><span class="bdg g">On Time</span><span class="bdg t">Departed</span><span class="bdg g">No Breach</span></div>
+    </div>
+    <div class="alert-bar g" style="margin-bottom:12px">✓ Vessel departed Fremantle. Reefer unit operational — PTI passed. ETA Southampton 2026-04-21. All systems nominal.</div>
+    <div class="g2">
+      <div>
+        <div style="background:var(--gl);border:2px solid rgba(22,163,74,.2);border-radius:6px;padding:10px 14px;margin-bottom:8px">
+          <div style="font-size:11px;color:var(--gd);font-weight:600;margin-bottom:3px">Shipping Reference [body+pdf]</div>
+          <div style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--gd)">MSCUFE5512087001</div>
+        </div>
+        <table class="dt" style="font-size:12px">
+          <tr><td style="width:130px;color:var(--t3);font-weight:600">Container No.</td><td class="mono" style="color:var(--teal-d);font-weight:700">MSCU5512087</td></tr>
+          <tr><td style="color:var(--t3);font-weight:600">Vessel</td><td>MV MSC Beatrice</td></tr>
+          <tr><td style="color:var(--t3);font-weight:600">Voyage</td><td class="mono">716AU</td></tr>
+          <tr><td style="color:var(--t3);font-weight:600">Route</td><td>Cape of Good Hope — Direct</td></tr>
+          <tr><td style="color:var(--t3);font-weight:600">HS Code [pdf]</td><td class="mono">0202.30.00</td></tr>
+          <tr><td style="color:var(--t3);font-weight:600">Gross Weight [pdf]</td><td>27,000 kg</td></tr>
+        </table>
+      </div>
+      <div>
+        <table class="dt" style="font-size:12px">
+          <tr><td style="width:130px;color:var(--t3);font-weight:600">ATD</td><td class="mono">2026-02-10 08:00 UTC</td></tr>
+          <tr><td style="color:var(--t3);font-weight:600">ETA Southampton</td><td class="mono" style="color:var(--green);font-weight:700">2026-04-21 (On Time)</td></tr>
+          <tr><td style="color:var(--t3);font-weight:600">Set Point</td><td class="mono">-18.0°C</td></tr>
+          <tr><td style="color:var(--t3);font-weight:600">Latest Temp</td><td class="mono" style="color:var(--green);font-weight:700">-18.2°C ✓ OK</td></tr>
+          <tr><td style="color:var(--t3);font-weight:600">Breach Active</td><td style="color:var(--green);font-weight:700">NO</td></tr>
+          <tr><td style="color:var(--t3);font-weight:600">IPAFFS Due</td><td>2026-04-19 (not yet required)</td></tr>
+        </table>
+        <div style="margin-top:8px;background:var(--gl);border-radius:4px;padding:7px 10px;font-size:11px;color:var(--gd)">
+          Parse source: <strong>BODY+PDF MERGED</strong> · Fields extracted: <strong>45/48</strong> · Domain: <strong>@msc.com ✓ ALLOWED</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+  PAGE 4 — EXCEL TRACKER
+══════════════════════════════════════════════════════ -->
+<div class="pg" id="pg-excel">
+<div class="wrap">
+  <div class="ptitle">Excel Tracker — 7-Sheet Workbook</div>
+  <div class="psub">Auto-written by the pipeline after each PDF parse. All 12 containers. Click sheet tabs to explore.</div>
+
+  <div class="xl-shell">
+    <div class="xl-topbar">
+      <span class="xl-logo">📊</span>
+      <span class="xl-title">MeatTrackAI_Reefer_Status_Tracker.xlsx</span>
+      <span style="font-size:11px;color:rgba(255,255,255,.7)">Last saved: 2026-03-26 14:30 UTC</span>
+    </div>
+    <div class="xl-tabs" id="xl-tabs">
+      <div class="xl-tab on" onclick="showSheet('tracker',this)">Live Status Tracker</div>
+      <div class="xl-tab" onclick="showSheet('impact',this)">ETA Impact Analysis</div>
+      <div class="xl-tab" onclick="showSheet('coldchain',this)">Cold Chain Monitor</div>
+      <div class="xl-tab" onclick="showSheet('inbox',this)">Outlook Inbox Log</div>
+      <div class="xl-tab" onclick="showSheet('notifs',this)">Client Notifications</div>
+      <div class="xl-tab" onclick="showSheet('btom',this)">BTOM Compliance</div>
+      <div class="xl-tab" onclick="showSheet('risk',this)">Risk Events</div>
+    </div>
+    <div class="xl-body" id="xl-body"></div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+  PAGE 5 — PIPELINE DEMO
+══════════════════════════════════════════════════════ -->
+<div class="pg" id="pg-pipeline">
+<div class="wrap">
+  <div class="ptitle">Live Pipeline Simulation</div>
+  <div class="psub">Watch the full Microsoft integration pipeline run. Click each stage or press Run Full Pipeline.</div>
+
+  <div class="g2" style="gap:16px">
+  <div>
+    <div class="card">
+      <div class="ctitle">Pipeline Stages</div>
+      <div style="display:flex;flex-direction:column;gap:8px" id="stage-list"></div>
+      <button onclick="runAll()" style="margin-top:10px;width:100%;padding:10px;background:var(--teal);color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer">
+        ▶ Run Full Pipeline
+      </button>
+    </div>
+  </div>
+  <div>
+    <div class="term">
+      <div class="tbar">
+        <div class="tdot" style="background:#FF5F57"></div>
+        <div class="tdot" style="background:#FFBD2E"></div>
+        <div class="tdot" style="background:#27C93F"></div>
+        <span class="ttitle">MeatTrackAI — Microsoft Graph Pipeline</span>
+      </div>
+      <div class="tbody" id="terminal">
+        <div class="td">Ready. Click a stage or Run Full Pipeline to begin.</div>
+        <div class="td">$ _</div>
+      </div>
+    </div>
+  </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+  PAGE 6 — NOTIFICATIONS
+══════════════════════════════════════════════════════ -->
+<div class="pg" id="pg-notify">
+<div class="wrap">
+  <div class="ptitle">Client Notifications — Microsoft Graph sendMail</div>
+  <div class="psub">HTML emails dispatched via Graph API. Colour-coded by impact class. Dedup prevents duplicate sends.</div>
+
+  <div class="g2" style="gap:16px">
+  <div>
+    <div class="card" style="margin-bottom:14px">
+      <div class="ctitle">Dispatch Log — 8 sent</div>
+      <table class="dt">
+        <thead><tr><th>Container</th><th>Customer</th><th>Class</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">MRKU4821073</td><td style="font-size:12px">Tesco Distribution</td><td><span class="bdg a">DELAY</span></td><td><span class="bdg g">✓ Sent</span></td></tr>
+          <tr><td class="mono">MRKU4821073</td><td style="font-size:12px">Brakes Group</td><td><span class="bdg a">DELAY</span></td><td><span class="bdg g">✓ Sent</span></td></tr>
+          <tr><td class="mono">HLXU9901234</td><td style="font-size:12px">Tesco Distribution</td><td><span class="bdg r">CRITICAL</span></td><td><span class="bdg g">✓ Sent</span></td></tr>
+          <tr><td class="mono">HLXU9901234</td><td style="font-size:12px">Co-op Foods</td><td><span class="bdg r">CRITICAL</span></td><td><span class="bdg g">✓ Sent</span></td></tr>
+          <tr><td class="mono">TCKU8820445</td><td style="font-size:12px">Iceland Foods</td><td><span class="bdg a">DELAY</span></td><td><span class="bdg g">✓ Sent</span></td></tr>
+          <tr><td class="mono">TCKU8820445</td><td style="font-size:12px">Farmfoods</td><td><span class="bdg a">DELAY</span></td><td><span class="bdg g">✓ Sent</span></td></tr>
+          <tr><td class="mono">OOLU6634128</td><td style="font-size:12px">Ocado Retail</td><td><span class="bdg a">SIGNIFICANT</span></td><td><span class="bdg g">✓ Sent</span></td></tr>
+          <tr><td class="mono">MSCU5512087</td><td style="font-size:12px">Asda Distribution</td><td><span class="bdg g">ON TIME</span></td><td><span class="bdg x">No email</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="ctitle">Graph API sendMail</div>
+      <pre class="cb"><span class="cc"># Dispatch via Python + MS Graph</span>
+<span class="cs">import</span> requests, base64
+<span class="cs">from</span> email.mime.multipart <span class="cs">import</span> MIMEMultipart
+<span class="cs">from</span> email.mime.text <span class="cs">import</span> MIMEText
+
+msg = MIMEMultipart(<span class="cv">"alternative"</span>)
+msg[<span class="cv">"To"</span>]      = <span class="cv">"logistics@tesco.co.uk"</span>
+msg[<span class="cv">"From"</span>]    = <span class="cv">"reefer-inbox@ukpremiummeats.co.uk"</span>
+msg[<span class="cv">"Subject"</span>] = subject
+msg.attach(MIMEText(html_body, <span class="cv">"html"</span>))
+raw = base64.urlsafe_b64encode(
+    msg.as_bytes()).decode()
+
+requests.post(
+    <span class="cv">f"https://graph.microsoft.com/v1.0"</span>
+    <span class="cv">f"/users/{mailbox}/sendMail"</span>,
+    headers={<span class="cv">"Authorization"</span>: <span class="cv">f"Bearer {token}"</span>},
+    json={<span class="cv">"message"</span>: {<span class="cv">"rawMessage"</span>: raw},
+          <span class="cv">"saveToSentItems"</span>: True}
+)</pre>
+    </div>
+  </div>
+  <div>
+    <div style="margin-bottom:8px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--t3)">Preview — DELAY Email</div>
+    <div class="notif-email" style="margin-bottom:14px">
+      <div class="ne-hdr a"><div class="ne-meta">UK Premium Meats Ltd — Shipment Intelligence</div><div class="ne-title">Delivery Delay Notice</div><div class="ne-sub">MRKU4821073 · Maersk · MV Maersk Hobart</div></div>
+      <div class="ne-body">
+        <p style="color:#374151;margin-bottom:10px">Dear Tesco Distribution Ltd,<br><br>We are writing to notify you of a change to the estimated arrival of your inbound shipment from Australia.</p>
+        <div style="background:var(--bg3);border-radius:6px;padding:10px;margin-bottom:10px">
+          <div class="ne-kv"><span class="ne-k">Container</span><span class="ne-v mono">MRKU4821073</span></div>
+          <div class="ne-kv"><span class="ne-k">Original ETA</span><span class="ne-v mono">2026-03-22</span></div>
+          <div class="ne-kv"><span class="ne-k">Revised ETA</span><span class="ne-v hot">2026-03-26  (+4.5 days)</span></div>
+          <div class="ne-kv"><span class="ne-k">Port of Arrival</span><span class="ne-v">Tilbury (GBTIL)</span></div>
+        </div>
+        <div style="padding:7px 10px;background:var(--al);border-left:3px solid var(--amber);margin-bottom:10px;font-size:12px;color:#374151"><strong>Reason:</strong> Cape of Good Hope reroute — Red Sea/Houthi risk. +8 days offset by increased speed.</div>
+        <div style="font-size:12px;font-weight:600;color:var(--navy);margin-bottom:6px">Affected Orders</div>
+        <div class="or" style="font-weight:600;background:var(--bg3);font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--t3)"><span>Order</span><span>Product</span><span>Qty</span><span>Status</span></div>
+        <div class="or"><span class="mono">ORD-2241</span><span>Frozen Beef BMB</span><span>18,000 kg</span><span style="color:var(--amber);font-weight:600">DELAY</span></div>
+        <div class="or"><span class="mono">ORD-2244</span><span>Beef Mince</span><span>6,000 kg</span><span style="color:var(--red);font-weight:600">URGENT</span></div>
+        <div style="background:var(--bg3);border:1px solid var(--brd);border-radius:5px;padding:9px;margin-top:10px;font-size:12px"><strong>Required Actions:</strong> Confirm revised delivery window. Reschedule cold store slot. Update ATP dates in your order system.</div>
+      </div>
+      <div class="ne-foot">UK Premium Meats Ltd · reefer-inbox@ukpremiummeats.co.uk · MeatTrackAI · MRKU4821073 · 2026-03-26 14:32 UTC</div>
+    </div>
+    <div style="margin-bottom:8px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--t3)">Preview — CRITICAL Email</div>
+    <div class="notif-email">
+      <div class="ne-hdr r"><div class="ne-meta">UK Premium Meats Ltd — Shipment Intelligence</div><div class="ne-title">CRITICAL — Immediate Action Required</div><div class="ne-sub">HLXU9901234 · Hapag-Lloyd · MV Hapag San Francisco</div></div>
+      <div class="ne-body">
+        <div class="alert-bar r" style="margin-bottom:10px"><strong>⚠ Cold Chain Alert:</strong> Active temperature breach — +2.8°C vs set point +1.0°C. 150hrs cumulative. Est. shelf-life reduction -7.5 days. QA assessment required on arrival.</div>
+        <div style="background:var(--bg3);border-radius:6px;padding:10px;margin-bottom:10px">
+          <div class="ne-kv"><span class="ne-k">Container</span><span class="ne-v mono">HLXU9901234</span></div>
+          <div class="ne-kv"><span class="ne-k">Revised ETA</span><span class="ne-v crit">2026-04-16  (+6 days)</span></div>
+          <div class="ne-kv"><span class="ne-k">Current Temp</span><span class="ne-v crit">+2.8°C vs set +1.0°C</span></div>
+        </div>
+        <div class="or" style="font-weight:600;background:var(--bg3);font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--t3)"><span>Order</span><span>Product</span><span>Qty</span><span>Status</span></div>
+        <div class="or"><span class="mono">ORD-2272</span><span>Beef Steaks</span><span>9,000 kg</span><span style="color:var(--red);font-weight:700">CRITICAL</span></div>
+        <div style="background:var(--bg3);border:1px solid var(--brd);border-radius:5px;padding:9px;margin-top:10px;font-size:12px"><strong>Required Actions:</strong> QA team to assess shelf-life. Prepare rejection/claim procedure. Declare breach on CHED-PP. Elevated BCP inspection likely.</div>
+        <p style="font-size:11px;color:var(--t3);margin-top:10px;border-top:1px solid var(--brd);padding-top:8px">This notice is issued in accordance with contractual obligations. Refer to contract terms for force majeure provisions if applicable.</p>
+      </div>
+      <div class="ne-foot">UK Premium Meats Ltd · reefer-inbox@ukpremiummeats.co.uk · MeatTrackAI · HLXU9901234 · 2026-03-26 14:35 UTC</div>
+    </div>
+  </div>
+  </div>
+</div>
+</div>
+
+<script>
+// ── NAV ───────────────────────────────────────────────────────────────────────
+const PAGES = ['setup','outlook','parse','excel','pipeline','notify'];
+function go(id) {
+  PAGES.forEach(p => {
+    document.getElementById('pg-'+p).classList.toggle('on', p===id);
+    document.querySelectorAll('.tab')[PAGES.indexOf(p)].classList.toggle('on', p===id);
+  });
+  window.scrollTo(0,0);
+  if (id==='outlook') renderEmailList('all');
+  if (id==='excel')   showSheet('tracker', document.querySelector('.xl-tab.on') || document.querySelector('.xl-tab'));
+  if (id==='pipeline') initStages();
+}
+
+// ── OUTLOOK SIMULATION ────────────────────────────────────────────────────────
+const EMAILS = [
+  {from:'Maersk Customer Service',addr:'customerservice@maersk.com',subj:'Arrival Notice MRKU4821073 — Tilbury ETA Today 18:00 — BL: MAEU1234567890',time:'07:15',label:'ship',allowed:true,ref:'MRKU4821073',type:'ARRIVAL_NOTICE',
+   fields:{bl:'MAEU1234567890',container:'MRKU4821073',vessel:'MV Maersk Hobart',eta:'2026-03-26',delta:'+4.5d',temp:'-17.8°C',breach:false,btom:'SUBMITTED IPAFFS-2026-TLB-094821'},
+   bg:'#003087'},
+  {from:'Hapag-Lloyd Reefer Ops',addr:'reefer@hlag.com',subj:'CRITICAL TEMP ALERT HLXU9901234 — Deviation +1.8°C — BL: HLBU9901234001',time:'09:00',label:'reef',allowed:true,ref:'HLXU9901234',type:'TEMP_ALERT',
+   fields:{bl:'HLBU9901234001',container:'HLXU9901234',vessel:'MV Hapag San Francisco',eta:'2026-04-16',delta:'+6d',temp:'+2.8°C ⚠',breach:true,btom:'PENDING — BREACH must be declared'},
+   bg:'#E2001A'},
+  {from:'MSC Reefer Ops',addr:'reefer@msc.com',subj:'Voyage Update MSCU5512087 — Cape Town Pass — BL: MSCUFE5512087001',time:'14:10',label:'ship',allowed:true,ref:'MSCU5512087',type:'POSITION_UPDATE',
+   fields:{bl:'MSCUFE5512087001',container:'MSCU5512087',vessel:'MV MSC Beatrice',eta:'2026-04-21',delta:'On time',temp:'-18.2°C',breach:false,btom:'Pre-notification due 2026-04-19'},
+   bg:'#1B3E8A'},
+  {from:'IPAFFS Government',addr:'noreply@ipaffs.gov.uk',subj:'IPAFFS Pre-Notification Accepted — MRKU4821073 — Ref: IPAFFS-2026-TLB-094821',time:'11:00',label:'comp',allowed:true,ref:'MRKU4821073',type:'BTOM_CONFIRM',
+   fields:{bl:'MAEU1234567890',container:'MRKU4821073',vessel:'MV Maersk Hobart',eta:'2026-03-26',delta:'+4.5d',temp:'-17.8°C',breach:false,btom:'ACCEPTED ✓'},
+   bg:'#16A34A'},
+  {from:'Maersk Customer Service',addr:'customerservice@maersk.com',subj:'ETA Update MRKU7734901 — South Atlantic Position',time:'08:30',label:'ship',allowed:true,ref:'MRKU7734901',type:'ETA_UPDATE',
+   fields:{bl:'MAEU7734901001',container:'MRKU7734901',vessel:'MV Sealand Michigan',eta:'2026-04-02',delta:'On time',temp:'+2.1°C',breach:false,btom:'Pre-notification due 2026-03-31'},
+   bg:'#003087'},
+  {from:'CMA CGM Customer Service',addr:'customerservice@cma-cgm.com',subj:'Route Update TCKU8820445 — Slow Steam Notice +7 Days',time:'09:45',label:'ship',allowed:true,ref:'TCKU8820445',type:'SLOW_STEAM',
+   fields:{bl:'CMDU8820445001',container:'TCKU8820445',vessel:'MV CMA CGM Liberte',eta:'2026-04-15',delta:'+7d',temp:'-19.2°C',breach:false,btom:'Pre-notification due 2026-04-13'},
+   bg:'#E63329'},
+  {from:'Evergreen Marine Service',addr:'service@evergreen-line.com',subj:'Ceasefire Update EVRU8821100 — Suez Route Confirmed ETA Improved',time:'12:00',label:'ship',allowed:true,ref:'EVRU8821100',type:'ROUTE_RESTORED',
+   fields:{bl:'EVRU8821100001',container:'EVRU8821100',vessel:'MV Ever Summit',eta:'2026-04-12',delta:'-2d ✓',temp:'+2.0°C',breach:false,btom:'Pre-notification due 2026-04-10'},
+   bg:'#1A8A3C'},
+  {from:'Hapag-Lloyd Reefer Ops',addr:'reefer@hlag.com',subj:'Delay Notice HASU4490012 — Slow Steam Order +7 Days',time:'08:00',label:'ship',allowed:true,ref:'HASU4490012',type:'DELAY_NOTICE',
+   fields:{bl:'HLBU4490012001',container:'HASU4490012',vessel:'MV Hamburg Express',eta:'2026-04-29',delta:'+7d',temp:'+1.2°C',breach:false,btom:'Pre-notification due 2026-04-27'},
+   bg:'#E2001A'},
+  {from:'Freight News Weekly',addr:'deals@freightnews.com',subj:'Weekly Freight Market Update — March 2026 Rates',time:'16:30',label:null,allowed:false,ref:null,type:'BLOCKED',fields:null,bg:'#6B7280'},
+  {from:'Quote Service',addr:'quotes@gmail.com',subj:'Freight forwarding quote — cheapest rates this week',time:'09:15',label:null,allowed:false,ref:null,type:'BLOCKED',fields:null,bg:'#6B7280'},
+  {from:'OOCL Customer Service',addr:'service@oocl.com',subj:'Position Update OOLU6634128 — Malacca Strait Transit',time:'13:00',label:'ship',allowed:true,ref:'OOLU6634128',type:'POSITION_UPDATE',
+   fields:{bl:'OOLU6634128001',container:'OOLU6634128',vessel:'MV OOCL London',eta:'2026-04-16',delta:'+4d',temp:'+0.2°C',breach:false,btom:'Pre-notification due 2026-04-14'},
+   bg:'#1B3E8A'},
+  {from:'MSC Reefer Ops',addr:'reefer@msc.com',subj:'Departure Confirmation MSCU5512087 Fremantle — BL: MSCUFE5512087001',time:'14:30',label:'ship',allowed:true,ref:'MSCU5512087',type:'DEPARTURE_CONF',
+   fields:{bl:'MSCUFE5512087001',container:'MSCU5512087',vessel:'MV MSC Beatrice',eta:'2026-04-21',delta:'On time',temp:'-18.2°C',breach:false,btom:'Pre-notification due 2026-04-19'},
+   bg:'#1B3E8A'},
+];
+
+let activeLabel = 'all', selEmail = null;
+function filterLabel(lbl) { activeLabel = lbl; selEmail = null; renderEmailList(lbl); }
+
+function renderEmailList(lbl) {
+  const list = document.getElementById('email-list');
+  const filtered = lbl==='all' ? EMAILS :
+    lbl==='blocked' ? EMAILS.filter(e=>!e.allowed) :
+    EMAILS.filter(e=>e.label===lbl);
+  document.getElementById('email-count-lbl').textContent = `Showing ${filtered.length} of ${EMAILS.length}`;
+  list.innerHTML = filtered.map((e,i)=>{
+    const sel = selEmail && selEmail.addr===e.addr && selEmail.subj===e.subj ? ' on' : '';
+    const unr = i<4 ? ' unread' : '';
+    const blk = !e.allowed ? ' blocked' : '';
+    const av = (e.from.split(' ').map(w=>w[0]).join('').substring(0,2)).toUpperCase();
+    let lblHtml = '';
+    if (e.label==='ship') lblHtml='<span class="er-lbl ship">lsc-shipping</span>';
+    if (e.label==='reef') lblHtml='<span class="er-lbl reef">🌡 lsc-reefer</span>';
+    if (e.label==='comp') lblHtml='<span class="er-lbl comp">lsc-compliance</span>';
+    if (!e.allowed)        lblHtml='<span class="er-lbl blk">🚫 BLOCKED</span>';
+    return `<div class="email-row${sel}${unr}${blk}" onclick="selectEmail(${EMAILS.indexOf(e)})">
+      <div class="er-top">
+        <div class="er-from" style="display:flex;align-items:center;gap:7px">
+          <div style="width:24px;height:24px;border-radius:50%;background:${e.bg};color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${av}</div>
+          ${e.from}
+        </div>
+        <span class="er-time">${e.time}</span>
+      </div>
+      <div class="er-subj">${e.subj}</div>
+      <div class="er-labels">${lblHtml}${e.type!=='BLOCKED'?'<span class="er-lbl" style="background:#F3F4F6;color:#374151">'+e.type.replace('_',' ')+'</span>':''}</div>
+    </div>`;
+  }).join('');
+}
+
+function selectEmail(idx) {
+  selEmail = EMAILS[idx];
+  const lbl = activeLabel;
+  renderEmailList(lbl);
+  const detail = document.getElementById('email-detail');
+  const e = selEmail;
+  if (!e.allowed) {
+    detail.innerHTML = `<div style="padding:20px"><div style="background:var(--rl);border-radius:8px;padding:16px;display:flex;gap:12px"><div style="font-size:24px">🚫</div><div><div style="font-size:14px;font-weight:700;color:var(--rd);margin-bottom:6px">Email Blocked by Domain Governance</div><div style="font-size:13px;color:#5F0000;line-height:1.5">Sender domain <strong>${e.addr.split('@')[1] ? '@'+e.addr.split('@')[1] : 'unknown'}</strong> is not in the approved carrier list.<br>Email rejected before parsing. Logged to Excel → Outlook Inbox Log tab.</div></div></div></div>`;
+    return;
+  }
+  const f = e.fields;
+  const hc = f.breach ? '#C0392B' : e.type==='ROUTE_RESTORED' ? '#16A34A' : e.label==='comp' ? '#16A34A' : '#1E3A5F';
+  const imp = f.breach ? 'CRITICAL' : (f.delta&&f.delta.startsWith('+')&&parseInt(f.delta)>5) ? 'SIGNIFICANT' : (f.delta&&f.delta.startsWith('+')) ? 'DELAY' : 'ON_TIME';
+  const impBg = {CRITICAL:'#FEE2E2',SIGNIFICANT:'#FEF3C7',DELAY:'#FEF3C7',ON_TIME:'#DCFCE7'}[imp];
+  const impFg = {CRITICAL:'#7F1D1D',SIGNIFICANT:'#78350F',DELAY:'#78350F',ON_TIME:'#14532D'}[imp];
+  detail.innerHTML = `
+    <div class="ed-subject">${e.subj}</div>
+    <div class="ed-meta">
+      <div class="ed-avatar" style="background:${e.bg}">${(e.from.split(' ').map(w=>w[0]).join('').substring(0,2)).toUpperCase()}</div>
+      <span><strong>${e.from}</strong> &lt;${e.addr}&gt;</span>
+      <span style="margin-left:auto">2026-03-26 ${e.time} UTC</span>
+    </div>
+    <div style="background:${impBg};border-radius:5px;padding:7px 12px;margin-bottom:12px;font-size:12px;font-weight:600;color:${impFg}">
+      Impact Classification: ${imp}${f.breach?' — Cold chain breach declared':''}
+    </div>
+    <div class="ed-card">
+      <div class="ed-card-hdr" style="background:${hc}">${e.type.replace(/_/g,' ')} · ${e.ref}</div>
+      <div class="ed-fields">
+        ${[['Shipping Reference',f.bl],['Container',f.container],['Vessel',f.vessel],['ETA',f.eta],['ETA Delta',f.delta],['Reefer Temp',f.temp],['Breach',f.breach?'YES ⚠':'No'],['BTOM',f.btom]].map(([k,v])=>`
+        <div class="ed-field">
+          <div class="ed-fk">${k}</div>
+          <div class="ed-fv ${v&&v.includes('⚠')?'crit':v&&(v.startsWith('+')||v.includes('NO'))&&!v.includes('⚠')?'warn':v==='No'||v.includes('SUBMIT')||v.includes('ACCEPT')?'ok':''}">${v}</div>
+        </div>`).join('')}
+      </div>
+    </div>
+    <div class="ed-parse">Parse source: <span style="color:var(--green)">BODY+PDF MERGED</span> · Domain: <span style="color:var(--green)">✓ ALLOWED → ${e.label?'Label: lsc-'+e.label:'No label'}</span> · Data written to Excel tracker.</div>`;
+}
+
+// ── EXCEL SHEETS ──────────────────────────────────────────────────────────────
+const SHEET_DATA = {
+  tracker: {
+    headers: ['Container','Carrier','Voyage','Origin → Dest','ATD','ETA Curr','Δ Days','Status','Product','Type','Temp','Breach','Risk'],
+    rows: [
+      ['MRKU4821073','Maersk','426W','MEL→TIL','14 Jan','26 Mar','xrd:+4.5d','Port Approach','Frozen Beef BMB','Frozen','xt:-17.8°C','xr:No','xa:MEDIUM'],
+      ['MRKU7734901','Maersk','514E','BNE→SOT','20 Jan','02 Apr','xr:0d','At Sea','Chilled Lamb','Chilled','xr:+2.1°C','xr:No','xr:LOW'],
+      ['TCKU8820445','CMA CGM','103AU','ADL→TIL','28 Jan','15 Apr','xa:+7d','At Sea Delayed','Frozen Lamb','Frozen','xr:-19.2°C','xr:No','xa:MEDIUM'],
+      ['HLXU9901234','Hapag-Lloyd','214WB','SYD→TIL','05 Feb','16 Apr','xa:+6d','xa:At Sea ALERT','Chilled Beef','Chilled','xrd:+2.8°C','xrd:YES ⚠','xrd:CRITICAL'],
+      ['MSCU5512087','MSC','716AU','FRE→SOT','10 Feb','21 Apr','xa:+3d','At Sea','Frozen Beef WM','Frozen','xr:-18.2°C','xr:No','xa:MEDIUM'],
+      ['OOLU6634128','OOCL','802EU','MEL→TIL','15 Feb','16 Apr','xa:+4d','At Sea','Fresh Lamb CA','Fresh','xr:+0.2°C','xr:No','xa:HIGH'],
+      ['MSDU3310092','MSC','719AU','ADL→SOT','20 Feb','25 Apr','xr:0d','At Sea','Frozen Beef Chk','Frozen','xr:-18.1°C','xr:No','xr:LOW'],
+      ['CMAU7712034','CMA CGM','108AU','BNE→TIL','25 Feb','05 Apr','xa:+3d','At Sea','Frozen Lamb Trim','Frozen','xr:-19.8°C','xr:No','xa:MEDIUM'],
+      ['HASU4490012','Hapag-Lloyd','221WB','MEL→SOT','01 Mar','29 Apr','xa:+7d','At Sea','Chilled Beef Str','Chilled','xr:+1.2°C','xr:No','xa:MEDIUM'],
+      ['MRKU3319021','Maersk','427W','SYD→TIL','05 Mar','19 Apr','xr:0d','At Sea','Frozen Beef Rib','Frozen','xr:-17.9°C','xr:No','xr:LOW'],
+      ['EVRU8821100','Evergreen','AU22E','MEL→TIL','10 Mar','12 Apr','xg:-2d','At Sea','Chilled Lamb Rack','Chilled','xr:+2.0°C','xr:No','xr:LOW'],
+      ['COSU6678234','COSCO','AEU14','FRE→SOT','15 Mar','28 Apr','xr:0d','At Sea','Frozen Beef Mix','Frozen','xr:-18.0°C','xr:No','xr:LOW'],
+    ]
+  },
+  impact: {
+    headers: ['Container','Carrier','Product','Δ Days','Delay Reason','Breach','Impact Class','Action Required'],
+    rows: [
+      ['MRKU4821073','Maersk','Frozen Beef BMB','xa:+4.5d','Cape reroute — Red Sea/Houthi','No','xa:DELAY','Notify customer. Reschedule slot. Update ATP.'],
+      ['MRKU7734901','Maersk','Chilled Lamb','xr:0d','','No','xg:ON_TIME','No action required.'],
+      ['TCKU8820445','CMA CGM','Frozen Lamb','xa:+7d','Slow-steam — bunker optimisation','No','xa:DELAY','Notify customer. Reschedule slot. Update ATP.'],
+      ['HLXU9901234','Hapag-Lloyd','Chilled Beef','xrd:+6d','Port Louis congestion + reefer fault','xrd:YES','xrd:CRITICAL','Executive escalation. Force majeure. Alt sourcing.'],
+      ['MSCU5512087','MSC','Frozen Beef WM','xa:+3d','Southern Ocean storm diversion','No','xa:DELAY','Notify customer. Reschedule slot. Update ATP.'],
+      ['OOLU6634128','OOCL','Fresh Lamb CA','xa:+4d','Hormuz closure — IRGC exercise','No','xa:SIGNIFICANT','Urgent client notification. SLA review. Replan.'],
+      ['MSDU3310092','MSC','Frozen Beef Chuck','xr:0d','','No','xg:ON_TIME','No action required.'],
+      ['CMAU7712034','CMA CGM','Frozen Lamb Trim','xa:+3d','Cape reroute then ceasefire Suez','No','xa:DELAY','Notify customer. Reschedule slot. Update ATP.'],
+      ['HASU4490012','Hapag-Lloyd','Chilled Beef Str','xa:+7d','Slow-steam — bunker optimisation','No','xa:DELAY','Notify customer. Reschedule slot. Update ATP.'],
+      ['MRKU3319021','Maersk','Frozen Beef Ribeye','xr:0d','','No','xg:ON_TIME','No action required.'],
+      ['EVRU8821100','Evergreen','Chilled Lamb Rack','xg:-2d','Ceasefire — Suez confirmed','No','xg:ON_TIME','No action — ETA improved.'],
+      ['COSU6678234','COSCO','Frozen Beef Mixed','xr:0d','','No','xg:ON_TIME','No action required.'],
+    ]
+  },
+  coldchain: {
+    headers: ['Container','Product','Type','Set Pt °C','Curr Temp','Deviation','Breach','Hrs Over','Shelf Life Impact','Power'],
+    rows: [
+      ['MRKU4821073','Frozen Beef BMB','Frozen','-18.0','-17.8','+0.2','No','0','Nominal','ON'],
+      ['MRKU7734901','Chilled Lamb','Chilled','+2.0','+2.1','+0.1','No','0','Nominal','ON'],
+      ['TCKU8820445','Frozen Lamb','Frozen','-20.0','-19.2','+0.8','No','0','Nominal','ON'],
+      ['HLXU9901234','Chilled Beef','Chilled','+1.0','xrd:+2.8°C','xrd:+1.8','xrd:YES ⚠','xrd:150','xrd:Est. -7.5 days','ON'],
+      ['MSCU5512087','Frozen Beef WM','Frozen','-18.0','-18.2','-0.2','No','0','Nominal','ON'],
+      ['OOLU6634128','Fresh Lamb CA','Fresh','0.0','+0.2','+0.2','No','0','Nominal','ON'],
+      ['MSDU3310092','Frozen Beef Chk','Frozen','-18.0','-18.1','-0.1','No','0','Nominal','ON'],
+      ['CMAU7712034','Frozen Lamb Trim','Frozen','-20.0','-19.8','+0.2','No','0','Nominal','ON'],
+      ['HASU4490012','Chilled Beef Str','Chilled','+1.0','+1.2','+0.2','No','0','Nominal','ON'],
+      ['MRKU3319021','Frozen Beef Rib','Frozen','-18.0','-17.9','+0.1','No','0','Nominal','ON'],
+      ['EVRU8821100','Chilled Lamb Rack','Chilled','+2.0','+2.0','0.0','No','0','Nominal','ON'],
+      ['COSU6678234','Frozen Beef Mix','Frozen','-18.0','-18.0','0.0','No','0','Nominal','ON'],
+    ]
+  },
+  inbox: {
+    headers: ['Received UTC','Sender','Subject','Domain','Allowed','Container','Doc Type'],
+    rows: [
+      ['2026-03-26 07:15','customerservice@maersk.com','Arrival Notice MRKU4821073 — Tilbury ETA Today','@maersk.com','xg:✓ ALLOWED','xt:MRKU4821073','ARRIVAL_NOTICE'],
+      ['2026-03-26 09:00','reefer@hlag.com','CRITICAL TEMP ALERT HLXU9901234 — Deviation +1.8°C','@hapag-lloyd.com','xg:✓ ALLOWED','xt:HLXU9901234','TEMP_ALERT'],
+      ['2026-03-25 08:30','customerservice@maersk.com','ETA Update MRKU7734901 — South Atlantic','@maersk.com','xg:✓ ALLOWED','xt:MRKU7734901','ETA_UPDATE'],
+      ['2026-03-24 14:10','reefer@msc.com','Voyage Update MSCU5512087 — Cape Town Pass','@msc.com','xg:✓ ALLOWED','xt:MSCU5512087','POSITION_UPDATE'],
+      ['2026-03-23 11:00','noreply@ipaffs.gov.uk','IPAFFS Pre-Notification Accepted MRKU4821073','@ipaffs.gov.uk','xg:✓ ALLOWED','xt:MRKU4821073','BTOM_CONFIRM'],
+      ['2026-03-22 09:45','customerservice@cma-cgm.com','Route Update TCKU8820445 — Slow Steam','@cma-cgm.com','xg:✓ ALLOWED','xt:TCKU8820445','SLOW_STEAM'],
+      ['2026-03-20 16:30','deals@freightnews.com','Weekly Freight Market Update','@freightnews.com','xrd:✗ BLOCKED','—','BLOCKED'],
+      ['2026-03-19 08:00','reefer@hlag.com','Delay Notice HASU4490012 — +7 Days','@hapag-lloyd.com','xg:✓ ALLOWED','xt:HASU4490012','DELAY_NOTICE'],
+      ['2026-03-18 12:00','service@evergreen-line.com','Ceasefire Update EVRU8821100 — Suez','@evergreen-line.com','xg:✓ ALLOWED','xt:EVRU8821100','ROUTE_RESTORED'],
+      ['2026-03-15 09:15','quotes@gmail.com','Freight quote request','@gmail.com','xrd:✗ BLOCKED','—','BLOCKED'],
+    ]
+  },
+  notifs: {
+    headers: ['Sent UTC','Container','Customer','Recipient Email','Impact','Subject','Orders','Status'],
+    rows: [
+      ['2026-03-26 14:32','xt:MRKU4821073','Tesco Distribution','logistics@tesco.co.uk','xa:DELAY','Delivery Delay — MRKU4821073 | +4.5 days','ORD-2241, ORD-2244','xg:✓ Sent'],
+      ['2026-03-26 14:34','xt:MRKU4821073','Brakes Group','supply@brakes.co.uk','xa:DELAY','Delivery Delay — MRKU4821073 | +4.5 days','ORD-2244','xg:✓ Sent'],
+      ['2026-03-26 14:35','xt:HLXU9901234','Tesco Distribution','logistics@tesco.co.uk','xrd:CRITICAL','CRITICAL — HLXU9901234 | Temp Breach + 6d','ORD-2271','xg:✓ Sent'],
+      ['2026-03-26 14:36','xt:HLXU9901234','Co-op Foods','buying@coop.co.uk','xrd:CRITICAL','CRITICAL — HLXU9901234 | ORD-2272 Immediate','ORD-2272','xg:✓ Sent'],
+      ['2026-03-24 09:15','xt:TCKU8820445','Iceland Foods','procurement@iceland.co.uk','xa:DELAY','Delivery Delay — TCKU8820445 | +7 days','ORD-2260','xg:✓ Sent'],
+      ['2026-03-24 09:16','xt:TCKU8820445','Farmfoods','supply@farmfoods.co.uk','xa:DELAY','Delivery Delay — TCKU8820445 | +7 days','ORD-2261','xg:✓ Sent'],
+      ['2026-03-22 11:00','xt:OOLU6634128','Ocado Retail','imports@ocado.com','xa:SIGNIFICANT','URGENT — OOLU6634128 | +4d | Fresh Lamb','ORD-2288','xg:✓ Sent'],
+      ['2026-03-19 14:00','xt:HASU4490012','M&S Food','logistics@marksandspencer.com','xa:DELAY','Delivery Delay — HASU4490012 | +7 days','ORD-2301','xg:✓ Sent'],
+    ]
+  },
+  btom: {
+    headers: ['Container','Carrier','Product','ETA Current','48hr Deadline','72hr Deadline','IPAFFS Status','CHED-PP','BCP'],
+    rows: [
+      ['MRKU4821073','Maersk','Frozen Beef BMB','2026-03-26','2026-03-24','2026-03-23','xg:SUBMITTED — IPAFFS-2026-TLB-094821','Standard','Tilbury BCP'],
+      ['MRKU7734901','Maersk','Chilled Lamb','2026-04-02','2026-03-31','2026-03-30','xa:Pre-notification due 2026-03-31','Standard','Southampton BCP'],
+      ['TCKU8820445','CMA CGM','Frozen Lamb','2026-04-15','2026-04-13','2026-04-12','xa:Pre-notification due 2026-04-13','Standard','Tilbury BCP'],
+      ['HLXU9901234','Hapag-Lloyd','Chilled Beef','2026-04-16','2026-04-14','2026-04-13','xrd:PENDING — BREACH must be declared','xrd:MANDATORY','Tilbury BCP'],
+      ['MSCU5512087','MSC','Frozen Beef WM','2026-04-21','2026-04-19','2026-04-18','xa:Pre-notification due 2026-04-19','Standard','Southampton BCP'],
+      ['OOLU6634128','OOCL','Fresh Lamb CA','2026-04-16','2026-04-14','2026-04-13','xa:Pre-notification due 2026-04-14','Standard','Tilbury BCP'],
+      ['MSDU3310092','MSC','Frozen Beef Chuck','2026-04-25','2026-04-23','2026-04-22','Not yet due','Standard','Southampton BCP'],
+      ['CMAU7712034','CMA CGM','Frozen Lamb Trim','2026-04-05','2026-04-03','2026-04-02','xa:Pre-notification due 2026-04-03','Standard','Tilbury BCP'],
+      ['HASU4490012','Hapag-Lloyd','Chilled Beef Str','2026-04-29','2026-04-27','2026-04-26','Not yet due','Standard','Southampton BCP'],
+      ['MRKU3319021','Maersk','Frozen Beef Ribeye','2026-04-19','2026-04-17','2026-04-16','Not yet due','Standard','Tilbury BCP'],
+      ['EVRU8821100','Evergreen','Chilled Lamb Rack','2026-04-12','2026-04-10','2026-04-09','xa:Pre-notification due 2026-04-10','Standard','Tilbury BCP'],
+      ['COSU6678234','COSCO','Frozen Beef Mixed','2026-04-28','2026-04-26','2026-04-25','Not yet due','Standard','Southampton BCP'],
+    ]
+  },
+  risk: {
+    headers: ['Date','Type','Zone','Severity','Event Title','Detail','ETA Impact'],
+    rows: [
+      ['2026-01-08','GEOPOLITICAL','RED SEA','xa:HIGH','Houthi Attack — MV Nordic Star','Ballistic missile strike. Maersk/MSC/CMA CGM suspend Red Sea transits. Cape reroute mandated.','+8 days'],
+      ['2026-01-22','GEOPOLITICAL','HORMUZ','xrd:CRITICAL','Iran Naval Exercise — Hormuz Closure','IRGC exercises 22-28 Jan. FCDO advisory. Vessels diverted via Muscat.','+4 days'],
+      ['2026-02-14','PORT_CONGESTION','MAURITIUS','xa:MEDIUM','Stevedore Strike — Port Louis Terminal','3-5 day berth delays. Hapag-Lloyd HLXU9901234 affected.','+4 days'],
+      ['2026-02-28','WEATHER','SOUTHERN OCEAN','xa:MEDIUM','Deep Low Pressure — Storm Diversion','925 hPa low. Cape vessels diverted 200nm north.','+3 days'],
+      ['2026-03-10','PORT_CONGESTION','TILBURY BCP','xg:LOW','Tilbury BCP Inspection Backlog','24-36hr documentary delays. Pre-notifications must be 72hrs.','+1.5 days'],
+      ['2026-03-18','GEOPOLITICAL','RED SEA','xa:MEDIUM','Yemen Ceasefire — Suez Partial Reopening','CMA CGM/Evergreen resuming Suez. US/UK naval corridor.','-2 to -4 days'],
+    ]
+  },
+};
+
+const CLS = {xg:'xr',xa:'xa',xrd:'xrd',xb:'xb',xt:'xt',xr:''};
+function renderCell(val) {
+  for (const [prefix, cls] of Object.entries(CLS)) {
+    if (typeof val==='string' && val.startsWith(prefix+':')) {
+      const text = val.slice(prefix.length+1);
+      return `<td class="${cls}">${text}</td>`;
+    }
+  }
+  return `<td>${val}</td>`;
+}
+
+function showSheet(name, btn) {
+  const data = SHEET_DATA[name]; if (!data) return;
+  document.querySelectorAll('.xl-tab').forEach(t=>t.classList.remove('on'));
+  if (btn) btn.classList.add('on');
+  const hdrs = data.headers.map(h=>`<th>${h}</th>`).join('');
+  const rows = data.rows.map((row,ri)=>`<tr><td class="rn">${ri+4}</td>${row.map(renderCell).join('')}</tr>`).join('');
+  const hdrRow = `<th></th>${hdrs}`;
+  document.getElementById('xl-body').innerHTML = `
+    <table class="xl-table">
+      <thead>
+        <tr><th></th>${data.headers.map((h,ci)=>`<th>${String.fromCharCode(65+ci)}</th>`).join('')}</tr>
+        <tr><td class="rn">1</td><td colspan="${data.headers.length}" class="xhdr" style="font-size:12px">MeatTrackAI — ${name==='tracker'?'Inbound Reefer Container Live Status Tracker':name==='impact'?'ETA Impact & Order Risk Analysis':name==='coldchain'?'Cold Chain Temperature Monitor':name==='inbox'?'Outlook Inbox Processing Log':name==='notifs'?'Client Notification Dispatch Log':name==='btom'?'BTOM / IPAFFS Compliance Schedule':'Geopolitical & Operational Risk Event Log'}</td></tr>
+        <tr><td class="rn">2</td><td colspan="${data.headers.length}" class="xthdr" style="font-size:10px">Source: Microsoft Outlook (Graph API) → PDF Parser → Excel Auto-Update  |  Updated: 2026-03-26 14:30 UTC  |  12 containers active</td></tr>
+        <tr><td class="rn">3</td>${data.headers.map(h=>`<th style="background:#0D2B4E;color:#fff;font-size:9px;font-family:'DM Sans',sans-serif">${h}</th>`).join('')}</tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+// ── PIPELINE STAGES ───────────────────────────────────────────────────────────
+const STAGES = [
+  {label:'Scan Outlook Inbox',sub:'Graph API → filter carrier domains',lines:[
+    {t:'tp',v:'$ python src/meattrack_pipeline.py --mode outlook'},
+    {t:'td',v:''},
+    {t:'to',v:'  MeatTrackAI — Microsoft Graph API Pipeline'},
+    {t:'to',v:'  ─────────────────────────────────────────'},
+    {t:'td',v:'  [graph] Authenticating — Client Credentials flow'},
+    {t:'td',v:'  [graph] Token acquired — expires in 3600s'},
+    {t:'td',v:'  [graph] GET /users/reefer-inbox@ukpremiummeats.co.uk/mailFolders/inbox/messages'},
+    {t:'to',v:'  Scanning inbox: reefer-inbox@ukpremiummeats.co.uk'},
+    {t:'to',v:'  Filter: @maersk.com | @hapag-lloyd.com | @msc.com | @cma-cgm.com | @oocl.com'},
+    {t:'td',v:'  Blocked: @freightnews.com → logged to Excel Audit tab'},
+    {t:'td',v:'  Blocked: @gmail.com → logged to Excel Audit tab'},
+    {t:'tok',v:'  ✓  11 carrier notifications found'},
+    {t:'to',v:'     [1] customerservice@maersk.com — Arrival Notice MRKU4821073'},
+    {t:'to',v:'     [2] reefer@hlag.com — CRITICAL TEMP ALERT HLXU9901234'},
+    {t:'to',v:'     [3] reefer@msc.com — Voyage Update MSCU5512087'},
+    {t:'to',v:'     ... +8 more'},
+    {t:'td',v:'  [graph] Downloading PDF attachments...'},
+    {t:'tok',v:'  ✓  SHIPPING_MRKU4821073_Maersk_ArrivalNotice.pdf  (42 KB)'},
+    {t:'tok',v:'  ✓  SHIPPING_HLXU9901234_HapagLloyd_TempAlert.pdf  (38 KB)'},
+    {t:'tok',v:'  ✓  SHIPPING_MSCU5512087_MSC_DepartureConf.pdf     (35 KB)'},
+    {t:'tok',v:'  ✓  Stage 1 complete — 3 PDFs ready for parsing'},
+  ]},
+  {label:'Parse PDFs (pdfplumber)',sub:'Body-first merge · 48 fields each',lines:[
+    {t:'tp',v:'$ [pdf-parser-subagent] processing 3 files...'},
+    {t:'td',v:''},
+    {t:'td',v:'  [pdfplumber] SHIPPING_MRKU4821073_Maersk_ArrivalNotice.pdf'},
+    {t:'tok',v:'  ✓  SHIPPING REFERENCE: MAEU1234567890  [body]'},
+    {t:'tok',v:'  ✓  Container:   MRKU4821073  [body]'},
+    {t:'tok',v:'  ✓  ETA Revised: 2026-03-26  (+4.5 days)  [body]'},
+    {t:'tok',v:'  ✓  Temp:        -17.8°C  set -18.0°C  NOMINAL  [body]'},
+    {t:'tok',v:'  ✓  HS Code:     0202.30.00  [pdf]'},
+    {t:'tok',v:'  ✓  Gross Wt:    24,840 kg  [pdf]'},
+    {t:'tok',v:'  ✓  IPAFFS:      SUBMITTED IPAFFS-2026-TLB-094821  [body]'},
+    {t:'tok',v:'  ✓  Fields: 46/48  Source: BODY+PDF MERGED'},
+    {t:'td',v:''},
+    {t:'td',v:'  [pdfplumber] SHIPPING_HLXU9901234_HapagLloyd_TempAlert.pdf'},
+    {t:'tok',v:'  ✓  SHIPPING REFERENCE: HLBU9901234001  [body]'},
+    {t:'tok',v:'  ✓  Container:   HLXU9901234  [body]'},
+    {t:'tw',v:'  ⚠  ETA Revised: 2026-04-16  (+6 days)  [body]'},
+    {t:'te',v:'  ✖  BREACH:      +2.8°C vs set +1.0°C — 150hrs cumulative  [body]'},
+    {t:'tok',v:'  ✓  Fields: 48/48  Source: BODY+PDF MERGED'},
+    {t:'td',v:''},
+    {t:'td',v:'  [pdfplumber] SHIPPING_MSCU5512087_MSC_DepartureConf.pdf'},
+    {t:'tok',v:'  ✓  SHIPPING REFERENCE: MSCUFE5512087001  [body]'},
+    {t:'tok',v:'  ✓  ETA: 2026-04-21  On Time  [body]'},
+    {t:'tok',v:'  ✓  Temp: -18.2°C  NOMINAL  [body]'},
+    {t:'tok',v:'  ✓  Fields: 45/48  Source: BODY+PDF MERGED'},
+    {t:'tok',v:'  ✓  Stage 2 complete — all PDFs parsed'},
+  ]},
+  {label:'Update JSON Tracker',sub:'schema.org/Trip · inoaav7 ontology',lines:[
+    {t:'tp',v:'$ [tracker-agent] updating reefer_tracker.json...'},
+    {t:'td',v:''},
+    {t:'td',v:'  Loading reefer_tracker.json (12 active voyages)'},
+    {t:'tok',v:'  ✓  MRKU4821073 → upsert voyage record'},
+    {t:'tok',v:'     etaCurrent: 2026-03-26  etaDelta: +4.5d  coldChainBreach: false'},
+    {t:'tw',v:'  ⚠  HLXU9901234 → upsert voyage record'},
+    {t:'tw',v:'     etaCurrent: 2026-04-16  etaDelta: +6d  coldChainBreach: TRUE'},
+    {t:'tok',v:'  ✓  MSCU5512087 → upsert voyage record'},
+    {t:'tok',v:'     etaCurrent: 2026-04-21  etaDelta: 0d  coldChainBreach: false'},
+    {t:'td',v:'  Validating against LSOC inoaav7 ontology...'},
+    {t:'tok',v:'  ✓  Schema conformance confirmed — all records valid'},
+    {t:'tok',v:'  ✓  Stage 3 complete — tracker updated'},
+  ]},
+  {label:'Write Excel Tracker',sub:'openpyxl · 7 sheets auto-formatted',lines:[
+    {t:'tp',v:'$ [excel-writer] updating MeatTrackAI_Reefer_Status_Tracker.xlsx...'},
+    {t:'td',v:''},
+    {t:'tok',v:'  ✓  Sheet 1: Live Status Tracker      — 12 rows updated'},
+    {t:'tok',v:'  ✓  Sheet 2: ETA Impact Analysis      — 12 classifications'},
+    {t:'tok',v:'  ✓  Sheet 3: Cold Chain Monitor       — 12 rows (1 breach flagged red)'},
+    {t:'tok',v:'  ✓  Sheet 4: Outlook Inbox Log        — 13 rows (2 blocked)'},
+    {t:'tok',v:'  ✓  Sheet 5: Client Notifications     — 8 rows'},
+    {t:'tok',v:'  ✓  Sheet 6: BTOM Compliance Schedule — 12 rows'},
+    {t:'tok',v:'  ✓  Sheet 7: Risk Events              — 6 events'},
+    {t:'td',v:'  Conditional formatting applied:'},
+    {t:'td',v:'     Breach=YES → red fill  |  ETA delta>0 → amber  |  On time → green'},
+    {t:'tok',v:'  ✓  Saved: MeatTrackAI_Reefer_Status_Tracker.xlsx (20,164 bytes)'},
+    {t:'tok',v:'  ✓  Stage 4 complete — Excel fully updated'},
+  ]},
+  {label:'ETA Impact Analysis',sub:'5-class matrix · cold chain escalation',lines:[
+    {t:'tp',v:'$ [eta-engine] classifying order impact...'},
+    {t:'td',v:''},
+    {t:'to',v:'  Loading order manifest — 5 orders at risk identified'},
+    {t:'td',v:''},
+    {t:'to',v:'  MRKU4821073  delta=+4.5d  breach=NO  →  class=DELAY'},
+    {t:'tok',v:'  ✓  ORD-2241 Tesco 18T frozen beef due 2026-03-24  →  DELAY'},
+    {t:'tw',v:'  ⚠  ORD-2244 Brakes 6T mince due 2026-03-26        →  DELAY (window today)'},
+    {t:'td',v:''},
+    {t:'to',v:'  HLXU9901234  delta=+6d  breach=YES (150hrs chilled)'},
+    {t:'td',v:'  shelf_life_impact = 150 * 0.05 = 7.5 days reduction'},
+    {t:'te',v:'  ✖  ORD-2271 Tesco 20T chilled beef due 2026-04-11  →  CRITICAL (delay+breach)'},
+    {t:'te',v:'  ✖  ORD-2272 Co-op  9T beef steaks due 2026-04-13  →  CRITICAL (delay+breach)'},
+    {t:'td',v:''},
+    {t:'to',v:'  MSCU5512087  delta=0  breach=NO  →  ON_TIME (no notification)'},
+    {t:'tok',v:'  ✓  Stage 5 complete — 4 notifications queued'},
+  ]},
+  {label:'Send Client Notifications',sub:'Graph API sendMail · HTML · no attachments',lines:[
+    {t:'tp',v:'$ [notification-agent] dispatching 4 emails via Graph API...'},
+    {t:'td',v:''},
+    {t:'td',v:'  Dedup check: no same-urgency email today to these recipients'},
+    {t:'td',v:''},
+    {t:'td',v:'  Email 1/4 → logistics@tesco.co.uk (Tesco Distribution)'},
+    {t:'to',v:'  Subject: Delivery Delay Notice — MRKU4821073 | +4.5 days'},
+    {t:'td',v:'  [graph] POST /users/{mailbox}/sendMail'},
+    {t:'tok',v:'  ✓  Sent — Message-ID: <2026-03-26-ms-001@graph.microsoft.com>'},
+    {t:'td',v:''},
+    {t:'td',v:'  Email 2/4 → logistics@tesco.co.uk (Tesco Distribution)'},
+    {t:'to',v:'  Subject: CRITICAL — HLXU9901234 | Temp Breach + 6 Day Delay'},
+    {t:'tok',v:'  ✓  Sent — Message-ID: <2026-03-26-ms-002@graph.microsoft.com>'},
+    {t:'td',v:''},
+    {t:'td',v:'  Email 3/4 → buying@coop.co.uk (Co-op Foods)'},
+    {t:'to',v:'  Subject: CRITICAL — HLXU9901234 | ORD-2272 — Immediate Action'},
+    {t:'tok',v:'  ✓  Sent — Message-ID: <2026-03-26-ms-003@graph.microsoft.com>'},
+    {t:'td',v:''},
+    {t:'td',v:'  Email 4/4 → supply@brakes.co.uk (Brakes Group)'},
+    {t:'to',v:'  Subject: Delivery Delay Notice — MRKU4821073 | ORD-2244 — Today'},
+    {t:'tok',v:'  ✓  Sent — Message-ID: <2026-03-26-ms-004@graph.microsoft.com>'},
+    {t:'td',v:''},
+    {t:'td',v:'  Logging to Excel Client Notifications tab...'},
+    {t:'td',v:'  Suppressing MSCU5512087 — ON_TIME, no notification required'},
+    {t:'td',v:''},
+    {t:'tok',v:'  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'},
+    {t:'tok',v:'  ✓  PIPELINE COMPLETE'},
+    {t:'tok',v:'     Emails scanned:        11'},
+    {t:'tok',v:'     PDFs parsed:           3 (46-48 fields each)'},
+    {t:'tok',v:'     Tracker rows updated:  12'},
+    {t:'tok',v:'     Excel sheets updated:  7'},
+    {t:'tw',v:'     ETA deviations:         7 containers'},
+    {t:'te',v:'     Cold chain breaches:    1 CRITICAL ⚠'},
+    {t:'tok',v:'     Notifications sent:    4 (via Graph API)'},
+    {t:'tok',v:'  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'},
+  ]},
+];
+
+let stagesDone = new Array(STAGES.length).fill(false);
+let running = false;
+
+function initStages() {
+  const list = document.getElementById('stage-list');
+  if (list.children.length > 0) return;
+  STAGES.forEach((s,i)=>{
+    const div = document.createElement('div');
+    div.style.cssText = 'display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--brd);border-radius:6px;background:var(--w);cursor:pointer;transition:background .15s';
+    div.id = `stage-btn-${i}`;
+    div.onmouseover = ()=>{ if(!stagesDone[i]) div.style.background='var(--teal-l)'; };
+    div.onmouseout  = ()=>{ if(!stagesDone[i]) div.style.background='var(--w)'; };
+    div.onclick = ()=>runStage(i);
+    div.innerHTML = `<span style="width:22px;height:22px;border-radius:50%;background:var(--teal);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--mono)">${i+1}</span>
+      <div style="flex:1"><div style="font-weight:600;font-size:13px;color:var(--navy)">${s.label}</div><div style="font-size:11px;color:var(--t3)">${s.sub}</div></div>
+      <span id="stage-tick-${i}"></span>`;
+    list.appendChild(div);
+  });
+}
+
+function writeLines(lines, onDone) {
+  const term = document.getElementById('terminal');
+  let i = 0;
+  function next() {
+    if (i >= lines.length) { running = false; if (onDone) onDone(); return; }
+    const l = lines[i++];
+    const d = document.createElement('div');
+    d.className = l.t; d.textContent = l.v;
+    term.appendChild(d); term.scrollTop = term.scrollHeight;
+    setTimeout(next, l.t==='tp'?60:l.v===''?30:28);
+  }
+  next();
+}
+
+function runStage(idx) {
+  if (running) return; running = true;
+  const term = document.getElementById('terminal');
+  const sep = document.createElement('div');
+  sep.style.cssText = 'border-top:1px solid #1E293B;margin:4px 0;padding-top:4px';
+  term.appendChild(sep);
+  writeLines(STAGES[idx].lines, ()=>{
+    stagesDone[idx] = true;
+    const tick = document.getElementById(`stage-tick-${idx}`);
+    if (tick) tick.innerHTML = '<span style="color:#4ADE80;font-size:14px">✓</span>';
+    const btn = document.getElementById(`stage-btn-${idx}`);
+    if (btn) btn.style.background = 'var(--gl)';
+  });
+}
+
+async function runAll() {
+  if (running) return;
+  document.getElementById('terminal').innerHTML = '<div class="td">Starting full pipeline run...</div>';
+  stagesDone = new Array(STAGES.length).fill(false);
+  for (let i = 0; i < STAGES.length; i++) {
+    await new Promise(resolve => {
+      running = true;
+      const term = document.getElementById('terminal');
+      if (i > 0) { const sep=document.createElement('div'); sep.style.cssText='border-top:1px solid #1E293B;margin:4px 0;padding-top:4px'; term.appendChild(sep); }
+      writeLines(STAGES[i].lines, ()=>{
+        stagesDone[i] = true;
+        const tick = document.getElementById(`stage-tick-${i}`);
+        if (tick) tick.innerHTML = '<span style="color:#4ADE80;font-size:14px">✓</span>';
+        const btn = document.getElementById(`stage-btn-${i}`);
+        if (btn) btn.style.background = 'var(--gl)';
+        setTimeout(resolve, 200);
+      });
+    });
+  }
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+renderEmailList('all');
+showSheet('tracker', document.querySelector('.xl-tab'));
+initStages();
+</script>
+</body>
+</html>

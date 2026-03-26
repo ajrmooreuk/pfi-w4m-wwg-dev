@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>MeatTrackAI · Google Workspace Simulation</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ── GOOGLE MATERIAL TOKENS ── */
+:root{
+  --g-blue:#4285F4; --g-red:#EA4335; --g-yellow:#FBBC04; --g-green:#34A853;
+  --g-blue-50:#E8F0FE; --g-red-50:#FCE8E6; --g-green-50:#E6F4EA; --g-yellow-50:#FEF7E0;
+  --g-grey-900:#202124; --g-grey-800:#3C4043; --g-grey-700:#5F6368;
+  --g-grey-400:#BDC1C6; --g-grey-200:#E8EAED; --g-grey-100:#F1F3F4; --g-grey-50:#F8F9FA;
+  --surface:#FFFFFF; --on-surface:#202124;
+  --sidebar-w:220px;
+  --gm-font:'Google Sans',sans-serif;
+  --mono:'Roboto Mono',monospace;
+  --shadow-1:0 1px 2px rgba(60,64,67,.3),0 1px 3px 1px rgba(60,64,67,.15);
+  --shadow-2:0 1px 3px rgba(60,64,67,.3),0 4px 8px 3px rgba(60,64,67,.15);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--g-grey-100);font-family:var(--gm-font);color:var(--g-grey-900);height:100vh;overflow:hidden;display:flex;flex-direction:column}
+
+/* ── TOP BAR (Google-style) ── */
+.gbar{
+  height:64px;background:var(--surface);border-bottom:1px solid var(--g-grey-200);
+  display:flex;align-items:center;padding:0 16px;gap:8px;
+  box-shadow:0 1px 2px rgba(0,0,0,0.1);z-index:100;flex-shrink:0;
+}
+.gbar-menu{width:40px;height:40px;display:flex;align-items:center;justify-content:center;
+  border-radius:50%;cursor:pointer;color:var(--g-grey-700)}
+.gbar-menu:hover{background:var(--g-grey-100)}
+.gbar-apps{display:flex;align-items:center;gap:4px}
+.app-pill{display:flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;
+  font-size:13px;font-weight:500;cursor:pointer;transition:all 0.18s;border:1px solid transparent}
+.app-pill:hover{background:var(--g-grey-100)}
+.app-pill.active{background:var(--g-blue-50);border-color:rgba(66,133,244,0.3);color:var(--g-blue)}
+.app-dot{width:10px;height:10px;border-radius:50%}
+.gbar-search{flex:1;max-width:720px;margin:0 16px;position:relative}
+.gsearch{width:100%;height:46px;background:var(--g-grey-100);border:none;border-radius:24px;
+  padding:0 52px 0 20px;font-family:var(--gm-font);font-size:16px;color:var(--g-grey-900);
+  outline:none;transition:all 0.2s}
+.gsearch:focus{background:var(--surface);box-shadow:var(--shadow-2)}
+.gsearch-icon{position:absolute;right:16px;top:50%;transform:translateY(-50%);color:var(--g-blue);font-size:20px}
+.gbar-right{display:flex;align-items:center;gap:4px;margin-left:auto}
+.avatar{width:34px;height:34px;border-radius:50%;background:var(--g-blue);
+  color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;cursor:pointer}
+.gbadge{padding:3px 9px;border-radius:12px;font-size:11px;font-weight:500}
+.gbadge-sim{background:#E8F5E9;color:#2E7D32;border:1px solid #A5D6A7}
+
+/* ── MAIN LAYOUT ── */
+.app-shell{display:flex;flex:1;overflow:hidden}
+
+/* ── GMAIL SIDEBAR ── */
+.gm-sidebar{width:var(--sidebar-w);background:var(--surface);padding:8px 0;flex-shrink:0;overflow-y:auto}
+.gm-compose-btn{margin:8px 12px 12px;padding:14px 24px;background:var(--surface);
+  border-radius:16px;box-shadow:var(--shadow-1);display:flex;align-items:center;gap:10px;
+  cursor:pointer;transition:box-shadow 0.2s;font-size:14px;font-weight:500;border:none;font-family:var(--gm-font)}
+.gm-compose-btn:hover{box-shadow:var(--shadow-2)}
+.gm-nav-item{display:flex;align-items:center;gap:12px;padding:4px 16px 4px 12px;
+  height:36px;border-radius:0 18px 18px 0;margin-right:16px;cursor:pointer;font-size:14px;
+  transition:background 0.15s;position:relative}
+.gm-nav-item:hover{background:var(--g-grey-100)}
+.gm-nav-item.active{background:var(--g-blue-50);font-weight:700;color:var(--g-blue)}
+.gm-nav-icon{font-size:18px;width:22px;text-align:center}
+.gm-nav-count{margin-left:auto;font-size:11px;font-weight:700;color:var(--g-grey-700)}
+.gm-nav-count.new{color:var(--g-grey-900)}
+.gm-label-section{padding:8px 0;border-top:1px solid var(--g-grey-200);margin-top:4px}
+.gm-label-header{padding:4px 16px;font-size:11px;font-weight:500;color:var(--g-grey-700);
+  text-transform:uppercase;letter-spacing:0.08em}
+.gm-label-item{display:flex;align-items:center;gap:10px;padding:4px 16px 4px 20px;
+  height:32px;cursor:pointer;font-size:13px;border-radius:0 16px 16px 0;margin-right:16px;transition:background 0.15s}
+.gm-label-item:hover{background:var(--g-grey-100)}
+.gm-label-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.lsc-s{background:#1A73E8}.lsc-r{background:#EA4335}.lsc-c{background:#34A853}
+.gm-label-item.active-lbl{background:var(--g-blue-50)}
+
+/* ── MAIN CONTENT ── */
+.content-area{flex:1;display:flex;flex-direction:column;overflow:hidden}
+
+/* ── GMAIL VIEW ── */
+.gmail-view{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.gmail-toolbar{display:flex;align-items:center;gap:4px;padding:8px 16px;border-bottom:1px solid var(--g-grey-200);background:var(--surface)}
+.gtbtn{padding:6px;border-radius:4px;border:none;background:transparent;cursor:pointer;color:var(--g-grey-700);font-size:13px;display:flex;align-items:center;gap:4px;font-family:var(--gm-font)}
+.gtbtn:hover{background:var(--g-grey-100)}
+.gmail-list{flex:1;overflow-y:auto;background:var(--surface)}
+
+/* Email row */
+.email-row{display:flex;align-items:center;padding:8px 16px;border-bottom:1px solid var(--g-grey-200);
+  cursor:pointer;transition:background 0.1s;height:52px;position:relative}
+.email-row:hover{box-shadow:var(--shadow-1);z-index:1}
+.email-row.unread{font-weight:700;background:#fff}
+.email-row.selected{background:var(--g-blue-50)}
+.email-row.new-arrival{animation:email-slide 0.5s ease-out}
+@keyframes email-slide{from{transform:translateY(-20px);opacity:0}to{transform:none;opacity:1}}
+.email-row.blocked-row{opacity:0.5;background:#FFF8F8}
+.er-check{width:40px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.er-star{width:32px;flex-shrink:0;text-align:center;cursor:pointer;font-size:16px}
+.er-sender{width:180px;flex-shrink:0;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.er-labels{display:flex;gap:4px;margin-right:8px;flex-shrink:0}
+.er-label{font-size:11px;padding:1px 6px;border-radius:3px;font-weight:500;white-space:nowrap}
+.er-label.lsc-s{background:#E8F0FE;color:#1A73E8}
+.er-label.lsc-r{background:#FCE8E6;color:#EA4335;animation:badge-pulse 2s infinite}
+.er-label.lsc-c{background:#E6F4EA;color:#34A853}
+.er-label.blocked{background:#FCE8E6;color:#C5221F}
+@keyframes badge-pulse{0%,100%{opacity:1}50%{opacity:0.7}}
+.er-subject{flex:1;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.er-subject .snippet{font-weight:400;color:var(--g-grey-700)}
+.er-attach{color:var(--g-grey-700);font-size:14px;margin:0 4px;flex-shrink:0}
+.er-time{font-size:12px;color:var(--g-grey-700);flex-shrink:0;width:60px;text-align:right}
+.er-domain-badge{font-size:10px;padding:1px 5px;border-radius:3px;font-weight:700;flex-shrink:0;margin-left:4px}
+.er-domain-badge.ok{background:var(--g-green-50);color:var(--g-green)}
+.er-domain-badge.blocked{background:var(--g-red-50);color:var(--g-red)}
+
+/* ── SPLIT PANEL (Sheets + detail) ── */
+.split-layout{display:grid;grid-template-columns:1fr 1fr;gap:0;flex:1;overflow:hidden}
+.panel-half{display:flex;flex-direction:column;overflow:hidden;border-left:1px solid var(--g-grey-200)}
+.panel-half:first-child{border-left:none}
+
+/* ── GOOGLE SHEETS CHROME ── */
+.sheets-chrome{background:#0F9D58;color:#fff;padding:0 12px;height:40px;
+  display:flex;align-items:center;gap:8px;flex-shrink:0}
+.sheets-title-input{background:transparent;border:none;color:#fff;font-family:var(--gm-font);
+  font-size:16px;font-weight:500;outline:none;flex:1}
+.sheets-tabs{display:flex;background:#137333;flex-shrink:0}
+.sh-tab{padding:6px 16px;font-size:12px;cursor:pointer;border-right:1px solid rgba(255,255,255,0.2);
+  transition:background 0.15s;color:rgba(255,255,255,0.85)}
+.sh-tab:hover{background:rgba(255,255,255,0.15)}
+.sh-tab.active{background:var(--surface);color:#0F9D58;font-weight:700;border-radius:4px 4px 0 0;margin-bottom:-1px}
+.sheets-body{flex:1;overflow:auto;background:#fff}
+.sh-table{border-collapse:collapse;font-size:12px;width:100%;font-family:var(--mono)}
+.sh-table th{background:#F8F9FA;border:1px solid #E0E0E0;padding:4px 8px;text-align:center;
+  font-size:11px;color:var(--g-grey-700);font-weight:500;position:sticky;top:0;z-index:1;min-width:50px}
+.sh-table td{border:1px solid #E0E0E0;padding:3px 7px;height:24px;white-space:nowrap;
+  font-size:11px;min-width:80px;cursor:cell}
+.sh-table td.row-hdr{background:#F8F9FA;color:var(--g-grey-700);text-align:center;width:30px;min-width:30px;font-size:10px}
+.sh-table td.header-row{background:#FFFFFF;font-weight:700;font-size:10px;color:var(--g-grey-800)}
+.sh-table tr.frozen td{background:#F8FBFF}
+.sh-table td:focus{outline:2px solid var(--g-blue);outline-offset:-1px}
+.sh-red{background:#FCE8E6!important;color:#C5221F;font-weight:700}
+.sh-amber{background:#FEF7E0!important;color:#E37400;font-weight:700}
+.sh-green{background:#E6F4EA!important;color:#137333;font-weight:700}
+.sh-blue{background:#E8F0FE!important;color:#1A73E8;font-weight:700}
+.sh-writing{animation:cell-write 0.3s ease-out}
+@keyframes cell-write{from{background:#FFF9C4}to{background:inherit}}
+
+/* ── EMAIL DETAIL VIEW ── */
+.email-detail{flex:1;overflow-y:auto;padding:16px 24px;background:#fff}
+.email-detail-hdr{margin-bottom:16px}
+.email-detail-subject{font-size:20px;font-weight:400;color:var(--g-grey-900);margin-bottom:8px;line-height:1.3}
+.email-detail-meta{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--g-grey-700)}
+.email-detail-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:14px;font-weight:700;flex-shrink:0}
+.email-body{font-size:14px;line-height:1.6;color:var(--g-grey-800)}
+.email-body .carrier-hdr{padding:14px 18px;color:#fff;border-radius:4px 4px 0 0;font-weight:700;font-size:15px}
+.email-body .field-grid{display:grid;grid-template-columns:140px 1fr;gap:3px;font-size:12px;
+  padding:12px 16px;background:#F8FAFC;margin:8px 0;border-radius:4px;border:1px solid var(--g-grey-200)}
+.email-body .fk{font-weight:600;color:var(--g-grey-700)}.email-body .fv{color:var(--g-grey-900)}
+.email-body .fv.delta{color:#E37400;font-weight:700}
+.email-body .alert-bar{padding:8px 12px;border-radius:4px;margin:8px 0;font-size:12px;font-weight:500}
+.email-body .order-table{width:100%;border-collapse:collapse;font-size:11px;margin:8px 0}
+.email-body .order-table th{background:var(--g-grey-100);padding:5px 8px;text-align:left;font-size:10px;
+  text-transform:uppercase;letter-spacing:0.08em;color:var(--g-grey-700)}
+.email-body .order-table td{padding:5px 8px;border-bottom:1px solid var(--g-grey-200)}
+.email-body .action-box{background:#FFF8E1;border-left:3px solid #FBBC04;padding:8px 12px;font-size:12px;border-radius:0 4px 4px 0;margin-top:10px}
+.email-body-footer{font-size:11px;color:var(--g-grey-700);margin-top:12px;padding-top:10px;border-top:1px solid var(--g-grey-200)}
+
+/* ── DOMAIN GOVERNANCE PANEL ── */
+.gov-overlay{position:fixed;inset:0;background:rgba(32,33,36,0.6);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.2s}
+.gov-overlay.show{opacity:1;pointer-events:all}
+.gov-dialog{background:#fff;border-radius:8px;width:580px;max-height:80vh;overflow:hidden;
+  box-shadow:0 8px 40px rgba(0,0,0,0.3);display:flex;flex-direction:column}
+.gov-dialog-hdr{padding:20px 24px 0;display:flex;align-items:center;gap:12px}
+.gov-dialog-icon{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px}
+.gov-dialog-title{font-size:18px;font-weight:400;color:var(--g-grey-900)}
+.gov-dialog-body{padding:16px 24px;overflow-y:auto;flex:1}
+.gov-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--g-grey-200)}
+.gov-row:last-child{border-bottom:none}
+.gov-status{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.gov-ok{background:var(--g-green-50);color:var(--g-green)}
+.gov-block{background:var(--g-red-50);color:var(--g-red)}
+.gov-domain{font-family:var(--mono);font-size:12px;font-weight:500;flex:1}
+.gov-rule{font-size:11px;color:var(--g-grey-700)}
+.gov-dialog-footer{padding:12px 24px;display:flex;justify-content:flex-end;gap:8px;border-top:1px solid var(--g-grey-200)}
+.gdialog-btn{padding:8px 20px;border-radius:4px;font-family:var(--gm-font);font-size:14px;cursor:pointer;border:none}
+.gdialog-btn.primary{background:var(--g-blue);color:#fff}
+.gdialog-btn.secondary{background:transparent;color:var(--g-blue)}
+
+/* ── SIMULATION CONTROL BAR ── */
+.sim-bar{background:var(--g-grey-900);color:#fff;padding:8px 16px;
+  display:flex;align-items:center;gap:12px;flex-shrink:0}
+.sim-date{font-family:var(--mono);font-size:13px;color:#4FC3F7;font-weight:600;min-width:160px}
+.sim-controls{display:flex;gap:4px}
+.sim-btn{width:32px;height:32px;border:none;border-radius:4px;cursor:pointer;
+  background:rgba(255,255,255,0.1);color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center;transition:background 0.15s}
+.sim-btn:hover{background:rgba(255,255,255,0.2)}
+.sim-btn.play{background:var(--g-green);color:#fff}
+.sim-btn.play:hover{background:#2D9249}
+.sim-slider{flex:1;height:4px;-webkit-appearance:none;appearance:none;
+  background:linear-gradient(90deg,#4FC3F7 var(--pct,0%),rgba(255,255,255,0.2) var(--pct,0%));
+  border-radius:2px;cursor:pointer;outline:none;max-width:400px}
+.sim-slider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#4FC3F7;cursor:pointer}
+.sim-speed{display:flex;gap:3px}
+.spd{padding:4px 8px;background:rgba(255,255,255,0.1);border:none;color:rgba(255,255,255,0.7);
+  border-radius:3px;font-size:11px;cursor:pointer;font-family:var(--mono);transition:all 0.15s}
+.spd.on{background:var(--g-blue);color:#fff}
+.sim-stats{display:flex;gap:12px;margin-left:auto}
+.ss{font-size:11px;display:flex;align-items:center;gap:4px}
+.ss-dot{width:8px;height:8px;border-radius:50%}
+.ss-val{font-weight:700;font-family:var(--mono)}
+
+/* ── PARSE INDICATOR ── */
+.parse-chip{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;
+  font-size:10px;font-weight:600;margin-left:6px}
+.parse-body{background:#E8F0FE;color:#1A73E8}
+.parse-pdf{background:#F3E8FF;color:#7B1FA2}
+.parse-merged{background:#E6F4EA;color:#137333}
+
+/* ── NOTIFICATION TOAST ── */
+.toast-stack{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:8px;z-index:300}
+.toast{background:#fff;border-radius:4px;box-shadow:var(--shadow-2);padding:12px 16px;
+  min-width:320px;max-width:400px;display:flex;gap:10px;align-items:flex-start;
+  animation:toast-in 0.3s ease-out;border-left:4px solid var(--g-blue)}
+.toast.red{border-left-color:var(--g-red)}
+.toast.green{border-left-color:var(--g-green)}
+.toast.yellow{border-left-color:var(--g-yellow)}
+.toast.blocked{border-left-color:var(--g-grey-400)}
+@keyframes toast-in{from{transform:translateX(120px);opacity:0}to{transform:none;opacity:1}}
+.toast-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+.toast-title{font-size:13px;font-weight:500;margin-bottom:2px}
+.toast-body{font-size:12px;color:var(--g-grey-700);line-height:1.4}
+.toast-close{margin-left:auto;cursor:pointer;color:var(--g-grey-700);font-size:16px;flex-shrink:0;line-height:1}
+
+/* ── SCROLLBARS ── */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--g-grey-400);border-radius:3px}
+
+/* ── GOOGLE DRIVE BADGE ── */
+.drive-badge{display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:4px;
+  background:var(--g-grey-100);font-size:11px;cursor:pointer;transition:background 0.15s}
+.drive-badge:hover{background:var(--g-grey-200)}
+
+/* Pulsing new email dot */
+.new-dot{width:8px;height:8px;border-radius:50%;background:var(--g-blue);animation:pulse-blue 1.5s infinite;flex-shrink:0}
+@keyframes pulse-blue{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.4);opacity:0.7}}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="gbar">
+  <div class="gbar-menu" title="Main menu">☰</div>
+  <div class="gbar-apps">
+    <div class="app-pill active" id="app-gmail" onclick="switchApp('gmail')">
+      <div class="app-dot" style="background:#EA4335"></div> Gmail
+    </div>
+    <div class="app-pill" id="app-sheets" onclick="switchApp('sheets')">
+      <div class="app-dot" style="background:#0F9D58"></div> Sheets
+    </div>
+    <div class="app-pill" id="app-drive" onclick="switchApp('drive')">
+      <div class="app-dot" style="background:#4285F4"></div> Drive
+    </div>
+  </div>
+  <div class="gbar-search">
+    <input class="gsearch" placeholder="Search mail" id="search-box">
+    <span class="gsearch-icon">🔍</span>
+  </div>
+  <div class="gbar-right">
+    <span class="gbadge gbadge-sim">● Simulation Running</span>
+    <div class="drive-badge" onclick="showGovDialog()">🛡️ Domain Rules</div>
+    <div class="avatar">UKP</div>
+  </div>
+</div>
+
+<!-- SIMULATION CONTROL BAR -->
+<div class="sim-bar">
+  <div class="sim-date" id="sim-date">2026-01-14 · Day 1</div>
+  <div class="sim-controls">
+    <button class="sim-btn" onclick="stepDay(-7)" title="−7 days">«</button>
+    <button class="sim-btn" onclick="stepDay(-1)" title="−1 day">‹</button>
+    <button class="sim-btn play" id="play-btn" onclick="togglePlay()">▶</button>
+    <button class="sim-btn" onclick="stepDay(1)" title="+1 day">›</button>
+    <button class="sim-btn" onclick="stepDay(7)" title="+7 days">»</button>
+  </div>
+  <input type="range" class="sim-slider" id="sim-slider" min="0" max="76" value="0" oninput="onSlider(this.value)">
+  <div class="sim-speed">
+    <button class="spd on" id="spd1" onclick="setSpd(1,this)">1×</button>
+    <button class="spd" id="spd3" onclick="setSpd(3,this)">3×</button>
+    <button class="spd" id="spd7" onclick="setSpd(7,this)">7×</button>
+  </div>
+  <div class="sim-stats">
+    <div class="ss"><div class="ss-dot" style="background:var(--g-blue)"></div><span class="ss-val" id="ss-emails">0</span><span style="opacity:.7;font-size:10px"> emails</span></div>
+    <div class="ss"><div class="ss-dot" style="background:var(--g-red)"></div><span class="ss-val" id="ss-blocked">0</span><span style="opacity:.7;font-size:10px"> blocked</span></div>
+    <div class="ss"><div class="ss-dot" style="background:var(--g-green)"></div><span class="ss-val" id="ss-notified">0</span><span style="opacity:.7;font-size:10px"> notified</span></div>
+    <div class="ss"><div class="ss-dot" style="background:var(--g-yellow)"></div><span class="ss-val" id="ss-alerts">0</span><span style="opacity:.7;font-size:10px"> alerts</span></div>
+  </div>
+</div>
+
+<!-- APP SHELL -->
+<div class="app-shell">
+
+  <!-- GMAIL SIDEBAR -->
+  <div class="gm-sidebar" id="gmail-sidebar">
+    <button class="gm-compose-btn" onclick="showGovDialog()">
+      <span style="font-size:20px">✏️</span> Compose
+    </button>
+    <div class="gm-nav-item active" onclick="filterInbox('all')"><span class="gm-nav-icon">📥</span> Inbox <span class="gm-nav-count new" id="nav-count">0</span></div>
+    <div class="gm-nav-item" onclick="filterInbox('starred')"><span class="gm-nav-icon">⭐</span> Starred</div>
+    <div class="gm-nav-item" onclick="filterInbox('sent')"><span class="gm-nav-icon">📤</span> Sent <span class="gm-nav-count" id="sent-count">0</span></div>
+    <div class="gm-nav-item" onclick="showGovDialog()"><span class="gm-nav-icon">🚫</span> Blocked <span class="gm-nav-count" id="blocked-count">0</span></div>
+    <div class="gm-label-section">
+      <div class="gm-label-header">LSC Labels</div>
+      <div class="gm-label-item" onclick="filterInbox('lsc-shipping')"><div class="gm-label-dot lsc-s"></div> lsc-shipping <span class="gm-nav-count" id="lbl-ship">0</span></div>
+      <div class="gm-label-item" onclick="filterInbox('lsc-reefer')"><div class="gm-label-dot lsc-r"></div> lsc-reefer <span class="gm-nav-count" id="lbl-reef">0</span></div>
+      <div class="gm-label-item" onclick="filterInbox('lsc-compliance')"><div class="gm-label-dot lsc-c"></div> lsc-compliance <span class="gm-nav-count" id="lbl-comp">0</span></div>
+    </div>
+  </div>
+
+  <!-- CONTENT AREA -->
+  <div class="content-area">
+    <!-- GMAIL VIEW -->
+    <div class="gmail-view" id="gmail-view">
+      <div class="split-layout">
+
+        <!-- EMAIL LIST -->
+        <div style="display:flex;flex-direction:column;overflow:hidden">
+          <div class="gmail-toolbar">
+            <button class="gtbtn">☐</button>
+            <button class="gtbtn">↻ Refresh</button>
+            <button class="gtbtn" onclick="showGovDialog()">🛡️ Domain Rules</button>
+            <button class="gtbtn" onclick="switchApp('sheets')">📊 View Tracker</button>
+            <span style="margin-left:auto;font-size:12px;color:var(--g-grey-700)" id="email-count-label">— of — emails</span>
+          </div>
+          <div class="gmail-list" id="email-list"></div>
+        </div>
+
+        <!-- EMAIL DETAIL / SHEETS MINI -->
+        <div class="panel-half" style="display:flex;flex-direction:column;overflow:hidden">
+          <div class="gmail-toolbar" style="justify-content:space-between">
+            <span style="font-size:13px;font-weight:500;color:var(--g-grey-700)" id="detail-hdr-label">Select an email</span>
+            <button class="gtbtn" onclick="switchApp('sheets')">📊 Open in Sheets →</button>
+          </div>
+          <div id="email-detail-panel" style="flex:1;overflow-y:auto;background:#fff;padding:16px 20px">
+            <div style="text-align:center;padding:60px 20px;color:var(--g-grey-700)">
+              <div style="font-size:48px;margin-bottom:12px">📬</div>
+              <div style="font-size:16px;margin-bottom:6px">Select a message</div>
+              <div style="font-size:13px">Click any carrier email to view extracted data</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- SHEETS VIEW (hidden by default) -->
+    <div id="sheets-view" style="display:none;flex:1;flex-direction:column;overflow:hidden">
+      <div class="sheets-chrome">
+        <span style="font-size:20px">📊</span>
+        <input class="sheets-title-input" value="MeatTrackAI Reefer Tracker" readonly>
+        <button class="gdialog-btn" style="background:rgba(255,255,255,0.15);color:#fff;border-radius:4px;font-size:12px;padding:4px 12px;font-family:var(--gm-font)" onclick="switchApp('gmail')">← Gmail</button>
+      </div>
+      <div class="sheets-tabs" id="sheets-tabs">
+        <div class="sh-tab active" onclick="showSheet('tracker')">Tracker</div>
+        <div class="sh-tab" onclick="showSheet('parse')">Parse Log</div>
+        <div class="sh-tab" onclick="showSheet('audit')">Domain Audit</div>
+        <div class="sh-tab" onclick="showSheet('notifications')">Notifications</div>
+      </div>
+      <div class="sheets-body" id="sheets-body"></div>
+    </div>
+  </div>
+</div>
+
+<!-- DOMAIN GOVERNANCE DIALOG -->
+<div class="gov-overlay" id="gov-overlay" onclick="hideGovDialog(event)">
+  <div class="gov-dialog" onclick="event.stopPropagation()">
+    <div class="gov-dialog-hdr">
+      <div class="gov-dialog-icon" style="background:#E8F0FE">🛡️</div>
+      <div>
+        <div class="gov-dialog-title">Domain Governance Rules</div>
+        <div style="font-size:12px;color:var(--g-grey-700)">LSC Inbox · MeatTrackAI Pipeline</div>
+      </div>
+    </div>
+    <div class="gov-dialog-body">
+      <div style="font-size:12px;font-weight:600;color:var(--g-grey-900);margin:12px 0 6px;text-transform:uppercase;letter-spacing:0.08em">Inbound — Approved Carrier Domains</div>
+      <div id="gov-inbound"></div>
+      <div style="font-size:12px;font-weight:600;color:var(--g-grey-900);margin:12px 0 6px;text-transform:uppercase;letter-spacing:0.08em">Outbound — Approved Client Domains</div>
+      <div id="gov-outbound"></div>
+      <div style="font-size:12px;font-weight:600;color:var(--g-grey-900);margin:12px 0 6px;text-transform:uppercase;letter-spacing:0.08em">LSC Label Routing Rules</div>
+      <div id="gov-routing"></div>
+    </div>
+    <div class="gov-dialog-footer">
+      <button class="gdialog-btn secondary" onclick="hideGovDialog()">Close</button>
+      <button class="gdialog-btn primary" onclick="hideGovDialog()">Save Rules</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST STACK -->
+<div class="toast-stack" id="toast-stack"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════
+// SIMULATION DATA
+// ═══════════════════════════════════════════════════════════════════════
+
+const DOMAIN_RULES = {
+  inbound: [
+    {domain:'@maersk.com',      action:'ALLOW', label:'lsc-shipping', rule:'Approved carrier'},
+    {domain:'@hapag-lloyd.com', action:'ALLOW', label:'lsc-reefer',   rule:'Approved carrier'},
+    {domain:'@msc.com',         action:'ALLOW', label:'lsc-shipping', rule:'Approved carrier'},
+    {domain:'@cma-cgm.com',     action:'ALLOW', label:'lsc-shipping', rule:'Approved carrier'},
+    {domain:'@oocl.com',        action:'ALLOW', label:'lsc-shipping', rule:'Approved carrier'},
+    {domain:'@freightnews.com', action:'BLOCK', label:null,           rule:'Not approved carrier'},
+    {domain:'@gmail.com',       action:'BLOCK', label:null,           rule:'Consumer domain blocked'},
+    {domain:'@hotmail.com',     action:'BLOCK', label:null,           rule:'Consumer domain blocked'},
+  ],
+  outbound: [
+    {domain:'@tesco.com',     action:'ALLOW', rule:'Approved client — retail'},
+    {domain:'@brakes.co.uk',  action:'ALLOW', rule:'Approved client — foodservice'},
+    {domain:'@iceland.co.uk', action:'ALLOW', rule:'Approved client — retail'},
+    {domain:'@coop.co.uk',    action:'ALLOW', rule:'Approved client — retail'},
+    {domain:'@waitrose.com',  action:'ALLOW', rule:'Approved client — retail'},
+    {domain:'@unknown.io',    action:'BLOCK', rule:'Not in approved list'},
+  ],
+  routing: [
+    {pattern:'arrival notice / ETA',         label:'lsc-shipping', color:'#1A73E8'},
+    {pattern:'temperature / reefer / alert',  label:'lsc-reefer',   color:'#EA4335'},
+    {pattern:'BTOM / IPAFFS / compliance',    label:'lsc-compliance',color:'#34A853'},
+  ]
+};
+
+// All simulated emails across 77 days (Jan 14 → Mar 31 2026)
+const ALL_EMAILS = [
+  // Day 0 — Jan 14
+  {day:0,  date:'2026-01-14', from:'customerservice@maersk.com', sender:'Maersk Customer Service',
+   subject:'Booking Confirmation MRKU4821073 — BL: MAEU1234567890',
+   domain:'@maersk.com', allowed:true, label:'lsc-shipping',
+   hasPDF:true, type:'DEPARTURE_CONF', container:'MRKU4821073', bl:'MAEU1234567890',
+   bodyFields:{eta:'2026-03-22',delta:0,vessel:'MV Maersk Hobart',temp:'-18.0°C',breach:false,btom:'Not yet due'},
+   pdfFields:{hs:'0202.30.00',voyage:'426W',gross:'24,840 kg'},
+   impact:null, parseSource:'BODY+PDF'},
+
+  // Day 4 — Jan 18 — BLOCKED
+  {day:4,  date:'2026-01-18', from:'deals@freightnews.com', sender:'Freight News Weekly',
+   subject:'Weekly freight market update — Jan 2026',
+   domain:'@freightnews.com', allowed:false, label:null,
+   hasPDF:false, type:'BLOCKED', container:null, bl:null,
+   bodyFields:null, pdfFields:null, impact:null, parseSource:'BLOCKED'},
+
+  // Day 6 — Jan 20 — Red Sea reroute
+  {day:6,  date:'2026-01-20', from:'customerservice@maersk.com', sender:'Maersk Customer Service',
+   subject:'⚠ ETA REVISED MRKU4821073 — Cape Reroute +8 days — BL: MAEU1234567890',
+   domain:'@maersk.com', allowed:true, label:'lsc-shipping',
+   hasPDF:true, type:'ROUTE_CHANGE', container:'MRKU4821073', bl:'MAEU1234567890',
+   bodyFields:{eta:'2026-03-30',delta:8,vessel:'MV Maersk Hobart',temp:'-17.9°C',breach:false,btom:'Not yet due'},
+   pdfFields:{hs:'0202.30.00',voyage:'426W',gross:'24,840 kg'},
+   impact:'DELAY', parseSource:'BODY+PDF',
+   reason:'Red Sea/Houthi risk. Cape of Good Hope rerouting mandated.'},
+
+  // Day 7 — Jan 21 — MSC departure
+  {day:7,  date:'2026-01-21', from:'reefer@msc.com', sender:'MSC Reefer Ops',
+   subject:'Departure Confirmation MSCU5512087 Fremantle — BL: MSCUFE5512087001',
+   domain:'@msc.com', allowed:true, label:'lsc-shipping',
+   hasPDF:true, type:'DEPARTURE_CONF', container:'MSCU5512087', bl:'MSCUFE5512087001',
+   bodyFields:{eta:'2026-04-18',delta:0,vessel:'MV MSC Beatrice',temp:'-18.2°C',breach:false,btom:'Not yet due'},
+   pdfFields:{hs:'0202.30.00',voyage:'716AU',gross:'27,600 kg'},
+   impact:null, parseSource:'BODY+PDF'},
+
+  // Day 11 — Jan 25 — Hapag departure
+  {day:11, date:'2026-01-25', from:'reefer@hlag.com', sender:'Hapag-Lloyd Reefer',
+   subject:'Booking Confirmed HLXU9901234 Sydney — BL: HLBU9901234001',
+   domain:'@hapag-lloyd.com', allowed:true, label:'lsc-shipping',
+   hasPDF:true, type:'DEPARTURE_CONF', container:'HLXU9901234', bl:'HLBU9901234001',
+   bodyFields:{eta:'2026-04-10',delta:0,vessel:'MV Hapag San Francisco',temp:'+1.0°C',breach:false,btom:'Not yet due'},
+   pdfFields:{hs:'0201.30.00',voyage:'214WB',gross:'21,440 kg'},
+   impact:null, parseSource:'BODY+PDF'},
+
+  // Day 22 — Feb 5 — BLOCKED gmail
+  {day:22, date:'2026-02-05', from:'freightquote@gmail.com', sender:'Freight Quote',
+   subject:'Your freight quote — cheapest rates',
+   domain:'@gmail.com', allowed:false, label:null,
+   hasPDF:false, type:'BLOCKED', container:null, bl:null,
+   bodyFields:null, pdfFields:null, impact:null, parseSource:'BLOCKED'},
+
+  // Day 26 — Feb 9 — Hapag Port Louis delay
+  {day:26, date:'2026-02-09', from:'reefer@hlag.com', sender:'Hapag-Lloyd Reefer',
+   subject:'Port Delay Notice HLXU9901234 — Port Louis +3 days — BL: HLBU9901234001',
+   domain:'@hapag-lloyd.com', allowed:true, label:'lsc-shipping',
+   hasPDF:false, type:'DELAY_NOTICE', container:'HLXU9901234', bl:'HLBU9901234001',
+   bodyFields:{eta:'2026-04-13',delta:3,vessel:'MV Hapag San Francisco',temp:'+1.1°C',breach:false,btom:'Not yet due'},
+   pdfFields:null,
+   impact:'DELAY', parseSource:'BODY',
+   reason:'Port Louis (Mauritius) stevedore strike. 3-day berth delay.'},
+
+  // Day 34 — Feb 17 — TEMP BREACH
+  {day:34, date:'2026-02-17', from:'reefer@hlag.com', sender:'Hapag-Lloyd Reefer',
+   subject:'🚨 CRITICAL TEMP ALERT HLXU9901234 — Deviation +1.8°C — BL: HLBU9901234001',
+   domain:'@hapag-lloyd.com', allowed:true, label:'lsc-reefer',
+   hasPDF:true, type:'TEMP_ALERT', container:'HLXU9901234', bl:'HLBU9901234001',
+   bodyFields:{eta:'2026-04-16',delta:6,vessel:'MV Hapag San Francisco',temp:'+2.8°C ⚠',breach:true,btom:'Due 2026-04-14'},
+   pdfFields:{hs:'0201.30.00',voyage:'214WB',gross:'21,440 kg'},
+   impact:'CRITICAL', parseSource:'BODY+PDF',
+   reason:'Reefer compressor cycling fault. +150hrs cumulative above set point.'},
+
+  // Day 41 — Feb 24 — MSC position update
+  {day:41, date:'2026-02-24', from:'reefer@msc.com', sender:'MSC Reefer Ops',
+   subject:'Voyage Update MSCU5512087 — Cape Town Pass — BL: MSCUFE5512087001',
+   domain:'@msc.com', allowed:true, label:'lsc-shipping',
+   hasPDF:false, type:'POSITION_UPDATE', container:'MSCU5512087', bl:'MSCUFE5512087001',
+   bodyFields:{eta:'2026-04-18',delta:0,vessel:'MV MSC Beatrice',temp:'-18.1°C',breach:false,btom:'Not yet due'},
+   pdfFields:null,
+   impact:null, parseSource:'BODY'},
+
+  // Day 48 — Mar 3 — Maersk ETA update
+  {day:48, date:'2026-03-03', from:'customerservice@maersk.com', sender:'Maersk Customer Service',
+   subject:'ETA Update MRKU4821073 — English Channel — BL: MAEU1234567890',
+   domain:'@maersk.com', allowed:true, label:'lsc-shipping',
+   hasPDF:false, type:'ETA_UPDATE', container:'MRKU4821073', bl:'MAEU1234567890',
+   bodyFields:{eta:'2026-03-26',delta:4.5,vessel:'MV Maersk Hobart',temp:'-17.8°C',breach:false,btom:'SUBMITTED IPAFFS-2026-TLB-094821'},
+   pdfFields:null,
+   impact:'DELAY', parseSource:'BODY',
+   reason:'Cape of Good Hope routing adds 4.5 days net vs original ETA.'},
+
+  // Day 54 — Mar 9 — BTOM pre-notification
+  {day:54, date:'2026-03-09', from:'noreply@ipaffs.gov.uk', sender:'IPAFFS Government',
+   subject:'IPAFFS Pre-Notification Accepted — MRKU4821073 — Ref: IPAFFS-2026-TLB-094821',
+   domain:'@ipaffs.gov.uk', allowed:true, label:'lsc-compliance',
+   hasPDF:false, type:'BTOM_CONFIRM', container:'MRKU4821073', bl:'MAEU1234567890',
+   bodyFields:{eta:'2026-03-26',delta:4.5,vessel:'MV Maersk Hobart',temp:'-17.8°C',breach:false,btom:'ACCEPTED'},
+   pdfFields:null,
+   impact:null, parseSource:'BODY'},
+
+  // Day 71 — Mar 26 — Maersk arrival
+  {day:71, date:'2026-03-26', from:'customerservice@maersk.com', sender:'Maersk Customer Service',
+   subject:'Arrival Notice MRKU4821073 — Tilbury ETA Today 18:00 — BL: MAEU1234567890',
+   domain:'@maersk.com', allowed:true, label:'lsc-shipping',
+   hasPDF:true, type:'ARRIVAL_NOTICE', container:'MRKU4821073', bl:'MAEU1234567890',
+   bodyFields:{eta:'2026-03-26',delta:4.5,vessel:'MV Maersk Hobart',temp:'-17.8°C',breach:false,btom:'CLEARED 2026-03-27'},
+   pdfFields:{hs:'0202.30.00',voyage:'426W',gross:'24,840 kg'},
+   impact:'DELAY', parseSource:'BODY+PDF',
+   reason:'Arrived Tilbury. Cape route added 4.5 days.'},
+];
+
+// Sent notifications (dispatched on impact events)
+const SENT_NOTIFICATIONS = [
+  {day:6,  to:'supply@brakes.co.uk',        customer:'Brakes Group',         container:'MRKU4821073', impact:'DELAY',    subject:'Delivery Delay Notice — MRKU4821073 | +8 days'},
+  {day:26, to:'procurement@iceland.co.uk',  customer:'Iceland Foods',         container:'HLXU9901234', impact:'DELAY',    subject:'Delivery Delay Notice — HLXU9901234 | +3 days'},
+  {day:34, to:'logistics@tesco.com',        customer:'Tesco Distribution',    container:'HLXU9901234', impact:'CRITICAL', subject:'CRITICAL — HLXU9901234 Temp Breach + Delay | Action Required'},
+  {day:34, to:'buying@coop.co.uk',          customer:'Co-op Foods',           container:'HLXU9901234', impact:'CRITICAL', subject:'CRITICAL — HLXU9901234 | Order ORD-2272 — Immediate Action'},
+  {day:48, to:'supply@brakes.co.uk',        customer:'Brakes Group',          container:'MRKU4821073', impact:'DELAY',    subject:'ETA Update — MRKU4821073 | +4.5 days final'},
+  {day:71, to:'supply@brakes.co.uk',        customer:'Brakes Group',          container:'MRKU4821073', impact:'DELAY',    subject:'Arrival Notice — MRKU4821073 — Tilbury today'},
+];
+
+// ═══════════════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════════════
+
+const START = new Date('2026-01-14T00:00:00Z');
+let currentDay = 0;
+let playInterval = null;
+let playSpeed = 1;
+let currentFilter = 'all';
+let currentApp = 'gmail';
+let currentSheet = 'tracker';
+let selectedEmail = null;
+
+const visibleEmails = [];    // emails seen so far
+const parseLog = [];
+const auditLog = [];
+const notifLog = [];
+
+// ═══════════════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════════════
+
+function dayToDate(d) {
+  const dt = new Date(START.getTime() + d * 86400000);
+  return dt.toISOString().substring(0,10);
+}
+
+function fmtTime(d) {
+  const h = (8 + Math.floor(d % 13)) % 24;
+  return `${h.toString().padStart(2,'0')}:${(d*7%60).toString().padStart(2,'0')}`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// RENDER EMAIL LIST
+// ═══════════════════════════════════════════════════════════════════════
+
+function renderEmailList() {
+  const list = document.getElementById('email-list');
+  let emails = [...visibleEmails].reverse(); // newest first
+
+  if (currentFilter === 'lsc-shipping')   emails = emails.filter(e => e.label === 'lsc-shipping');
+  else if (currentFilter === 'lsc-reefer') emails = emails.filter(e => e.label === 'lsc-reefer');
+  else if (currentFilter === 'lsc-compliance') emails = emails.filter(e => e.label === 'lsc-compliance');
+  else if (currentFilter === 'starred')   emails = emails.filter(e => e.type === 'TEMP_ALERT' || e.impact === 'CRITICAL');
+  else if (currentFilter === 'sent')      emails = notifLog.slice().reverse();
+
+  list.innerHTML = emails.map((e, i) => {
+    if (currentFilter === 'sent') return renderSentRow(e);
+    const isNew = e.day === currentDay;
+    const isBlocked = !e.allowed;
+    const dotColor = e.type === 'TEMP_ALERT' ? '#EA4335' : e.type === 'ROUTE_CHANGE' || e.type === 'ETA_UPDATE' ? '#FBBC04' : '#4285F4';
+    const avatarBg = isBlocked ? '#9E9E9E' : dotColor;
+    const avatar = (e.sender || '').split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+
+    let labels = '';
+    if (e.label === 'lsc-shipping')    labels += `<span class="er-label lsc-s">lsc-shipping</span>`;
+    if (e.label === 'lsc-reefer')      labels += `<span class="er-label lsc-r">🌡 lsc-reefer</span>`;
+    if (e.label === 'lsc-compliance')  labels += `<span class="er-label lsc-c">lsc-compliance</span>`;
+    if (isBlocked)                     labels += `<span class="er-label blocked">🚫 BLOCKED</span>`;
+
+    const domBadge = isBlocked
+      ? `<span class="er-domain-badge blocked">✗ ${e.domain}</span>`
+      : `<span class="er-domain-badge ok">✓</span>`;
+
+    const selected = selectedEmail && selectedEmail.bl === e.bl && selectedEmail.day === e.day ? ' selected' : '';
+    const unread = i < 3 ? ' unread' : '';
+    const newCls = isNew ? ' new-arrival' : '';
+
+    return `<div class="email-row${selected}${unread}${newCls}${isBlocked?' blocked-row':''}" onclick="selectEmail(${visibleEmails.indexOf(e)})">
+      <div class="er-check">${isNew ? '<div class="new-dot"></div>' : '○'}</div>
+      <div class="er-star">${e.type === 'TEMP_ALERT' ? '⭐' : '☆'}</div>
+      <div class="er-sender">
+        <span style="width:28px;height:28px;border-radius:50%;background:${avatarBg};color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;margin-right:6px;vertical-align:middle">${avatar}</span>
+        ${e.sender}
+      </div>
+      <div class="er-labels">${labels}</div>
+      <div class="er-subject">
+        ${e.subject}
+        ${e.hasPDF ? '<span class="parse-chip parse-pdf">📎 PDF</span>' : ''}
+        ${e.parseSource === 'BODY' ? '<span class="parse-chip parse-body">BODY</span>' : ''}
+        ${e.parseSource === 'BODY+PDF' ? '<span class="parse-chip parse-merged">MERGED</span>' : ''}
+      </div>
+      ${domBadge}
+      <div class="er-time">${fmtTime(e.day)}</div>
+    </div>`;
+  }).join('');
+
+  // Update counts
+  const allowed = visibleEmails.filter(e => e.allowed);
+  const blocked = visibleEmails.filter(e => !e.allowed);
+  document.getElementById('nav-count').textContent = allowed.length;
+  document.getElementById('blocked-count').textContent = blocked.length;
+  document.getElementById('sent-count').textContent = notifLog.length;
+  document.getElementById('lbl-ship').textContent = visibleEmails.filter(e=>e.label==='lsc-shipping').length;
+  document.getElementById('lbl-reef').textContent = visibleEmails.filter(e=>e.label==='lsc-reefer').length;
+  document.getElementById('lbl-comp').textContent = visibleEmails.filter(e=>e.label==='lsc-compliance').length;
+  document.getElementById('email-count-label').textContent = `1–${emails.length} of ${visibleEmails.length}`;
+
+  // Stats bar
+  document.getElementById('ss-emails').textContent = allowed.length;
+  document.getElementById('ss-blocked').textContent = blocked.length;
+  document.getElementById('ss-notified').textContent = notifLog.length;
+  document.getElementById('ss-alerts').textContent = visibleEmails.filter(e=>e.type==='TEMP_ALERT').length;
+}
+
+function renderSentRow(n) {
+  const impCol = n.impact === 'CRITICAL' ? '#EA4335' : '#FBBC04';
+  return `<div class="email-row">
+    <div class="er-check">→</div>
+    <div class="er-star">📤</div>
+    <div class="er-sender" style="font-size:13px">${n.to}</div>
+    <div class="er-labels"><span class="er-label" style="background:${n.impact==='CRITICAL'?'#FCE8E6':'#FEF7E0'};color:${impCol}">${n.impact}</span></div>
+    <div class="er-subject">${n.subject}</div>
+    <div class="er-time">${n.container||''}</div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// EMAIL DETAIL
+// ═══════════════════════════════════════════════════════════════════════
+
+function selectEmail(idx) {
+  selectedEmail = visibleEmails[idx];
+  renderEmailList();
+  renderEmailDetail(selectedEmail);
+  document.getElementById('detail-hdr-label').textContent = selectedEmail.subject.substring(0,50) + (selectedEmail.subject.length > 50 ? '…' : '');
+}
+
+function renderEmailDetail(e) {
+  const panel = document.getElementById('email-detail-panel');
+  if (!e || !e.allowed) {
+    panel.innerHTML = `<div style="padding:24px">
+      <div style="background:#FCE8E6;border-radius:8px;padding:16px 20px;display:flex;gap:12px;align-items:flex-start">
+        <div style="font-size:24px">🚫</div>
+        <div>
+          <div style="font-size:15px;font-weight:600;color:#C5221F;margin-bottom:6px">Email Blocked by Domain Governance</div>
+          <div style="font-size:13px;color:#5F0000;line-height:1.5">
+            Sender domain <strong>${e?.domain||'unknown'}</strong> is not in the approved carrier list.<br>
+            This email was rejected before any parsing occurred.<br>
+            Violation logged to Sheets → Audit tab.
+          </div>
+        </div>
+      </div>
+    </div>`;
+    return;
+  }
+
+  const bf = e.bodyFields || {};
+  const pf = e.pdfFields || {};
+  const hdrColor = e.type === 'TEMP_ALERT' ? '#C5221F' : e.type === 'ROUTE_CHANGE' || e.impact === 'DELAY' ? '#E37400' : '#1A73E8';
+  const impactBg = e.impact === 'CRITICAL' ? '#FCE8E6' : e.impact === 'DELAY' ? '#FEF7E0' : '#E6F4EA';
+  const impactColor = e.impact === 'CRITICAL' ? '#C5221F' : e.impact === 'DELAY' ? '#E37400' : '#137333';
+
+  panel.innerHTML = `
+    <div style="margin-bottom:12px">
+      <div style="font-size:18px;font-weight:400;color:#202124;margin-bottom:10px;line-height:1.3">${e.subject}</div>
+      <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--g-grey-700)">
+        <span style="width:28px;height:28px;border-radius:50%;background:${hdrColor};color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">${e.sender.split(' ').map(w=>w[0]).join('').substring(0,2)}</span>
+        <span><strong>${e.sender}</strong> &lt;${e.from}&gt;</span>
+        <span style="margin-left:auto">${e.date} ${fmtTime(e.day)}</span>
+      </div>
+    </div>
+
+    <div style="border:1px solid #E8EAED;border-radius:8px;overflow:hidden;margin-bottom:12px">
+      <div style="background:${hdrColor};padding:12px 16px;color:#fff">
+        <div style="font-size:14px;font-weight:700">${e.type === 'TEMP_ALERT' ? '🚨 REEFER TEMPERATURE DEVIATION ALERT' : e.type === 'ROUTE_CHANGE' ? '⚠️ ROUTE CHANGE — ETA REVISED' : e.type === 'ARRIVAL_NOTICE' ? '📍 ARRIVAL NOTICE' : e.type === 'BTOM_CONFIRM' ? '✅ IPAFFS PRE-NOTIFICATION ACCEPTED' : '📋 ' + (e.type||'').replace(/_/g,' ')}</div>
+        <div style="font-size:11px;opacity:0.9;margin-top:2px">${e.sender} · ${e.container || ''} · ${e.date}</div>
+      </div>
+      <div style="padding:12px 16px;background:#F8FAFC">
+        ${e.impact ? `<div style="background:${impactBg};border-radius:4px;padding:6px 12px;margin-bottom:10px;font-size:12px;font-weight:600;color:${impactColor}">Impact Classification: ${e.impact}${e.reason ? ' — ' + e.reason.substring(0,80) : ''}</div>` : ''}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px">
+          ${[
+            ['Shipping Reference', `<strong style="font-family:var(--mono)">${e.bl||'—'}</strong> <span style="font-size:10px;color:#1A73E8;background:#E8F0FE;padding:1px 6px;border-radius:3px;margin-left:4px">[body]</span>`],
+            ['Container', `<span style="font-family:var(--mono);font-weight:600">${e.container||'—'}</span>`],
+            ['Vessel', bf.vessel||'—'],
+            ['ETA (Current)', `<span style="color:${(bf.delta||0)>0?'#E37400':'#137333'};font-weight:600">${bf.eta||'—'} ${(bf.delta||0)>0?`(+${bf.delta}d)`:''}</span>`],
+            ['Reefer Temp', `<span style="color:${bf.breach?'#C5221F':'#137333'};font-weight:600">${bf.temp||'—'} ${bf.breach?'⚠ BREACH':''}</span>`],
+            ['BTOM Status', bf.btom||'—'],
+          ].map(([k,v]) => `<div style="background:#fff;border-radius:4px;padding:6px 10px;border:1px solid #E8EAED">
+            <div style="font-size:10px;color:#5F6368;margin-bottom:2px">${k}</div>
+            <div>${v}</div>
+          </div>`).join('')}
+        </div>
+        ${pf && Object.keys(pf).length ? `
+        <div style="margin-top:8px;padding:6px 10px;background:#F3E8FF;border-radius:4px;font-size:11px;color:#7B1FA2">
+          <strong>📎 PDF fields (supplementary):</strong>
+          ${Object.entries(pf).map(([k,v]) => `${k}: <strong>${v}</strong> <span style="background:#7B1FA2;color:#fff;padding:0 4px;border-radius:2px;font-size:9px">[pdf]</span>`).join(' · ')}
+        </div>` : ''}
+        <div style="margin-top:8px;font-size:11px;color:#5F6368">
+          Parse source: <strong style="color:${e.parseSource==='BODY+PDF'?'#137333':e.parseSource==='BODY'?'#1A73E8':'#9E9E9E'}">${e.parseSource}</strong>
+          · Domain: <strong style="color:${e.allowed?'#137333':'#C5221F'}">${e.domain} ${e.allowed?'✓ ALLOWED':'✗ BLOCKED'}</strong>
+          · Label: ${e.label ? `<span style="background:#E8F0FE;color:#1A73E8;padding:1px 6px;border-radius:3px;font-size:10px">${e.label}</span>` : 'none'}
+        </div>
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// SHEETS RENDERING
+// ═══════════════════════════════════════════════════════════════════════
+
+function showSheet(name) {
+  currentSheet = name;
+  document.querySelectorAll('.sh-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  renderSheet();
+}
+
+function renderSheet() {
+  const body = document.getElementById('sheets-body');
+  if (!body) return;
+  if (currentSheet === 'tracker')       body.innerHTML = buildTrackerSheet();
+  else if (currentSheet === 'parse')    body.innerHTML = buildParseSheet();
+  else if (currentSheet === 'audit')    body.innerHTML = buildAuditSheet();
+  else if (currentSheet === 'notifications') body.innerHTML = buildNotifsSheet();
+}
+
+function shCell(val, cls='') { return `<td class="${cls}">${val}</td>`; }
+function shRowNum(n) { return `<td class="row-hdr">${n}</td>`; }
+
+function buildTrackerSheet() {
+  const cols = ['A','B','C','D','E','F','G','H','I','J','K','L','M'];
+  const hdrs = ['★ BL / Ref','Container','Carrier','Vessel','Voyage','Origin','Dest',
+                'ETA Current','ETA Delta','Set Point','Temp Now','Breach','Impact'];
+  const emails = visibleEmails.filter(e=>e.allowed && e.container);
+  // Deduplicate by container, keep latest
+  const latest = {};
+  emails.forEach(e => { latest[e.container] = e; });
+  const rows = Object.values(latest);
+
+  return `<table class="sh-table">
+    <thead><tr><th></th>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead>
+    <tbody>
+      <tr><td class="row-hdr">1</td>${hdrs.map(h=>`<td class="header-row">${h}</td>`).join('')}</tr>
+      ${rows.map((e,i) => {
+        const bf = e.bodyFields||{};
+        const pf = e.pdfFields||{};
+        const d = bf.delta||0;
+        const etaCls = d > 4 ? 'sh-red' : d > 0 ? 'sh-amber' : 'sh-green';
+        const tCls = bf.breach ? 'sh-red' : 'sh-green';
+        const impCls = e.impact==='CRITICAL'?'sh-red':e.impact==='DELAY'?'sh-amber':'sh-green';
+        return `<tr class="frozen">
+          ${shRowNum(i+2)}
+          <td class="sh-blue" style="font-family:var(--mono);font-size:10px;font-weight:700">${e.bl||'—'}</td>
+          <td style="font-family:var(--mono);font-weight:600">${e.container}</td>
+          <td>${e.from.split('@')[1]?.split('.')[0]||''}</td>
+          <td style="font-size:10px">${bf.vessel||'—'}</td>
+          <td style="font-family:var(--mono)">${pf.voyage||'—'}</td>
+          <td>AUMEL</td><td>GBTIL</td>
+          <td class="${etaCls}">${bf.eta||'—'}</td>
+          <td class="${etaCls}">${d>0?'+'+d+'d':'On time'}</td>
+          <td>-18.0°C</td>
+          <td class="${tCls}">${bf.temp||'—'}</td>
+          <td class="${bf.breach?'sh-red':'sh-green'}">${bf.breach?'⚠ YES':'✓ No'}</td>
+          <td class="${impCls}">${e.impact||'ON_TIME'}</td>
+        </tr>`;
+      }).join('')}
+    </tbody>
+  </table>`;
+}
+
+function buildParseSheet() {
+  const rows = parseLog.slice().reverse();
+  return `<table class="sh-table">
+    <thead><tr><th></th><th>A</th><th>B</th><th>C</th><th>D</th><th>E</th><th>F</th><th>G</th></tr></thead>
+    <tbody>
+      <tr><td class="row-hdr">1</td><td class="header-row">Date</td><td class="header-row">Container</td><td class="header-row">BL</td><td class="header-row">Source</td><td class="header-row">Fields Found</td><td class="header-row">ETA</td><td class="header-row">Temp</td></tr>
+      ${rows.map((r,i) => `<tr>
+        ${shRowNum(i+2)}
+        <td style="font-family:var(--mono);font-size:10px">${r.date}</td>
+        <td style="font-family:var(--mono);font-weight:600">${r.container||'—'}</td>
+        <td class="sh-blue" style="font-family:var(--mono);font-size:10px">${r.bl||'—'}</td>
+        <td class="${r.source==='BODY+PDF'?'sh-green':r.source==='BODY'?'sh-blue':'sh-amber'}">${r.source}</td>
+        <td class="sh-green">${r.fields}</td>
+        <td>${r.eta||'—'}</td>
+        <td class="${r.breach?'sh-red':'sh-green'}">${r.temp||'—'}</td>
+      </tr>`).join('')}
+    </tbody>
+  </table>`;
+}
+
+function buildAuditSheet() {
+  const rows = auditLog.slice().reverse();
+  return `<table class="sh-table">
+    <thead><tr><th></th><th>A</th><th>B</th><th>C</th><th>D</th><th>E</th></tr></thead>
+    <tbody>
+      <tr><td class="row-hdr">1</td><td class="header-row">Timestamp</td><td class="header-row">Sender</td><td class="header-row">Domain</td><td class="header-row">Decision</td><td class="header-row">Reason</td></tr>
+      ${rows.map((r,i) => `<tr>
+        ${shRowNum(i+2)}
+        <td style="font-family:var(--mono);font-size:10px">${r.date}</td>
+        <td style="font-size:11px">${r.from}</td>
+        <td style="font-family:var(--mono);font-size:10px">${r.domain}</td>
+        <td class="${r.allowed?'sh-green':'sh-red'}">${r.allowed?'✓ ALLOWED':'✗ BLOCKED'}</td>
+        <td style="font-size:10px">${r.reason}</td>
+      </tr>`).join('')}
+    </tbody>
+  </table>`;
+}
+
+function buildNotifsSheet() {
+  return `<table class="sh-table">
+    <thead><tr><th></th><th>A</th><th>B</th><th>C</th><th>D</th><th>E</th></tr></thead>
+    <tbody>
+      <tr><td class="row-hdr">1</td><td class="header-row">Date Sent</td><td class="header-row">To</td><td class="header-row">Container</td><td class="header-row">Impact</td><td class="header-row">Subject</td></tr>
+      ${notifLog.map((n,i) => `<tr>
+        ${shRowNum(i+2)}
+        <td style="font-family:var(--mono);font-size:10px">${n.date}</td>
+        <td style="font-size:11px">${n.to}</td>
+        <td style="font-family:var(--mono);font-weight:600">${n.container}</td>
+        <td class="${n.impact==='CRITICAL'?'sh-red':'sh-amber'}">${n.impact}</td>
+        <td style="font-size:10px">${n.subject.substring(0,55)}…</td>
+      </tr>`).join('')}
+    </tbody>
+  </table>`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// TOASTS
+// ═══════════════════════════════════════════════════════════════════════
+
+function toast(title, body, type='blue', duration=4000) {
+  const stack = document.getElementById('toast-stack');
+  const icons = {blue:'📧', red:'🚨', green:'✅', yellow:'⚠️', blocked:'🚫'};
+  const colors = {blue:'var(--g-blue)', red:'var(--g-red)', green:'var(--g-green)', yellow:'var(--g-yellow)', blocked:'var(--g-grey-400)'};
+  const div = document.createElement('div');
+  div.className = `toast ${type}`;
+  div.innerHTML = `<div class="toast-icon">${icons[type]||'📬'}</div>
+    <div style="flex:1"><div class="toast-title">${title}</div><div class="toast-body">${body}</div></div>
+    <div class="toast-close" onclick="this.parentElement.remove()">×</div>`;
+  stack.appendChild(div);
+  if (duration > 0) setTimeout(() => div.remove(), duration);
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// SIMULATION ENGINE
+// ═══════════════════════════════════════════════════════════════════════
+
+function advanceToDay(targetDay) {
+  // Process all emails that arrive on this day
+  ALL_EMAILS.forEach(e => {
+    if (e.day === targetDay && !visibleEmails.includes(e)) {
+      visibleEmails.push(e);
+
+      // Audit log entry
+      const rule = DOMAIN_RULES.inbound.find(r => r.domain === e.domain);
+      auditLog.push({
+        date: e.date, from: e.from, domain: e.domain,
+        allowed: e.allowed, reason: rule ? rule.rule : e.allowed ? 'Approved' : 'Domain not in allowed list'
+      });
+
+      // Parse log entry
+      if (e.allowed && e.container) {
+        const bf = e.bodyFields||{};
+        const pf = e.pdfFields||{};
+        const fieldCount = Object.keys(bf).length + Object.keys(pf).length;
+        parseLog.push({
+          date: e.date, container: e.container, bl: e.bl,
+          source: e.parseSource, fields: `${fieldCount} fields`,
+          eta: bf.eta, temp: bf.temp, breach: bf.breach
+        });
+      }
+
+      // Toast notification
+      if (!e.allowed) {
+        toast(`Domain Blocked`, `${e.from} — ${e.domain} not approved`, 'blocked', 3000);
+      } else if (e.type === 'TEMP_ALERT') {
+        toast(`🚨 CRITICAL: Temp Breach`, `${e.container} — ${e.bodyFields?.temp} vs set point`, 'red', 6000);
+      } else if (e.impact === 'DELAY') {
+        toast(`⚠ ETA Revised`, `${e.container} +${e.bodyFields?.delta}d — ${e.label}`, 'yellow', 4000);
+      } else if (e.type === 'ARRIVAL_NOTICE') {
+        toast(`Vessel Arriving`, `${e.container} — ${e.bodyFields?.eta}`, 'green', 4000);
+      } else if (e.type === 'BTOM_CONFIRM') {
+        toast(`IPAFFS Accepted`, `${e.container} — ${e.label}`, 'green', 3000);
+      }
+    }
+  });
+
+  // Process sent notifications on this day
+  SENT_NOTIFICATIONS.forEach(n => {
+    if (n.day === targetDay && !notifLog.find(x => x.day === n.day && x.to === n.to)) {
+      notifLog.push({...n, date: dayToDate(targetDay)});
+      if (n.impact === 'CRITICAL') {
+        toast(`Notification Sent`, `${n.impact}: ${n.to}`, 'red', 4000);
+      }
+    }
+  });
+
+  // Update date display
+  const dt = new Date(START.getTime() + targetDay * 86400000);
+  const months = ['Jan','Feb','Mar','Apr','May','Jun'];
+  document.getElementById('sim-date').textContent = `${dt.getDate()} ${months[dt.getMonth()]} 2026 · Day ${targetDay+1}`;
+
+  // Update slider
+  const slider = document.getElementById('sim-slider');
+  slider.value = targetDay;
+  slider.style.setProperty('--pct', (targetDay/76*100).toFixed(1)+'%');
+
+  currentDay = targetDay;
+  renderEmailList();
+  if (currentApp === 'sheets') renderSheet();
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// CONTROLS
+// ═══════════════════════════════════════════════════════════════════════
+
+function stepDay(n) {
+  const next = Math.max(0, Math.min(76, currentDay + n));
+  if (next !== currentDay) advanceToDay(next);
+}
+
+function onSlider(val) { advanceToDay(parseInt(val)); }
+
+function togglePlay() {
+  const btn = document.getElementById('play-btn');
+  if (playInterval) {
+    clearInterval(playInterval);
+    playInterval = null;
+    btn.textContent = '▶'; btn.classList.remove('active');
+    btn.style.background = 'var(--g-green)';
+  } else {
+    btn.textContent = '⏸'; btn.style.background = '#E37400';
+    playInterval = setInterval(() => {
+      if (currentDay >= 76) { togglePlay(); return; }
+      advanceToDay(currentDay + 1);
+    }, 800 / playSpeed);
+  }
+}
+
+function setSpd(s, el) {
+  playSpeed = s;
+  document.querySelectorAll('.spd').forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+  if (playInterval) { togglePlay(); togglePlay(); }
+}
+
+function filterInbox(f) { currentFilter = f; renderEmailList(); }
+
+function switchApp(app) {
+  currentApp = app;
+  ['gmail','sheets','drive'].forEach(a => {
+    document.getElementById(`app-${a}`)?.classList.remove('active');
+  });
+  document.getElementById(`app-${app}`)?.classList.add('active');
+  document.getElementById('gmail-view').style.display = app === 'gmail' ? 'flex' : 'none';
+  const sv = document.getElementById('sheets-view');
+  if (sv) sv.style.display = app === 'sheets' ? 'flex' : 'none';
+  if (app === 'sheets') { renderSheet(); }
+  if (app === 'drive') {
+    document.getElementById('gmail-view').style.display = 'flex';
+    toast('Google Drive', 'PDF attachments stored at: My Drive / MeatTrackAI / Carrier PDFs', 'blue', 4000);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// GOVERNANCE DIALOG
+// ═══════════════════════════════════════════════════════════════════════
+
+function showGovDialog() {
+  const inbound = DOMAIN_RULES.inbound.map(r => `
+    <div class="gov-row">
+      <div class="gov-status ${r.action==='ALLOW'?'gov-ok':'gov-block'}">${r.action==='ALLOW'?'✓':'✗'}</div>
+      <div class="gov-domain" style="font-family:var(--mono)">${r.domain}</div>
+      <div class="gov-rule">${r.rule} ${r.label?`→ <span style="background:#E8F0FE;color:#1A73E8;padding:0 6px;border-radius:3px;font-size:10px">${r.label}</span>`:''}</div>
+    </div>`).join('');
+
+  const outbound = DOMAIN_RULES.outbound.map(r => `
+    <div class="gov-row">
+      <div class="gov-status ${r.action==='ALLOW'?'gov-ok':'gov-block'}">${r.action==='ALLOW'?'✓':'✗'}</div>
+      <div class="gov-domain" style="font-family:var(--mono)">${r.domain}</div>
+      <div class="gov-rule">${r.rule}</div>
+    </div>`).join('');
+
+  const routing = DOMAIN_RULES.routing.map(r => `
+    <div class="gov-row">
+      <div class="gov-status" style="background:#E8F0FE;color:#1A73E8">→</div>
+      <div class="gov-domain" style="font-size:12px">${r.pattern}</div>
+      <div class="gov-rule"><span style="background:#E8F0FE;color:#1A73E8;padding:1px 8px;border-radius:10px;font-size:11px;font-family:var(--mono)">${r.label}</span></div>
+    </div>`).join('');
+
+  document.getElementById('gov-inbound').innerHTML = inbound;
+  document.getElementById('gov-outbound').innerHTML = outbound;
+  document.getElementById('gov-routing').innerHTML = routing;
+  document.getElementById('gov-overlay').classList.add('show');
+}
+
+function hideGovDialog(e) {
+  if (!e || e.target === document.getElementById('gov-overlay')) {
+    document.getElementById('gov-overlay').classList.remove('show');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════════════
+
+// Init sheets tabs
+document.getElementById('sheets-tabs')?.querySelectorAll('.sh-tab').forEach((t, i) => {
+  t.onclick = () => {
+    const names = ['tracker','parse','audit','notifications'];
+    currentSheet = names[i];
+    document.querySelectorAll('.sh-tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    renderSheet();
+  };
+});
+
+// Sheets view flex
+const sv = document.getElementById('sheets-view');
+if (sv) sv.style.display = 'none';
+
+// Start on day 0
+advanceToDay(0);
+
+// Initial toast
+setTimeout(() => toast('MeatTrackAI Google Demo', 'Press ▶ to run simulation. Click emails to inspect. View Sheets → for live tracker.', 'blue', 6000), 800);
+</script>
+</body>
+</html>

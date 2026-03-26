@@ -251,6 +251,55 @@ header{
 .panel-fullscreen .tl-evt-meta{font-size:12px}
 .panel-fullscreen .tl-evt-note{font-size:12px}
 .panel-fullscreen canvas{max-height:300px}
+
+/* ── LEGEND FILTER ── */
+.legend-bar{
+  display:flex;gap:12px;align-items:center;flex-wrap:wrap;
+  padding:6px 14px;border-top:1px solid var(--border);background:var(--bg2);
+  min-height:34px;
+}
+.legend-item{
+  display:flex;align-items:center;gap:5px;cursor:pointer;
+  padding:3px 10px;border-radius:12px;border:1.5px solid transparent;
+  font-size:11px;font-weight:600;color:var(--text2);transition:all .15s;
+  user-select:none;
+}
+.legend-item:hover{background:var(--bg3)}
+.legend-item.active{border-color:currentColor;background:var(--bg3)}
+.legend-item.dimmed{opacity:.35}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.legend-count{font-family:var(--mono);font-size:10px;color:var(--text3);margin-left:2px}
+.filter-label{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);font-weight:700;font-family:var(--mono)}
+.filter-clear{
+  font-size:9px;color:var(--teal);cursor:pointer;text-decoration:underline;
+  margin-left:auto;font-weight:600;
+}
+.filter-clear:hover{color:var(--teal-d)}
+
+/* ── RISK ASSESSMENT PANEL ── */
+.risk-band{
+  padding:10px 12px;border-radius:6px;margin-bottom:6px;
+  border-left:4px solid;cursor:pointer;transition:all .15s;
+}
+.risk-band:hover{box-shadow:var(--shadow-md);transform:translateX(2px)}
+.risk-band.CRITICAL{background:var(--red-l);border-color:var(--red)}
+.risk-band.HIGH{background:var(--amber-l);border-color:var(--amber)}
+.risk-band.MEDIUM{background:#FFFBEB;border-color:#D97706}
+.risk-band.LOW{background:var(--green-l);border-color:var(--green)}
+.risk-band-header{display:flex;justify-content:space-between;align-items:center}
+.risk-band-severity{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+.risk-band-score{font-family:var(--mono);font-size:13px;font-weight:700}
+.risk-band-title{font-size:11px;font-weight:600;color:var(--text);margin-top:4px}
+.risk-band-detail{font-size:10px;color:var(--text2);margin-top:4px;line-height:1.5;display:none}
+.risk-band.expanded .risk-band-detail{display:block}
+.risk-band-reasoning{font-size:9px;color:var(--text3);margin-top:4px;padding-top:4px;border-top:1px solid var(--border-l);display:none}
+.risk-band.expanded .risk-band-reasoning{display:block}
+.risk-band-containers{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px}
+.risk-container-chip{
+  font-family:var(--mono);font-size:9px;padding:2px 6px;border-radius:3px;
+  background:rgba(0,0,0,.06);color:var(--text2);cursor:pointer;
+}
+.risk-container-chip:hover{background:var(--teal-l);color:var(--teal)}
 </style>
 </head>
 <body>
@@ -369,15 +418,7 @@ header{
         <!-- Dynamic layers -->
         <g id="vessel-trails"></g>
         <g id="vessel-dots"></g>
-        <!-- Legend -->
-        <g transform="translate(10,428)">
-          <rect x="0" y="-10" width="310" height="16" fill="rgba(255,255,255,.7)" rx="3"/>
-          <circle cx="8" cy="0" r="4" fill="#0A7A8A"/><text x="15" y="4" font-size="8" fill="#334155" font-family="sans-serif">At Sea</text>
-          <circle cx="70" cy="0" r="4" fill="#B45309"/><text x="77" y="4" font-size="8" fill="#334155" font-family="sans-serif">Delayed</text>
-          <circle cx="130" cy="0" r="4" fill="#C0392B"/><text x="137" y="4" font-size="8" fill="#334155" font-family="sans-serif">Alert</text>
-          <circle cx="182" cy="0" r="4" fill="#16A34A"/><text x="189" y="4" font-size="8" fill="#334155" font-family="sans-serif">Arrived</text>
-          <circle cx="237" cy="0" r="4" fill="#94A3B8"/><text x="244" y="4" font-size="8" fill="#334155" font-family="sans-serif">Booked</text>
-        </g>
+        <!-- Legend moved to interactive HTML bar below map -->
       </svg>
     </div>
     <div class="timeline-panel" id="panel-timeline">
@@ -397,6 +438,24 @@ header{
         <div style="color:var(--text3);font-size:12px;padding:16px 0;line-height:1.6">Select a container to view temperature vs set point and ETA revision charts.</div>
       </div>
     </div>
+  </div>
+
+  <div class="legend-bar" id="legend-bar">
+    <span class="filter-label">Filter:</span>
+    <div class="legend-item" data-filter="at-sea" onclick="toggleFilter('at-sea')"><div class="legend-dot" style="background:#0A7A8A"></div>At Sea<span class="legend-count" id="lc-at-sea">0</span></div>
+    <div class="legend-item" data-filter="delayed" onclick="toggleFilter('delayed')"><div class="legend-dot" style="background:#B45309"></div>Delayed<span class="legend-count" id="lc-delayed">0</span></div>
+    <div class="legend-item" data-filter="alert" onclick="toggleFilter('alert')"><div class="legend-dot" style="background:#C0392B"></div>Alert<span class="legend-count" id="lc-alert">0</span></div>
+    <div class="legend-item" data-filter="arrived" onclick="toggleFilter('arrived')"><div class="legend-dot" style="background:#16A34A"></div>Arrived<span class="legend-count" id="lc-arrived">0</span></div>
+    <div class="legend-item" data-filter="booked" onclick="toggleFilter('booked')"><div class="legend-dot" style="background:#94A3B8"></div>Booked<span class="legend-count" id="lc-booked">0</span></div>
+    <span class="filter-clear" id="filter-clear" onclick="clearFilter()" style="display:none">Clear filter</span>
+  </div>
+
+  <div id="risk-assessment-panel" style="display:none;padding:10px 14px;border-top:1px solid var(--border);background:var(--bg2);max-height:200px;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div class="dp-title" style="margin-bottom:0">Risk Assessment — Filtered Containers</div>
+      <button class="fs-btn" onclick="toggleFullscreen('risk-assessment-panel')" title="Toggle fullscreen">⛶</button>
+    </div>
+    <div id="risk-assessment-content"></div>
   </div>
 
   <div class="status-bar" id="status-bar"></div>
@@ -599,6 +658,7 @@ function renderMap(dateStr){
   trails.innerHTML = ''; dots.innerHTML = '';
 
   VOYAGES.forEach(v=>{
+    const visible=isContainerVisible(v,dateStr);
     const rec = getDayRecord(v, dateStr);
     if(!rec || rec.status==="Booked"||rec.dayOfVoyage<0) {
       // Show at origin with grey
@@ -607,7 +667,7 @@ function renderMap(dateStr){
       const dot=document.createElementNS("http://www.w3.org/2000/svg","circle");
       dot.setAttribute("cx",sx);dot.setAttribute("cy",sy);dot.setAttribute("r","4");
       dot.setAttribute("fill",v.def.id===selectedContainerId?"#0A7A8A":"#94A3B8");
-      dot.setAttribute("opacity","0.5");
+      dot.setAttribute("opacity",visible?"0.5":"0.1");
       dot.style.cursor="pointer";
       dot.onclick=()=>selectContainer(v.def.id);
       dots.appendChild(dot);
@@ -645,7 +705,7 @@ function renderMap(dateStr){
     const dot=document.createElementNS("http://www.w3.org/2000/svg","circle");
     dot.setAttribute("cx",sx);dot.setAttribute("cy",sy);dot.setAttribute("r",r.toString());
     dot.setAttribute("fill",col);dot.setAttribute("stroke",isSelected?"#0F2744":"none");
-    dot.setAttribute("stroke-width","1.5");
+    dot.setAttribute("stroke-width","1.5");dot.setAttribute("opacity",visible?"1":"0.15");
     dot.style.cursor="pointer";
     dot.setAttribute("title",`${v.def.id} | ${rec.status} | ${rec.posName}`);
     dot.onclick=()=>selectContainer(v.def.id);
@@ -667,11 +727,13 @@ function renderMap(dateStr){
 function renderContainerList(dateStr){
   const el=document.getElementById('container-list');
   el.innerHTML=VOYAGES.map(v=>{
+    const visible=isContainerVisible(v,dateStr);
     const rec=getDayRecord(v,dateStr);
     const status=rec?rec.status:"Booked";
     const delay=rec?rec.delay:0;
     const col=getStatusColor(status,rec?.riskLevel||"LOW");
     const sel=v.def.id===selectedContainerId;
+    if(!visible) return `<div class="c-item" style="opacity:0.2;pointer-events:none"><div class="c-top"><span class="c-id">${v.def.id}</span><div class="c-status-dot" style="background:${col}"></div></div></div>`;
     const etaStr=rec?rec.etaDate.substring(5):"—";
     const delayClass=delay>5?"crit":delay>0?"pos":"ok";
     const delayLbl=delay>0?`+${delay}d`:delay<0?`${delay}d`:"On time";
@@ -917,6 +979,140 @@ function renderStatusBar(dateStr){
   }).join('');
 }
 
+// ── LEGEND FILTER & RISK ASSESSMENT ──────────────────────────────────────────
+
+let activeFilter = null;
+
+function getFilterCategory(status, riskLevel, delay) {
+  if(riskLevel==="CRITICAL"||status==="At Sea — ALERT") return "alert";
+  if(status==="Booked") return "booked";
+  if(["Discharged","BTOM Cleared","Gate Out"].includes(status)) return "arrived";
+  if(delay>0) return "delayed";
+  if(["At Sea","Loaded/Departed","Port Approach"].includes(status)) return "at-sea";
+  return "at-sea";
+}
+
+function toggleFilter(category) {
+  if(activeFilter===category) { clearFilter(); return; }
+  activeFilter=category;
+  document.querySelectorAll('.legend-item').forEach(el=>{
+    el.classList.toggle('active',el.dataset.filter===category);
+    el.classList.toggle('dimmed',el.dataset.filter!==category);
+  });
+  document.getElementById('filter-clear').style.display='inline';
+  document.getElementById('risk-assessment-panel').style.display='block';
+  renderAll();
+}
+
+function clearFilter() {
+  activeFilter=null;
+  document.querySelectorAll('.legend-item').forEach(el=>{
+    el.classList.remove('active','dimmed');
+  });
+  document.getElementById('filter-clear').style.display='none';
+  document.getElementById('risk-assessment-panel').style.display='none';
+  renderAll();
+}
+
+function isContainerVisible(voyage, dateStr) {
+  if(!activeFilter) return true;
+  const r=getDayRecord(voyage, dateStr);
+  if(!r) return activeFilter==="booked";
+  return getFilterCategory(r.status, r.riskLevel, r.delay)===activeFilter;
+}
+
+function renderLegendCounts(dateStr) {
+  const counts={"at-sea":0,"delayed":0,"alert":0,"arrived":0,"booked":0};
+  VOYAGES.forEach(v=>{
+    const r=getDayRecord(v,dateStr);
+    if(!r){counts.booked++;return;}
+    counts[getFilterCategory(r.status,r.riskLevel,r.delay)]++;
+  });
+  Object.entries(counts).forEach(([k,v])=>{
+    const el=document.getElementById('lc-'+k);
+    if(el) el.textContent=v;
+  });
+}
+
+function renderRiskAssessment(dateStr) {
+  const el=document.getElementById('risk-assessment-content');
+  if(!activeFilter){el.innerHTML='';return;}
+
+  const filtered=VOYAGES.filter(v=>isContainerVisible(v,dateStr));
+  if(!filtered.length){el.innerHTML='<div style="color:var(--text3);font-size:11px">No containers match this filter</div>';return;}
+
+  // Build risk assessments per container
+  const assessments=filtered.map(v=>{
+    const r=getDayRecord(v,dateStr);
+    if(!r) return null;
+    const risks=[];
+    let severity="LOW", score=1, reasoning=[];
+
+    // Delay risk
+    if(r.delay>5){severity="HIGH";score=Math.max(score,8);risks.push("Extended delay: +"+r.delay+" days");reasoning.push("Transit delay exceeds 5-day threshold. Spoilage risk elevated for "+v.def.type+" product (set point "+v.def.sp+"°C). Demurrage accruing at £500-£1,200/day.");}
+    else if(r.delay>0){if(severity!=="HIGH")severity="MEDIUM";score=Math.max(score,5);risks.push("Moderate delay: +"+r.delay+" days");reasoning.push("Delay within manageable range but warehouse slot re-booking may be required. Monitor ETA revisions.");}
+
+    // Temperature risk
+    if(r.tempBreach){severity="CRITICAL";score=10;risks.push("Reefer temperature breach: "+r.temp+"°C vs set point "+v.def.sp+"°C");reasoning.push("CRITICAL: Supply air temperature deviating from set point. Cold-chain integrity compromised. Product quality at risk. Insurance claim evidence being recorded. Estimated spoilage cost: £"+Math.round(12000+r.delay*2000).toLocaleString()+".");}
+
+    // Route change risk
+    if(r.route!==v.def.route){score=Math.max(score,6);if(severity==="LOW")severity="MEDIUM";risks.push("Route changed: "+v.def.route+" → "+r.route);reasoning.push("Vessel rerouted from "+v.def.route+" to "+r.route+". Transit time extended. Additional fuel cost passed to shipper. Insurance premium adjustment may apply.");}
+
+    // AIS gap risk
+    if(r.aisGap){score=Math.max(score,7);if(severity==="LOW"||severity==="MEDIUM")severity="HIGH";risks.push("AIS position gap detected");reasoning.push("Vessel AIS transponder not reporting. Possible reasons: geopolitical zone transit, equipment failure, or deliberate signal suppression. Position verification via carrier portal recommended.");}
+
+    // Geopolitical risk (check active global events)
+    const activeEvents=RISK_EVENTS.filter(e=>e.date<=dateStr&&(e.active_until===null||e.active_until>=dateStr));
+    activeEvents.forEach(e=>{
+      if(e.severity==="CRITICAL"&&score<9){score=Math.max(score,9);severity="CRITICAL";risks.push("Active: "+e.title);reasoning.push(e.detail);}
+      else if(e.severity==="HIGH"&&score<7){score=Math.max(score,7);severity="HIGH";risks.push("Active: "+e.title);reasoning.push(e.detail);}
+    });
+
+    if(!risks.length){risks.push("No active risks");reasoning.push("Container operating within normal parameters. Temperature stable, ETA on schedule, no geopolitical disruptions affecting route.");}
+
+    // QVF financial impact
+    const spoilageCost=r.tempBreach?Math.round(15000+r.delay*3000):r.delay>3?Math.round(r.delay*1200):0;
+    const demurrageCost=r.delay>0?Math.round(r.delay*800):0;
+    const penaltyCost=r.delay>5?Math.round(r.delay*500):0;
+    const totalImpact=spoilageCost+demurrageCost+penaltyCost;
+
+    return {
+      id:v.def.id, carrier:v.def.carrier, product:v.def.product, type:v.def.type,
+      severity, score, risks, reasoning,
+      qvf:{spoilage:spoilageCost,demurrage:demurrageCost,penalty:penaltyCost,total:totalImpact}
+    };
+  }).filter(Boolean).sort((a,b)=>b.score-a.score);
+
+  const sevColor={"CRITICAL":"var(--red)","HIGH":"var(--amber)","MEDIUM":"#D97706","LOW":"var(--green)"};
+
+  el.innerHTML=assessments.map(a=>`
+    <div class="risk-band ${a.severity}" onclick="this.classList.toggle('expanded')" id="risk-assessment-panel-band">
+      <div class="risk-band-header">
+        <span class="risk-band-severity" style="color:${sevColor[a.severity]}">${a.severity}</span>
+        <span class="risk-band-score" style="color:${sevColor[a.severity]}">${a.score}/10</span>
+      </div>
+      <div class="risk-band-title">${a.id} — ${a.carrier} — ${a.product}</div>
+      <div style="display:flex;gap:6px;margin-top:4px;font-size:9px;flex-wrap:wrap">
+        ${a.risks.map(r=>'<span style="background:rgba(0,0,0,.05);padding:2px 6px;border-radius:3px">'+r+'</span>').join('')}
+      </div>
+      <div class="risk-band-detail">
+        <div style="font-size:10px;font-weight:600;color:var(--text);margin-bottom:4px">QVF Financial Impact</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:4px;font-size:9px">
+          <div style="background:rgba(0,0,0,.04);padding:4px 6px;border-radius:3px"><div style="color:var(--text3);font-size:8px">Spoilage</div><div style="font-weight:700;color:${a.qvf.spoilage>0?"var(--red)":"var(--green)"}">£${a.qvf.spoilage.toLocaleString()}</div></div>
+          <div style="background:rgba(0,0,0,.04);padding:4px 6px;border-radius:3px"><div style="color:var(--text3);font-size:8px">Demurrage</div><div style="font-weight:700;color:${a.qvf.demurrage>0?"var(--amber)":"var(--green)"}">£${a.qvf.demurrage.toLocaleString()}</div></div>
+          <div style="background:rgba(0,0,0,.04);padding:4px 6px;border-radius:3px"><div style="color:var(--text3);font-size:8px">Penalty</div><div style="font-weight:700;color:${a.qvf.penalty>0?"var(--amber)":"var(--green)"}">£${a.qvf.penalty.toLocaleString()}</div></div>
+          <div style="background:rgba(0,0,0,.04);padding:4px 6px;border-radius:3px"><div style="color:var(--text3);font-size:8px">Total Impact</div><div style="font-weight:700;color:${a.qvf.total>0?"var(--red)":"var(--green)"}">£${a.qvf.total.toLocaleString()}</div></div>
+        </div>
+      </div>
+      <div class="risk-band-reasoning">
+        <div style="font-size:10px;font-weight:600;color:var(--text);margin-bottom:3px">Assessment Reasoning</div>
+        ${a.reasoning.map(r=>'<div style="margin-bottom:3px">• '+r+'</div>').join('')}
+      </div>
+      <div style="font-size:8px;color:var(--text3);margin-top:4px;font-style:italic">Click to expand assessment detail and QVF impact</div>
+    </div>
+  `).join('');
+}
+
 // ── FULLSCREEN ────────────────────────────────────────────────────────────────
 
 function toggleFullscreen(panelId){
@@ -1006,6 +1202,8 @@ function renderAll(){
   renderDetail(dateStr);
   renderCharts(selectedContainerId,dateStr);
   renderStatusBar(dateStr);
+  renderLegendCounts(dateStr);
+  renderRiskAssessment(dateStr);
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────

@@ -355,7 +355,9 @@ Delivering logistics intelligence inside the Microsoft environment eliminates th
 | F90.5 | Microsoft Environment Integration | 6 | Phase 3 |
 | F90.6 | VE/QVF Value Realisation Metrics | 5 | Phase 3 |
 | F90.7 | PDF Shipping Status & Risk/Impact Assessment | 8 | Phase 3 |
-| **Total** | | **48** | |
+| F90.8 | Interactive Legend Filtering | 5 | Phase 2 |
+| F90.9 | Colour-Coded Risk Assessment Bands + QVF-LSC | 7 | Phase 2 |
+| **Total** | | **60** | |
 
 Full feature/story detail, requirements register, and RAID log in the Epic Plan document.
 

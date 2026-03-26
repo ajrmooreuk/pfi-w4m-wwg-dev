@@ -250,6 +250,67 @@ Z-WWG-106  PfcStatusBar          Management zone (operational)
 
 ---
 
+#### F90.8 — Interactive Legend Filtering
+
+**Cascade Tier:** PFC (reusable pattern for any dashboard)
+**Status:** COMPLETE — implemented in lsc-shipping-tracker.html
+
+| Story | Title | Acceptance Criteria |
+|-------|-------|---------------------|
+| S90.8.1 | Clickable legend bar with event type filters | Legend items: At Sea, Delayed, Alert, Arrived, Booked. Click to filter. Click again to deselect. "Clear filter" link to reset |
+| S90.8.2 | Live container counts per legend category | Each legend item shows count of matching containers for current date. Updates on date change |
+| S90.8.3 | Container list filtering | Non-matching containers dimmed (opacity 0.2, non-interactive). Matching containers fully visible and clickable |
+| S90.8.4 | Map vessel filtering | Non-matching vessel dots dimmed (opacity 0.15). Matching vessels at full opacity with glow effects |
+| S90.8.5 | Filter state persistence across date changes | Active filter maintained when stepping through dates. Counts update but filter category persists |
+
+---
+
+#### F90.9 — Colour-Coded Risk Assessment Bands
+
+**Cascade Tier:** PFI (W4M-WWG) — reusable pattern
+**Cross-ref:** QVF-ONT financial impact, LSC-ONT scenarios, RAID-ONT (GRC-Series)
+**Status:** COMPLETE — implemented in lsc-shipping-tracker.html
+
+| Story | Title | Acceptance Criteria |
+|-------|-------|---------------------|
+| S90.9.1 | Risk assessment panel — appears on legend filter activation | Panel slides in below legend bar when any filter is active. Shows risk bands for matching containers sorted by severity (CRITICAL → LOW) |
+| S90.9.2 | Colour-coded severity bands | CRITICAL (red), HIGH (amber), MEDIUM (yellow), LOW (green). Each band shows severity label, risk score (1–10), container ID, carrier, product |
+| S90.9.3 | Point-and-click expand — issues and reasoning | Click any risk band to expand: (1) risk factors list, (2) QVF financial impact grid, (3) assessment reasoning with explanatory text |
+| S90.9.4 | QVF financial impact per container | Spoilage cost (product type x days x temp), demurrage (£/day x overstay), customer penalty (SLA breach). Total impact. Calculated from tracker data |
+| S90.9.5 | Assessment reasoning — natural language explanation | Per-risk-factor reasoning: why this score, what the operational impact is, what evidence supports the assessment. References LSC-ONT scenarios and cascade effects |
+| S90.9.6 | Geopolitical risk overlay | Active global risk events (RISK_EVENTS) factored into per-container score. Severity inherited from event when container is in affected zone |
+| S90.9.7 | Risk band fullscreen toggle | Expand button on risk panel header. Fullscreen view shows all risk bands with full detail expanded |
+
+---
+
+### 3.3.0 QVF Risk Assessment — Capability Analysis
+
+**Question:** Can existing QVF skills (SKL-101–106) perform LSC risk assessment calculations, or are LSC-specific additions needed?
+
+**Answer:** The existing QVF skills are **cyber-domain-specific** (DALE, insurance premiums, NIST/ISO compliance ROI). They cannot directly calculate LSC risk assessments. However, the **QVF calculation pattern is reusable** — the framework (baseline cost, risk reduction, ROI) transfers directly. What is needed:
+
+| QVF Component | Cyber (Existing SKL-101–106) | LSC (New — Needed) |
+|---|---|---|
+| **Risk quantification** | DALE (Annual Loss Expectancy) | Spoilage probability x product value x temperature deviation |
+| **Cost baseline** | Breach cost (NIST/Ponemon data) | Spoilage + demurrage + penalty baseline (per container type) |
+| **Mitigation value** | Security control effectiveness | Early-warning detection time x re-routing/re-allocation success rate |
+| **Insurance impact** | Cyber insurance premium reduction | Cargo insurance claim approval rate improvement (45% → 85%) |
+| **ROI calculation** | (Risk reduction - investment) / investment | (Avoided spoilage + demurrage + penalty - API cost) / API cost |
+
+**Proposed new QVF-LSC skills (candidate for URG intake):**
+
+| SKL-# | Skill Name | Calculation | Input | Output |
+|-------|-----------|------------|-------|--------|
+| SKL-156 | `pfc-qvf-lsc-spoilage` | Spoilage risk = P(delay > threshold) x product_value x temp_sensitivity_factor | Container type, set point, current temp, delay days, product value | Spoilage cost estimate (£) + probability band |
+| SKL-157 | `pfc-qvf-lsc-demurrage` | Demurrage cost = delay_days x daily_rate x (1 + cold_storage_premium) | Delay days, port daily rate, storage type | Demurrage cost estimate (£) |
+| SKL-158 | `pfc-qvf-lsc-impact` | Total impact = spoilage + demurrage + penalty + insurance_exposure - mitigation_value | All above + SLA penalty schedule, insurance terms | Net financial impact (£) + ROI of tracking |
+
+**Dtree classification (preliminary):** All three → `SKILL_STANDALONE` (same pattern as SKL-101–106, deterministic calculation, no orchestration).
+
+**Implementation note:** The current `renderRiskAssessment()` function in the tracker already implements a simplified version of these calculations inline. The skills formalise and generalise the calculation models for reuse across PFI instances and for PDF report generation (F90.7).
+
+---
+
 ### 3.3 Dependency Map
 
 ```
@@ -295,6 +356,9 @@ Browser QA for tracker              SKILL_STANDALONE
 | SKL-121 | pfc-app-skeleton-pipeline | AGENT_ORCHESTRATOR | PFC | E65 | F65.13 | Adopted |
 | **SKL-154** | **pfc-api-connector** | **SKILL_STANDALONE** | **PFC** | **E90** | **F90.1** | **Candidate** |
 | **SKL-155** | **w4m-lsc-ais-adapter** | **SKILL_STANDALONE** | **PFI** | **E90** | **F90.2** | **Candidate** |
+| **SKL-156** | **pfc-qvf-lsc-spoilage** | **SKILL_STANDALONE** | **PFC** | **E90** | **F90.9** | **Candidate** |
+| **SKL-157** | **pfc-qvf-lsc-demurrage** | **SKILL_STANDALONE** | **PFC** | **E90** | **F90.9** | **Candidate** |
+| **SKL-158** | **pfc-qvf-lsc-impact** | **SKILL_STANDALONE** | **PFC** | **E90** | **F90.9** | **Candidate** |
 
 ---
 
@@ -377,10 +441,12 @@ Browser QA for tracker              SKILL_STANDALONE
 | F90.5 | Microsoft Environment Integration | `type:feature`, `platform:microsoft` |
 | F90.6 | VE/QVF Value Realisation Metrics | `type:feature`, `ve:qvf` |
 | F90.7 | PDF Shipping Status & Risk/Impact Assessment Report | `type:feature`, `report:pdf` |
+| F90.8 | Interactive Legend Filtering | `type:feature`, `ux:filter` |
+| F90.9 | Colour-Coded Risk Assessment Bands | `type:feature`, `risk:assessment` |
 
 ### 4.3 Story Issues
 
-41 stories across 7 features (S90.1.1–S90.7.8) as detailed in section 3.2.
+60 stories across 9 features (S90.1.1–S90.9.7) as detailed in section 3.2.
 
 ---
 

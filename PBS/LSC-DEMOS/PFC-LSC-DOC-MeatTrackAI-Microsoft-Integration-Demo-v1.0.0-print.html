@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>MeatTrackAI Microsoft
+Integration Demo</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5/github-markdown.min.css">
+<style>
+body{max-width:900px;margin:40px auto;padding:0 20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif}
+.markdown-body{font-size:13px}
+table{font-size:12px;border-collapse:collapse;width:100%}
+th,td{border:1px solid #d0d7de;padding:6px 10px;text-align:left}
+th{background:#f6f8fa;font-weight:600}
+h1{border-bottom:2px solid #0A7A8A;padding-bottom:8px;color:#0A7A8A}
+h2{border-bottom:1px solid #d0d7de;padding-bottom:6px;margin-top:28px}
+h3{color:#0A7A8A}
+code{background:#f6f8fa;padding:2px 6px;border-radius:3px;font-size:12px}
+pre code{display:block;padding:12px;overflow-x:auto}
+@media print{body{max-width:100%;margin:0;padding:15mm}h1,h2{page-break-after:avoid}table{page-break-inside:avoid}}
+</style></head>
+<body class="markdown-body"><h1
+id="pfc-lsc-doc-meattrackai-microsoft-integration-demo-v1.0.0">PFC-LSC-DOC-MeatTrackAI-Microsoft-Integration-Demo-v1.0.0</h1>
+<blockquote>
+<p><strong>Product:</strong> W4M-WWG LSC Demos <strong>Version:</strong>
+1.0.0 <strong>Status:</strong> Demo / Proof of Concept
+<strong>Source:</strong> <code>MeatTrackAI_Microsoft_Demo_1.html</code>
+<strong>Cross-ref:</strong> Epic 90 (#39), F90.5 (#44), F90.10 (#49)</p>
+</blockquote>
+<hr />
+<h2 id="overview">1. Overview</h2>
+<p>The MeatTrackAI Microsoft Integration Demo is a 6-section interactive
+prototype demonstrating end-to-end integration of the MeatTrackAI fleet
+intelligence platform with Microsoft 365 services (Outlook, Excel, Graph
+API). It simulates the full pipeline from carrier email receipt through
+PDF data extraction, tracker population, and client notification
+dispatch.</p>
+<p><strong>Pipeline:</strong> Outlook 365 (carrier PDFs arrive) -&gt;
+Graph API (OAuth 2.0 read) -&gt; PDF Parser (pdfplumber, 48 fields)
+-&gt; JSON Tracker (schema.org/Trip) -&gt; Excel (7-sheet workbook)
+-&gt; Graph API (sendMail HTML) -&gt; Client (notification sent)</p>
+<p><strong>Key principle:</strong> One Microsoft Graph API OAuth token
+handles both inbound email reading and outbound notification sending –
+no separate SMTP setup required.</p>
+<hr />
+<h2 id="demo-sections">2. Demo Sections</h2>
+<h3 id="section-1-microsoft-integration-architecture">Section 1:
+Microsoft Integration Architecture</h3>
+<p><strong>Azure Setup (One-Time, 15 minutes):</strong></p>
+<table>
+<colgroup>
+<col style="width: 27%" />
+<col style="width: 36%" />
+<col style="width: 36%" />
+</colgroup>
+<thead>
+<tr>
+<th>Step</th>
+<th>Action</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Register App in Azure Entra ID</td>
+<td>portal.azure.com -&gt; App registrations -&gt;
+“MeatTrackAI-Pipeline”</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Grant API permissions</td>
+<td>Microsoft Graph Application: <code>Mail.Read</code>,
+<code>Mail.ReadWrite</code>, <code>Mail.Send</code> -&gt; Admin
+consent</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Create client secret</td>
+<td>Certificates &amp; secrets -&gt; copy value (shown once)</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Configure .env</td>
+<td><code>AZURE_TENANT_ID</code>, <code>AZURE_CLIENT_ID</code>,
+<code>AZURE_CLIENT_SECRET</code>, <code>MAILBOX_EMAIL</code></td>
+</tr>
+<tr>
+<td>5</td>
+<td>Test connection</td>
+<td><code>python src/outlook_reader.py --test-connection</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Domain Governance Rules:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Domain</th>
+<th>Direction</th>
+<th>Rule</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="citation"
+data-cites="maersk.com">@maersk.com</span></td>
+<td>Inbound</td>
+<td>Approved carrier</td>
+<td>ALLOW</td>
+</tr>
+<tr>
+<td><span class="citation"
+data-cites="hapag-lloyd.com">@hapag-lloyd.com</span></td>
+<td>Inbound</td>
+<td>Approved carrier</td>
+<td>ALLOW</td>
+</tr>
+<tr>
+<td><span class="citation" data-cites="msc.com">@msc.com</span></td>
+<td>Inbound</td>
+<td>Approved carrier</td>
+<td>ALLOW</td>
+</tr>
+<tr>
+<td><span class="citation"
+data-cites="cma-cgm.com">@cma-cgm.com</span></td>
+<td>Inbound</td>
+<td>Approved carrier</td>
+<td>ALLOW</td>
+</tr>
+<tr>
+<td><span class="citation" data-cites="gmail.com">@gmail.com</span></td>
+<td>Inbound</td>
+<td>Consumer domain</td>
+<td>BLOCK</td>
+</tr>
+<tr>
+<td><span class="citation"
+data-cites="freightnews.com">@freightnews.com</span></td>
+<td>Inbound</td>
+<td>Not approved</td>
+<td>BLOCK</td>
+</tr>
+<tr>
+<td><span class="citation"
+data-cites="tesco.co.uk">@tesco.co.uk</span></td>
+<td>Outbound</td>
+<td>Approved client</td>
+<td>ALLOW</td>
+</tr>
+<tr>
+<td><span class="citation"
+data-cites="unknown.io">@unknown.io</span></td>
+<td>Outbound</td>
+<td>Not in approved list</td>
+<td>BLOCK</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Microsoft vs Google Comparison:</strong></p>
+<table>
+<colgroup>
+<col style="width: 22%" />
+<col style="width: 44%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Factor</th>
+<th>Outlook / Graph</th>
+<th>Google GWS</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Setup time</td>
+<td>~15 min</td>
+<td>~5 min</td>
+</tr>
+<tr>
+<td>Admin consent</td>
+<td>Required (M365)</td>
+<td>Not required</td>
+</tr>
+<tr>
+<td>Best for</td>
+<td>Enterprise M365 clients</td>
+<td>PoC / Google shops</td>
+</tr>
+<tr>
+<td>Inbox routing</td>
+<td>Exchange rules / folders</td>
+<td>Gmail labels</td>
+</tr>
+<tr>
+<td>Notifications</td>
+<td>Send from corporate address</td>
+<td>Send from Gmail address</td>
+</tr>
+<tr>
+<td>PDF parsing</td>
+<td>Identical – pdfplumber</td>
+<td>Identical – pdfplumber</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="section-2-outlook-inbox-simulation">Section 2: Outlook Inbox
+Simulation</h3>
+<p>Simulated Microsoft 365 inbox for
+<code>reefer-inbox@ukpremiummeats.co.uk</code> with:</p>
+<ul>
+<li><strong>11 inbound emails</strong> from carriers (Maersk,
+Hapag-Lloyd, MSC, CMA CGM, OOCL, Evergreen, COSCO)</li>
+<li><strong>2 blocked emails</strong> (consumer/unapproved domains)</li>
+<li><strong>8 sent notifications</strong> to clients</li>
+<li><strong>23 processed</strong> emails in archive</li>
+</ul>
+<p><strong>LSC Label System:</strong> - <code>lsc-shipping</code> (8
+emails) – standard shipping notifications - <code>lsc-reefer</code> (2
+emails) – reefer temperature alerts - <code>lsc-compliance</code> (1
+email) – BTOM/IPAFFS compliance</p>
+<p><strong>Graph API Connection:</strong> Connected as
+<code>MeatTrackAI-Pipeline</code> app registration.</p>
+<p>Each email click shows extracted data fields, parse source (body vs
+PDF), and domain governance status.</p>
+<hr />
+<h3 id="section-3-pdf-data-capture-pdfplumber-extraction">Section 3: PDF
+Data Capture – pdfplumber Extraction</h3>
+<p>3 carrier PDFs parsed with 48-field extraction:</p>
+<p><strong>Parse strategy:</strong> Body text parsed first (fast). PDF
+fills supplementary fields (HS code, exact weight, voyage). Body wins on
+conflict. Each field tagged <code>[body]</code> or <code>[pdf]</code>
+for audit trail.</p>
+<h4 id="pdf-1-maersk-arrival-notice-mrku4821073">PDF 1: Maersk Arrival
+Notice (MRKU4821073)</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Shipping Reference</td>
+<td>MAEU1234567890</td>
+<td>body+pdf merged</td>
+</tr>
+<tr>
+<td>Container No.</td>
+<td>MRKU4821073</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Vessel</td>
+<td>MV Maersk Hobart</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Voyage</td>
+<td>426W</td>
+<td>–</td>
+</tr>
+<tr>
+<td>HS Code</td>
+<td>0202.30.00</td>
+<td>pdf</td>
+</tr>
+<tr>
+<td>Gross Weight</td>
+<td>24,840 kg</td>
+<td>pdf</td>
+</tr>
+<tr>
+<td>Original ETA</td>
+<td>2026-03-22</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Revised ETA</td>
+<td>2026-03-26 (+4.5d)</td>
+<td>DELAY</td>
+</tr>
+<tr>
+<td>Set Point</td>
+<td>-18.0C</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Latest Temp</td>
+<td>-17.8C</td>
+<td>OK</td>
+</tr>
+<tr>
+<td>IPAFFS</td>
+<td>SUBMITTED</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Fields extracted</td>
+<td>46/48</td>
+<td>–</td>
+</tr>
+</tbody>
+</table>
+<h4 id="pdf-2-hapag-lloyd-temperature-alert-hlxu9901234">PDF 2:
+Hapag-Lloyd Temperature Alert (HLXU9901234)</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Shipping Reference</td>
+<td>HLBU9901234001</td>
+<td>body+pdf merged</td>
+</tr>
+<tr>
+<td>Container No.</td>
+<td>HLXU9901234</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Vessel</td>
+<td>MV Hapag San Francisco</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Revised ETA</td>
+<td>2026-04-16 (+6d)</td>
+<td>CRITICAL</td>
+</tr>
+<tr>
+<td>Set Point</td>
+<td>+1.0C</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Current Temp</td>
+<td>+2.8C (+1.8C OVER)</td>
+<td>BREACH</td>
+</tr>
+<tr>
+<td>Breach Hours</td>
+<td>150 hours cumulative</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Shelf Life Impact</td>
+<td>Est. -7.5 days</td>
+<td>–</td>
+</tr>
+<tr>
+<td>CHED-PP</td>
+<td>MANDATORY – declare breach</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Fields extracted</td>
+<td>48/48</td>
+<td>–</td>
+</tr>
+</tbody>
+</table>
+<h4 id="pdf-3-msc-departure-confirmation-mscu5512087">PDF 3: MSC
+Departure Confirmation (MSCU5512087)</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Shipping Reference</td>
+<td>MSCUFE5512087001</td>
+<td>body+pdf merged</td>
+</tr>
+<tr>
+<td>Container No.</td>
+<td>MSCU5512087</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Vessel</td>
+<td>MV MSC Beatrice</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Route</td>
+<td>Cape of Good Hope – Direct</td>
+<td>–</td>
+</tr>
+<tr>
+<td>ATD</td>
+<td>2026-02-10 08:00 UTC</td>
+<td>–</td>
+</tr>
+<tr>
+<td>ETA Southampton</td>
+<td>2026-04-21</td>
+<td>On Time</td>
+</tr>
+<tr>
+<td>Set Point</td>
+<td>-18.0C</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Latest Temp</td>
+<td>-18.2C</td>
+<td>OK</td>
+</tr>
+<tr>
+<td>Fields extracted</td>
+<td>45/48</td>
+<td>–</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="section-4-excel-tracker-7-sheet-workbook">Section 4: Excel
+Tracker – 7-Sheet Workbook</h3>
+<p>Auto-written by the pipeline after each PDF parse. File:
+<code>MeatTrackAI_Reefer_Status_Tracker.xlsx</code></p>
+<table>
+<colgroup>
+<col style="width: 43%" />
+<col style="width: 56%" />
+</colgroup>
+<thead>
+<tr>
+<th>Sheet</th>
+<th>Content</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Live Status Tracker</strong></td>
+<td>All 12 containers: ID, carrier, vessel, origin, destination,
+departure, ETA, delay, status, route, product, set point, current temp,
+breach</td>
+</tr>
+<tr>
+<td><strong>ETA Impact Analysis</strong></td>
+<td>Per-container: original ETA, revised ETA, delay days, delay cause,
+demurrage cost estimate, customer impact, risk level</td>
+</tr>
+<tr>
+<td><strong>Cold Chain Monitor</strong></td>
+<td>Temperature tracking: container, set point, current temp, deviation,
+breach active, breach duration, shelf life impact</td>
+</tr>
+<tr>
+<td><strong>Outlook Inbox Log</strong></td>
+<td>Email audit trail: timestamp, from, domain, subject, parse status,
+field count, label, action (ALLOW/BLOCK)</td>
+</tr>
+<tr>
+<td><strong>Client Notifications</strong></td>
+<td>Dispatch log: container, customer, notification class, send status,
+timestamp, dedup key</td>
+</tr>
+<tr>
+<td><strong>BTOM Compliance</strong></td>
+<td>Pre-arrival status: container, IPAFFS ref, submission date, BCP
+port, documentary check, physical check risk</td>
+</tr>
+<tr>
+<td><strong>Risk Events</strong></td>
+<td>Active geopolitical/operational risks: date, zone, severity, event,
+affected containers, ETA impact</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="section-5-live-pipeline-simulation">Section 5: Live Pipeline
+Simulation</h3>
+<p>Interactive 6-stage pipeline simulation with terminal output:</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 28%" />
+<col style="width: 38%" />
+</colgroup>
+<thead>
+<tr>
+<th>Stage</th>
+<th>Name</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Graph API Auth</td>
+<td>Acquire OAuth 2.0 token from Azure Entra ID</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Inbox Scan</td>
+<td>Read unprocessed emails from reefer-inbox mailbox</td>
+</tr>
+<tr>
+<td>3</td>
+<td>PDF Extract</td>
+<td>pdfplumber extraction of 48 fields per attachment</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Tracker Update</td>
+<td>Write to JSON tracker (schema.org/Trip conformant)</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Excel Write</td>
+<td>Populate 7-sheet workbook with latest data</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Notifications</td>
+<td>Dispatch HTML emails via Graph API sendMail</td>
+</tr>
+</tbody>
+</table>
+<p>“Run Full Pipeline” button executes all 6 stages sequentially with
+simulated terminal output.</p>
+<hr />
+<h3 id="section-6-client-notifications-microsoft-graph-sendmail">Section
+6: Client Notifications – Microsoft Graph sendMail</h3>
+<p>HTML emails dispatched via Graph API with deduplication:</p>
+<table>
+<colgroup>
+<col style="width: 30%" />
+<col style="width: 27%" />
+<col style="width: 19%" />
+<col style="width: 22%" />
+</colgroup>
+<thead>
+<tr>
+<th>Container</th>
+<th>Customer</th>
+<th>Class</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MRKU4821073</td>
+<td>Tesco Distribution</td>
+<td>DELAY</td>
+<td>Sent</td>
+</tr>
+<tr>
+<td>MRKU4821073</td>
+<td>Brakes Group</td>
+<td>DELAY</td>
+<td>Sent</td>
+</tr>
+<tr>
+<td>HLXU9901234</td>
+<td>Tesco Distribution</td>
+<td>CRITICAL</td>
+<td>Sent</td>
+</tr>
+<tr>
+<td>HLXU9901234</td>
+<td>Co-op Foods</td>
+<td>CRITICAL</td>
+<td>Sent</td>
+</tr>
+<tr>
+<td>TCKU8820445</td>
+<td>Iceland Foods</td>
+<td>DELAY</td>
+<td>Sent</td>
+</tr>
+<tr>
+<td>TCKU8820445</td>
+<td>Farmfoods</td>
+<td>DELAY</td>
+<td>Sent</td>
+</tr>
+<tr>
+<td>OOLU6634128</td>
+<td>Ocado Retail</td>
+<td>SIGNIFICANT</td>
+<td>Sent</td>
+</tr>
+<tr>
+<td>MSCU5512087</td>
+<td>Asda Distribution</td>
+<td>ON TIME</td>
+<td>No email (on-time = no notification)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Notification classes:</strong> - <strong>CRITICAL</strong> –
+Temperature breach, shelf-life impact, QA assessment required -
+<strong>DELAY</strong> – ETA revised, reroute, carrier-initiated delay -
+<strong>SIGNIFICANT</strong> – Route change, AIS gap, Hormuz diversion -
+<strong>ON TIME</strong> – No notification sent (only flagged events
+trigger email)</p>
+<p><strong>Graph API sendMail code pattern:</strong></p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>requests.post(</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f&quot;https://graph.microsoft.com/v1.0/users/</span><span class="sc">{</span>mailbox<span class="sc">}</span><span class="ss">/sendMail&quot;</span>,</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    headers<span class="op">=</span>{<span class="st">&quot;Authorization&quot;</span>: <span class="ss">f&quot;Bearer </span><span class="sc">{</span>token<span class="sc">}</span><span class="ss">&quot;</span>},</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    json<span class="op">=</span>{<span class="st">&quot;message&quot;</span>: {<span class="st">&quot;rawMessage&quot;</span>: raw}, <span class="st">&quot;saveToSentItems&quot;</span>: <span class="va">True</span>}</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<hr />
+<h2 id="technology-stack">3. Technology Stack</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Component</th>
+<th>Technology</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Email access</td>
+<td>Microsoft Graph API (OAuth 2.0, Application permissions)</td>
+</tr>
+<tr>
+<td>PDF extraction</td>
+<td>pdfplumber (Python) – 48 fields per document</td>
+</tr>
+<tr>
+<td>Data store</td>
+<td>JSON (schema.org/Trip conformant)</td>
+</tr>
+<tr>
+<td>Spreadsheet</td>
+<td>openpyxl -&gt; .xlsx (7 sheets)</td>
+</tr>
+<tr>
+<td>Notifications</td>
+<td>Graph API sendMail (HTML email)</td>
+</tr>
+<tr>
+<td>Demo UI</td>
+<td>Single HTML file, DM Sans + IBM Plex Mono fonts</td>
+</tr>
+<tr>
+<td>Domain governance</td>
+<td>Allowlist/blocklist per sender domain</td>
+</tr>
+<tr>
+<td>Deduplication</td>
+<td>Hash-based dedup key per container+customer+event</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="data-model-48-extracted-fields">4. Data Model – 48 Extracted
+Fields</h2>
+<table>
+<colgroup>
+<col style="width: 55%" />
+<col style="width: 44%" />
+</colgroup>
+<thead>
+<tr>
+<th>Category</th>
+<th>Fields</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Shipping Identity</strong></td>
+<td>Shipping Reference (primary key), Container No., BL Number</td>
+</tr>
+<tr>
+<td><strong>Vessel</strong></td>
+<td>Vessel name, IMO, MMSI, Voyage number</td>
+</tr>
+<tr>
+<td><strong>Route</strong></td>
+<td>Origin port, Destination port, Route type, Waypoints</td>
+</tr>
+<tr>
+<td><strong>Schedule</strong></td>
+<td>ATD, Original ETA, Revised ETA, Delay days, Delay cause</td>
+</tr>
+<tr>
+<td><strong>Product</strong></td>
+<td>Product description, HS Code, Gross weight, Net weight, Package
+count</td>
+</tr>
+<tr>
+<td><strong>Cold Chain</strong></td>
+<td>Set point, Current temp, Deviation, Breach active, Breach duration,
+Shelf life impact</td>
+</tr>
+<tr>
+<td><strong>Compliance</strong></td>
+<td>IPAFFS status, CHED-PP requirement, DAFF certificate, BTOM
+documentary check</td>
+</tr>
+<tr>
+<td><strong>Financial</strong></td>
+<td>Demurrage estimate, Spoilage risk, Customer penalty exposure</td>
+</tr>
+<tr>
+<td><strong>Parse Metadata</strong></td>
+<td>Source (body/pdf/merged), Field count, Domain, Allow/Block
+status</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="integration-with-epic-90">5. Integration with Epic 90</h2>
+<table>
+<colgroup>
+<col style="width: 56%" />
+<col style="width: 43%" />
+</colgroup>
+<thead>
+<tr>
+<th>Epic 90 Feature</th>
+<th>Relationship</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>F90.1 (#40) API Connector</td>
+<td>Graph API auth pattern reusable via pfc-api-connector</td>
+</tr>
+<tr>
+<td>F90.5 (#44) Microsoft Integration</td>
+<td>This demo is the reference implementation</td>
+</tr>
+<tr>
+<td>F90.7 (#46) PDF Reports</td>
+<td>PDF parsing pattern (pdfplumber) reusable for report generation</td>
+</tr>
+<tr>
+<td>F90.10 (#49) MS IT Prep</td>
+<td>Azure setup steps (Section 1) are the client IT checklist</td>
+</tr>
+<tr>
+<td>F90.11 (#50) OFM Data Flow Back</td>
+<td>Tracker data feeds accounting/stock via same Graph API</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="files">6. Files</h2>
+<table>
+<colgroup>
+<col style="width: 24%" />
+<col style="width: 40%" />
+<col style="width: 36%" />
+</colgroup>
+<thead>
+<tr>
+<th>File</th>
+<th>Location</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MeatTrackAI_Microsoft_Demo_1.html</td>
+<td>Downloads (source)</td>
+<td>Original interactive demo</td>
+</tr>
+<tr>
+<td>MeatTrackAI_Microsoft_Demo.html</td>
+<td>PBS/LSC-DEMOS/MeatTrackAI/</td>
+<td>Copy in repo</td>
+</tr>
+<tr>
+<td>This document</td>
+<td>PBS/LSC-DEMOS/</td>
+<td>Markdown documentation</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><em>Document generated from MeatTrackAI_Microsoft_Demo_1.html. 6
+sections: Architecture, Outlook Inbox, PDF Parsing, Excel Tracker,
+Pipeline Demo, Client Notifications. 48-field data extraction model.
+Microsoft Graph API integration pattern.</em></p></body></html>

@@ -222,6 +222,35 @@ header{
 }
 .day-block{height:20px;border-radius:3px;cursor:pointer;transition:transform .1s;position:relative}
 .day-block:hover{transform:scaleY(1.2);z-index:1}
+
+/* ── FULLSCREEN PANEL ── */
+.panel-header{display:flex;justify-content:space-between;align-items:center}
+.fs-btn{
+  background:var(--bg3);border:1px solid var(--border);color:var(--text3);
+  width:24px;height:24px;border-radius:4px;cursor:pointer;font-size:12px;
+  display:flex;align-items:center;justify-content:center;transition:all .15s;
+  flex-shrink:0;line-height:1;
+}
+.fs-btn:hover{background:var(--teal-l);border-color:var(--teal);color:var(--teal)}
+.panel-fullscreen{
+  position:fixed!important;top:0!important;left:0!important;
+  width:100vw!important;height:100vh!important;
+  z-index:9999!important;border:none!important;border-radius:0!important;
+  overflow-y:auto!important;padding:20px!important;
+  box-shadow:none!important;
+  grid-column:1/-1!important;grid-row:1/-1!important;
+}
+.panel-fullscreen .fs-btn{
+  position:sticky;top:0;right:0;z-index:10000;
+  width:32px;height:32px;font-size:16px;
+  background:var(--bg2);box-shadow:var(--shadow-md);
+}
+.panel-fullscreen .dp-grid{grid-template-columns:1fr 1fr 1fr 1fr}
+.panel-fullscreen .dp-val{font-size:22px}
+.panel-fullscreen .tl-evt-title{font-size:15px}
+.panel-fullscreen .tl-evt-meta{font-size:12px}
+.panel-fullscreen .tl-evt-note{font-size:12px}
+.panel-fullscreen canvas{max-height:300px}
 </style>
 </head>
 <body>
@@ -297,10 +326,11 @@ header{
 <div class="main-content">
 
   <div class="top-row">
-    <div class="map-panel">
-      <div class="map-overlay">
-        <div class="map-title">AU → UK Route Map</div>
-        <div class="map-sub" id="map-subtitle">All vessels · current positions</div>
+    <div class="map-panel" id="panel-map">
+      <div class="map-overlay" style="display:flex;align-items:flex-start;gap:8px">
+        <div><div class="map-title">AU → UK Route Map</div>
+        <div class="map-sub" id="map-subtitle">All vessels · current positions</div></div>
+        <button class="fs-btn" onclick="toggleFullscreen('panel-map')" title="Toggle fullscreen">⛶</button>
       </div>
       <svg id="world-map" viewBox="0 0 900 450" xmlns="http://www.w3.org/2000/svg">
         <!-- Ocean -->
@@ -350,19 +380,19 @@ header{
         </g>
       </svg>
     </div>
-    <div class="timeline-panel">
-      <div class="tp-title" id="timeline-header">Select container for voyage timeline</div>
+    <div class="timeline-panel" id="panel-timeline">
+      <div class="panel-header"><div class="tp-title" id="timeline-header" style="margin-bottom:0">Select container for voyage timeline</div><button class="fs-btn" onclick="toggleFullscreen('panel-timeline')" title="Toggle fullscreen">⛶</button></div>
       <div id="timeline-content"><div style="color:var(--text3);font-size:12px;padding:16px 0;line-height:1.6">Click any container in the sidebar to view its full voyage timeline, milestone events, and delay history.</div></div>
     </div>
   </div>
 
   <div class="bottom-row">
-    <div class="detail-panel">
-      <div class="dp-title" id="detail-header">Fleet Position Overview</div>
+    <div class="detail-panel" id="panel-detail">
+      <div class="panel-header"><div class="dp-title" id="detail-header" style="margin-bottom:0">Fleet Position Overview</div><button class="fs-btn" onclick="toggleFullscreen('panel-detail')" title="Toggle fullscreen">⛶</button></div>
       <div id="detail-content"></div>
     </div>
-    <div class="temp-chart-panel">
-      <div class="tc-title">Temperature &amp; ETA Tracking</div>
+    <div class="temp-chart-panel" id="panel-charts">
+      <div class="panel-header"><div class="tc-title" style="margin-bottom:0">Temperature &amp; ETA Tracking</div><button class="fs-btn" onclick="toggleFullscreen('panel-charts')" title="Toggle fullscreen">⛶</button></div>
       <div id="chart-container">
         <div style="color:var(--text3);font-size:12px;padding:16px 0;line-height:1.6">Select a container to view temperature vs set point and ETA revision charts.</div>
       </div>
@@ -886,6 +916,38 @@ function renderStatusBar(dateStr){
     return `<div class="day-block" style="background:${bg};opacity:${d.date<=dateStr?1:0.25};${isCurrent?'box-shadow:0 0 0 2px #0F2744;':''}" title="${d.date}: ${d.status}" onclick="jumpToDate('${d.date}')"></div>`;
   }).join('');
 }
+
+// ── FULLSCREEN ────────────────────────────────────────────────────────────────
+
+function toggleFullscreen(panelId){
+  const el=document.getElementById(panelId);
+  if(!el) return;
+  const isFS=el.classList.contains('panel-fullscreen');
+  // Close any other fullscreen panel first
+  document.querySelectorAll('.panel-fullscreen').forEach(p=>{
+    p.classList.remove('panel-fullscreen');
+    const btn=p.querySelector('.fs-btn');
+    if(btn) btn.textContent='⛶';
+  });
+  if(!isFS){
+    el.classList.add('panel-fullscreen');
+    const btn=el.querySelector('.fs-btn');
+    if(btn) btn.textContent='✕';
+    // Re-render charts if chart panel goes fullscreen
+    if(panelId==='panel-charts') setTimeout(()=>renderCharts(selectedContainerId,currentDate()),50);
+  }
+}
+
+// ESC key to close fullscreen
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    document.querySelectorAll('.panel-fullscreen').forEach(p=>{
+      p.classList.remove('panel-fullscreen');
+      const btn=p.querySelector('.fs-btn');
+      if(btn) btn.textContent='⛶';
+    });
+  }
+});
 
 // ── CONTROLS ──────────────────────────────────────────────────────────────────
 

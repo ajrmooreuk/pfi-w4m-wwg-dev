@@ -314,6 +314,11 @@ header{
   </div>
   <div class="header-right">
     <div class="status-pill"><div class="pulse-dot"></div>12 Voyages · Jan–Mar 2026</div>
+    <button onclick="generatePdfReport()" style="
+      padding:5px 12px;border-radius:20px;border:1px solid var(--border);
+      background:var(--bg3);color:var(--text2);font-size:11px;font-weight:600;
+      cursor:pointer;font-family:var(--mono);letter-spacing:.05em;transition:all .15s;
+    " title="Generate PDF Report">PDF REPORT</button>
     <button id="mode-toggle" onclick="toggleLiveMode()" style="
       padding:5px 12px;border-radius:20px;border:1px solid var(--border);
       background:var(--bg3);color:var(--text2);font-size:11px;font-weight:600;
@@ -876,7 +881,9 @@ function renderDetail(dateStr){
       <div class="dp-stat"><div class="dp-val">${r?.etaDate||"—"}</div><div class="dp-lbl">ETA</div></div>
       <div class="dp-stat"><div class="dp-val" style="color:${r?.tempBreach?"var(--red)":"var(--green)"}">${r?.temp!==undefined?r.temp+"°C":"—"}</div><div class="dp-lbl">Reefer Temp</div></div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:9px">
+    ${calcShelfLife(v.def,r)}
+    ${calcBtomStatus(v.def,r)}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:9px;margin-top:6px">
       ${[
         ["Carrier",v.def.carrier],["Vessel",v.def.vessel],["Voyage",v.def.voyage],
         ["Route",r?.route||v.def.route],["SOG",r?.sog?r.sog+" kts":"—"],
@@ -982,6 +989,269 @@ function renderStatusBar(dateStr){
     const isCurrent=d.date===dateStr;
     return `<div class="day-block" style="background:${bg};opacity:${d.date<=dateStr?1:0.25};${isCurrent?'box-shadow:0 0 0 2px #0F2744;':''}" title="${d.date}: ${d.status}" onclick="jumpToDate('${d.date}')"></div>`;
   }).join('');
+}
+
+// ── COLD-CHAIN SHELF-LIFE CALCULATOR (F90.4 S90.4.5) ─────────────────────────
+
+const SHELF_LIFE = {frozen:{base:365,tempSensitivity:0.08},chilled:{base:28,tempSensitivity:0.25},fresh:{base:14,tempSensitivity:0.35}};
+
+function calcShelfLife(def, rec) {
+  if(!rec || rec.dayOfVoyage<0) return '';
+  const sl = SHELF_LIFE[def.type] || SHELF_LIFE.frozen;
+  const transitDays = Math.max(0, rec.dayOfVoyage);
+  const tempDeviation = Math.max(0, (rec.temp||def.sp) - def.sp);
+  const breachPenaltyDays = rec.tempBreach ? Math.round(tempDeviation * 24 * sl.tempSensitivity) : 0;
+  const remainingDays = Math.max(0, sl.base - transitDays - breachPenaltyDays);
+  const usedPct = Math.round(((sl.base - remainingDays) / sl.base) * 100);
+  const barCol = remainingDays < sl.base*0.15 ? 'var(--red)' : remainingDays < sl.base*0.3 ? 'var(--amber)' : 'var(--green)';
+  const riskLbl = remainingDays < sl.base*0.15 ? 'CRITICAL' : remainingDays < sl.base*0.3 ? 'AT RISK' : 'HEALTHY';
+  const riskCol = remainingDays < sl.base*0.15 ? 'var(--red)' : remainingDays < sl.base*0.3 ? 'var(--amber)' : 'var(--green)';
+
+  return `<div style="background:var(--bg3);border-radius:6px;padding:8px 10px;margin-top:6px;border:1px solid var(--border-l)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3)">Cold-Chain Shelf Life</span>
+      <span style="font-size:10px;font-weight:700;color:${riskCol}">${riskLbl}</span>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px">
+      <div style="flex:1;height:8px;background:var(--border-l);border-radius:4px;overflow:hidden">
+        <div style="width:${usedPct}%;height:100%;background:${barCol};border-radius:4px;transition:width .3s"></div>
+      </div>
+      <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:${barCol};min-width:50px;text-align:right">${remainingDays}d left</span>
+    </div>
+    <div style="display:flex;gap:12px;font-size:9px;color:var(--text3)">
+      <span>Base: ${sl.base}d</span>
+      <span>Transit: ${transitDays}d</span>
+      ${breachPenaltyDays>0?`<span style="color:var(--red)">Breach penalty: -${breachPenaltyDays}d</span>`:''}
+      <span>Used: ${usedPct}%</span>
+    </div>
+  </div>`;
+}
+
+// ── BTOM/IPAFFS COMPLIANCE STATUS (F90.4 S90.4.6) ───────────────────────────
+
+function calcBtomStatus(def, rec) {
+  if(!rec || rec.dayOfVoyage<0) return '';
+  const dep=new Date(def.dep+'T00:00:00Z');
+  const effectiveTransit=def.baseTransit+(rec.delay||0);
+  const etaDate=new Date(dep.getTime()+effectiveTransit*86400000);
+  const preNotifDeadline=new Date(etaDate.getTime()-72*3600000); // 72hrs before ETA
+  const curDate=new Date(rec.date+'T00:00:00Z');
+  const daysToDeadline=Math.round((preNotifDeadline-curDate)/86400000);
+
+  // IPAFFS status based on timeline
+  let ipaffsStatus,ipaffsCol,ipaffsBg;
+  if(["Discharged","BTOM Cleared","Gate Out"].includes(rec.status)){
+    ipaffsStatus="CLEARED"; ipaffsCol="var(--green)"; ipaffsBg="var(--green-l)";
+  } else if(rec.status==="Port Approach"||daysToDeadline<=0){
+    ipaffsStatus="SUBMITTED"; ipaffsCol="var(--green)"; ipaffsBg="var(--green-l)";
+  } else if(daysToDeadline<=3){
+    ipaffsStatus="DUE NOW — "+daysToDeadline+"d to deadline"; ipaffsCol="var(--amber)"; ipaffsBg="var(--amber-l)";
+  } else if(daysToDeadline<=7){
+    ipaffsStatus="DUE SOON — "+daysToDeadline+"d to deadline"; ipaffsCol="var(--text2)"; ipaffsBg="var(--bg3)";
+  } else {
+    ipaffsStatus="NOT YET REQUIRED — "+daysToDeadline+"d to deadline"; ipaffsCol="var(--text3)"; ipaffsBg="var(--bg3)";
+  }
+
+  // BCP port
+  const bcpPort=def.dest==="GBTIL"?"Tilbury BCP":"Southampton BCP";
+
+  // Documentary check risk
+  const tilburyBacklog=rec.date>="2026-03-10"&&rec.date<="2026-03-25";
+  let docCheck,docCol;
+  if(["BTOM Cleared","Gate Out"].includes(rec.status)){
+    docCheck="PASSED"; docCol="var(--green)";
+  } else if(tilburyBacklog&&def.dest==="GBTIL"){
+    docCheck="EXPECT 24-36hr DELAY (backlog)"; docCol="var(--amber)";
+  } else {
+    docCheck="Standard processing"; docCol="var(--text3)";
+  }
+
+  // Physical check risk (based on product type)
+  const physicalRisk=def.type==="chilled"?"MEDIUM (chilled — higher inspection rate)":def.type==="fresh"?"HIGH (fresh — priority inspection)":"LOW (frozen — routine)";
+  const physCol=def.type==="fresh"?"var(--amber)":def.type==="chilled"?"var(--text2)":"var(--text3)";
+
+  return `<div style="background:var(--bg3);border-radius:6px;padding:8px 10px;margin-top:6px;border:1px solid var(--border-l)">
+    <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:6px">BTOM / IPAFFS Compliance</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:9px">
+      <div style="background:${ipaffsBg};border-radius:4px;padding:5px 7px;border:1px solid var(--border-l)">
+        <div style="color:var(--text3);font-size:8px;text-transform:uppercase;letter-spacing:.06em">IPAFFS Pre-Notification</div>
+        <div style="color:${ipaffsCol};font-weight:700;margin-top:2px">${ipaffsStatus}</div>
+      </div>
+      <div style="background:var(--bg);border-radius:4px;padding:5px 7px;border:1px solid var(--border-l)">
+        <div style="color:var(--text3);font-size:8px;text-transform:uppercase;letter-spacing:.06em">BCP Port</div>
+        <div style="color:var(--text);font-weight:600;margin-top:2px">${bcpPort}</div>
+      </div>
+      <div style="background:var(--bg);border-radius:4px;padding:5px 7px;border:1px solid var(--border-l)">
+        <div style="color:var(--text3);font-size:8px;text-transform:uppercase;letter-spacing:.06em">Documentary Check</div>
+        <div style="color:${docCol};font-weight:600;margin-top:2px">${docCheck}</div>
+      </div>
+      <div style="background:var(--bg);border-radius:4px;padding:5px 7px;border:1px solid var(--border-l)">
+        <div style="color:var(--text3);font-size:8px;text-transform:uppercase;letter-spacing:.06em">Physical Check Risk</div>
+        <div style="color:${physCol};font-weight:600;margin-top:2px">${physicalRisk}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── PDF REPORT GENERATION (F90.7) ────────────────────────────────────────────
+
+function generatePdfReport() {
+  const dateStr=currentDate();
+  const w=window.open('','_blank','width=900,height=700');
+  const stats={active:0,delayed:0,alerts:0,arrived:0};
+  const rows=VOYAGES.map(v=>{
+    const r=getDayRecord(v,dateStr);if(!r)return null;
+    if(["At Sea","At Sea — ALERT","Port Approach","Loaded/Departed"].includes(r.status)){stats.active++;if(r.delay>0)stats.delayed++;if(r.tempBreach||r.riskLevel==="CRITICAL")stats.alerts++;}
+    if(["Discharged","BTOM Cleared","Gate Out"].includes(r.status))stats.arrived++;
+    return {def:v.def,rec:r};
+  }).filter(Boolean);
+
+  // Risk assessments
+  const risks=rows.map(({def,rec})=>{
+    const riskItems=[];let severity="LOW",score=1;
+    if(rec.delay>5){severity="HIGH";score=8;riskItems.push("Extended delay: +"+rec.delay+" days");}
+    else if(rec.delay>0){severity="MEDIUM";score=5;riskItems.push("Delay: +"+rec.delay+" days");}
+    if(rec.tempBreach){severity="CRITICAL";score=10;riskItems.push("Temp breach: "+rec.temp+"°C vs "+def.sp+"°C");}
+    if(rec.route!==def.route){score=Math.max(score,6);riskItems.push("Route changed: "+def.route+"→"+rec.route);}
+    if(rec.aisGap){score=Math.max(score,7);riskItems.push("AIS gap detected");}
+    const spoilage=rec.tempBreach?Math.round(15000+rec.delay*3000):rec.delay>3?Math.round(rec.delay*1200):0;
+    const demurrage=rec.delay>0?Math.round(rec.delay*800):0;
+    const penalty=rec.delay>5?Math.round(rec.delay*500):0;
+    return {id:def.id,carrier:def.carrier,product:def.product,severity,score,risks:riskItems,spoilage,demurrage,penalty,total:spoilage+demurrage+penalty};
+  }).sort((a,b)=>b.score-a.score);
+
+  // RAID log
+  const raidRisks=RISK_EVENTS.filter(e=>e.date<=dateStr&&(e.active_until===null||e.active_until>=dateStr));
+
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8">
+<title>MeatTrackAI Fleet Intelligence Report — ${dateStr}</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;color:#1E293B;font-size:12px;line-height:1.5;padding:20mm 15mm;max-width:210mm}
+h1{font-size:20px;color:#0A7A8A;border-bottom:2px solid #0A7A8A;padding-bottom:6px;margin-bottom:12px}
+h2{font-size:14px;color:#0F2744;border-bottom:1px solid #CBD5E1;padding-bottom:4px;margin:18px 0 8px}
+h3{font-size:12px;color:#0A7A8A;margin:12px 0 6px}
+table{border-collapse:collapse;width:100%;font-size:11px;margin-bottom:10px}
+th{background:#F1F5F9;border:1px solid #CBD5E1;padding:5px 8px;text-align:left;font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:#64748B}
+td{border:1px solid #E2E8F0;padding:4px 8px}
+.mono{font-family:'IBM Plex Mono',monospace;font-size:10px}
+.stat-row{display:flex;gap:12px;margin-bottom:14px}
+.stat-box{flex:1;border:1px solid #CBD5E1;border-radius:6px;padding:10px;text-align:center;border-top:3px solid}
+.stat-box.t{border-top-color:#0A7A8A}.stat-box.a{border-top-color:#B45309}.stat-box.r{border-top-color:#C0392B}.stat-box.g{border-top-color:#16A34A}
+.stat-val{font-size:24px;font-weight:700;font-family:'IBM Plex Mono',monospace}
+.stat-val.t{color:#0A7A8A}.stat-val.a{color:#B45309}.stat-val.r{color:#C0392B}.stat-val.g{color:#16A34A}
+.stat-lbl{font-size:9px;color:#64748B;text-transform:uppercase;letter-spacing:.08em;margin-top:2px}
+.sev{font-weight:700;font-size:10px;padding:1px 6px;border-radius:3px;display:inline-block}
+.sev.CRITICAL{background:#FEE2E2;color:#C0392B}.sev.HIGH{background:#FEF3C7;color:#B45309}
+.sev.MEDIUM{background:#FFFBEB;color:#D97706}.sev.LOW{background:#DCFCE7;color:#16A34A}
+.cost{font-family:'IBM Plex Mono',monospace;font-weight:700}
+.cost.r{color:#C0392B}.cost.a{color:#B45309}.cost.g{color:#16A34A}
+.footer{margin-top:20px;padding-top:10px;border-top:1px solid #CBD5E1;font-size:9px;color:#94A3B8;display:flex;justify-content:space-between}
+@media print{body{padding:15mm}h2{page-break-after:avoid}table{page-break-inside:avoid}}
+</style></head><body>
+<h1>MeatTrackAI Fleet Intelligence Report</h1>
+<div style="font-size:11px;color:#64748B;margin-bottom:16px">
+  <strong>Date:</strong> ${dateStr} &nbsp;|&nbsp; <strong>Period:</strong> Jan–Mar 2026 &nbsp;|&nbsp; <strong>Fleet:</strong> 12 containers, 6 carriers &nbsp;|&nbsp; <strong>Route:</strong> AU → UK
+</div>
+
+<h2>1. Executive Summary</h2>
+<div class="stat-row">
+  <div class="stat-box t"><div class="stat-val t">${stats.active}</div><div class="stat-lbl">Active</div></div>
+  <div class="stat-box a"><div class="stat-val a">${stats.delayed}</div><div class="stat-lbl">Delayed</div></div>
+  <div class="stat-box r"><div class="stat-val r">${stats.alerts}</div><div class="stat-lbl">Alerts</div></div>
+  <div class="stat-box g"><div class="stat-val g">${stats.arrived}</div><div class="stat-lbl">Arrived</div></div>
+</div>
+
+<h2>2. Fleet Status</h2>
+<table>
+<thead><tr><th>Container</th><th>Carrier</th><th>Product</th><th>Status</th><th>ETA</th><th>Delay</th><th>Temp</th><th>Route</th></tr></thead>
+<tbody>${rows.map(({def,rec})=>`<tr>
+  <td class="mono">${def.id}</td><td>${def.carrier}</td><td>${def.product}</td>
+  <td>${rec.status}</td><td class="mono">${rec.etaDate}</td>
+  <td style="color:${rec.delay>0?'#B45309':'#16A34A'};font-weight:700">${rec.delay>0?'+'+rec.delay+'d':'On time'}</td>
+  <td style="color:${rec.tempBreach?'#C0392B':'#16A34A'};font-weight:700">${rec.temp}°C</td>
+  <td>${rec.route}</td>
+</tr>`).join('')}</tbody>
+</table>
+
+<h2>3. Risk Assessment</h2>
+<table>
+<thead><tr><th>Severity</th><th>Score</th><th>Container</th><th>Product</th><th>Risk Factors</th></tr></thead>
+<tbody>${risks.filter(r=>r.score>1).map(r=>`<tr>
+  <td><span class="sev ${r.severity}">${r.severity}</span></td>
+  <td class="mono" style="font-weight:700">${r.score}/10</td>
+  <td class="mono">${r.id}</td><td>${r.product}</td>
+  <td>${r.risks.join('; ')||'No active risks'}</td>
+</tr>`).join('')||'<tr><td colspan="5" style="color:#64748B;text-align:center">No active risks</td></tr>'}</tbody>
+</table>
+
+<h2>4. Financial Impact Assessment</h2>
+<table>
+<thead><tr><th>Container</th><th>Spoilage</th><th>Demurrage</th><th>Penalty</th><th>Total Impact</th></tr></thead>
+<tbody>${risks.filter(r=>r.total>0).map(r=>`<tr>
+  <td class="mono">${r.id}</td>
+  <td class="cost ${r.spoilage>0?'r':'g'}">£${r.spoilage.toLocaleString()}</td>
+  <td class="cost ${r.demurrage>0?'a':'g'}">£${r.demurrage.toLocaleString()}</td>
+  <td class="cost ${r.penalty>0?'a':'g'}">£${r.penalty.toLocaleString()}</td>
+  <td class="cost r" style="font-size:12px">£${r.total.toLocaleString()}</td>
+</tr>`).join('')||'<tr><td colspan="5" style="color:#16A34A;text-align:center;font-weight:600">No financial impact — all containers on schedule</td></tr>'}
+${risks.some(r=>r.total>0)?`<tr style="background:#F1F5F9;font-weight:700">
+  <td>TOTAL</td><td class="cost r">£${risks.reduce((s,r)=>s+r.spoilage,0).toLocaleString()}</td>
+  <td class="cost a">£${risks.reduce((s,r)=>s+r.demurrage,0).toLocaleString()}</td>
+  <td class="cost a">£${risks.reduce((s,r)=>s+r.penalty,0).toLocaleString()}</td>
+  <td class="cost r" style="font-size:13px">£${risks.reduce((s,r)=>s+r.total,0).toLocaleString()}</td>
+</tr>`:''}</tbody>
+</table>
+
+<h2>5. RAID Log</h2>
+<h3>5.1 Risks</h3>
+<table>
+<thead><tr><th>Zone</th><th>Severity</th><th>Event</th><th>Since</th></tr></thead>
+<tbody>${raidRisks.map(e=>`<tr>
+  <td>${e.zone.replace(/_/g,' ')}</td>
+  <td><span class="sev ${e.severity}">${e.severity}</span></td>
+  <td>${e.title}</td><td class="mono">${e.date}</td>
+</tr>`).join('')||'<tr><td colspan="4" style="color:#64748B;text-align:center">No active global risks</td></tr>'}</tbody>
+</table>
+
+<h3>5.2 Assumptions</h3>
+<table>
+<thead><tr><th>ID</th><th>Assumption</th><th>Confidence</th></tr></thead>
+<tbody>
+<tr><td>A-001</td><td>AIS vessel position data sufficient for decision-making</td><td>High</td></tr>
+<tr><td>A-002</td><td>5-minute polling interval adequate for operational decisions</td><td>High</td></tr>
+<tr><td>A-003</td><td>Carrier routing commitments hold for published ETA</td><td>Medium</td></tr>
+<tr><td>A-004</td><td>UK BTOM enforcement continues at current level</td><td>Medium</td></tr>
+</tbody></table>
+
+<h3>5.3 Issues</h3>
+<table>
+<thead><tr><th>Container</th><th>Issue</th><th>Impact</th></tr></thead>
+<tbody>${rows.filter(({rec})=>rec.delay>0||rec.tempBreach||rec.aisGap).map(({def,rec})=>`<tr>
+  <td class="mono">${def.id}</td>
+  <td>${rec.tempBreach?'Temperature breach active':rec.aisGap?'AIS position gap':rec.delay>5?'Extended delay (+'+rec.delay+'d)':'Moderate delay (+'+rec.delay+'d)'}</td>
+  <td>${rec.tempBreach?'Cold-chain compromised — QA assessment required':rec.delay>5?'Warehouse re-booking + customer notification required':'Monitor — escalate if delay increases'}</td>
+</tr>`).join('')||'<tr><td colspan="3" style="color:#16A34A;text-align:center">No active issues</td></tr>'}</tbody>
+</table>
+
+<h3>5.4 Dependencies</h3>
+<table>
+<thead><tr><th>ID</th><th>Dependency</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td>D-001</td><td>IPAFFS pre-notification 72hrs before arrival</td><td style="color:#16A34A;font-weight:600">On track</td></tr>
+<tr><td>D-002</td><td>Warehouse cold storage slot availability</td><td style="color:${stats.delayed>2?'#B45309':'#16A34A'};font-weight:600">${stats.delayed>2?'At risk — '+stats.delayed+' delayed':'Available'}</td></tr>
+<tr><td>D-003</td><td>Customer delivery window compliance</td><td style="color:${stats.delayed>3?'#C0392B':'#16A34A'};font-weight:600">${stats.delayed>3?'Breached — re-negotiate':'On track'}</td></tr>
+</tbody></table>
+
+<div class="footer">
+  <span>Confidential — MeatTrackAI Fleet Intelligence</span>
+  <span>Generated: ${new Date().toISOString().substring(0,19)} | Report: RPT-WWG-${dateStr.replace(/-/g,'')}</span>
+</div>
+</body></html>`);
+  w.document.close();
+  // Auto-trigger print dialog
+  setTimeout(()=>w.print(),500);
 }
 
 // ── LEGEND FILTER & RISK ASSESSMENT ──────────────────────────────────────────

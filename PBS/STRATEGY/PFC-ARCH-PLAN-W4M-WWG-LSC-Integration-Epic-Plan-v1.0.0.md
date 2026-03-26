@@ -443,10 +443,12 @@ Browser QA for tracker              SKILL_STANDALONE
 | F90.7 | PDF Shipping Status & Risk/Impact Assessment Report | #46 | Planned |
 | F90.8 | Interactive Legend Filtering | #47 | COMPLETE |
 | F90.9 | Colour-Coded Risk Assessment Bands + QVF-LSC | #48 | COMPLETE |
+| F90.10 | Microsoft Integration Workflow & Client IT Prep | #49 | Planned |
+| F90.11 | Accounting & Stock OFM Data Flow Back | #50 | Planned |
 
 ### 4.3 Story Issues
 
-60 stories across 9 features (S90.1.1–S90.9.7) as detailed in section 3.2.
+80 stories across 11 features (S90.1.1–S90.11.10) as detailed in section 3.2.
 
 ---
 

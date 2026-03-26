@@ -432,17 +432,17 @@ Browser QA for tracker              SKILL_STANDALONE
 
 ### 4.2 Feature Issues
 
-| Issue | Title | Labels |
-|-------|-------|--------|
-| F90.1 | API Connector Skill (SKL-154: pfc-api-connector) | `type:feature`, `skill:standalone` |
-| F90.2 | AIS Adapter Skill (SKL-155: w4m-lsc-ais-adapter) | `type:feature`, `skill:standalone` |
-| F90.3 | App Skeleton LSC Components (9 new components) | `type:feature`, `component:skeleton` |
-| F90.4 | Live Dashboard Deployment | `type:feature`, `deploy:pages` |
-| F90.5 | Microsoft Environment Integration | `type:feature`, `platform:microsoft` |
-| F90.6 | VE/QVF Value Realisation Metrics | `type:feature`, `ve:qvf` |
-| F90.7 | PDF Shipping Status & Risk/Impact Assessment Report | `type:feature`, `report:pdf` |
-| F90.8 | Interactive Legend Filtering | `type:feature`, `ux:filter` |
-| F90.9 | Colour-Coded Risk Assessment Bands | `type:feature`, `risk:assessment` |
+| Issue | Title | Issue # | Status |
+|-------|-------|---------|--------|
+| F90.1 | API Connector Skill (SKL-154: pfc-api-connector) | #40 | Registered |
+| F90.2 | AIS Adapter Skill (SKL-155: w4m-lsc-ais-adapter) | #41 | Registered |
+| F90.3 | App Skeleton LSC Components (9 new components) | #42 | Planned |
+| F90.4 | Live Dashboard Deployment | #43 | In Progress |
+| F90.5 | Microsoft Environment Integration | #44 | Planned |
+| F90.6 | VE/QVF Value Realisation Metrics | #45 | Planned |
+| F90.7 | PDF Shipping Status & Risk/Impact Assessment Report | #46 | Planned |
+| F90.8 | Interactive Legend Filtering | #47 | COMPLETE |
+| F90.9 | Colour-Coded Risk Assessment Bands + QVF-LSC | #48 | COMPLETE |
 
 ### 4.3 Story Issues
 

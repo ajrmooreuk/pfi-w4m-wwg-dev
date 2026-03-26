@@ -1,0 +1,37 @@
+{
+  "@context": {
+    "api": "https://oaa-ontology.org/v6/api-connector/"
+  },
+  "@type": "api:IntegrationConfig",
+  "@id": "pf:api:datalastic-ais",
+  "displayName": "Datalastic AIS Vessel Tracking",
+  "endpoint": "https://api.datalastic.com/api/v0/vessel",
+  "authMethod": "query-param",
+  "authParamName": "api-key",
+  "secretRef": "DATALASTIC_API_KEY",
+  "pollingIntervalSec": 300,
+  "rateLimitPerMin": 10,
+  "retryPolicy": {
+    "maxRetries": 3,
+    "backoffMs": 2000
+  },
+  "responseMapping": {
+    "vessels": "$.data",
+    "fields": {
+      "mmsi": "$.data.mmsi",
+      "lat": "$.data.lat",
+      "lon": "$.data.lon",
+      "speed": "$.data.speed",
+      "heading": "$.data.course",
+      "destination": "$.data.destination",
+      "eta": "$.data.eta",
+      "navStatus": "$.data.navigation_status",
+      "vesselName": "$.data.name",
+      "imo": "$.data.imo",
+      "lastUpdate": "$.data.last_position_epoch"
+    }
+  },
+  "owningPfi": "W4M-WWG",
+  "cascadeTier": "PFI",
+  "version": "1.0.0"
+}

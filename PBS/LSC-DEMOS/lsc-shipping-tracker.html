@@ -314,6 +314,11 @@ header{
   </div>
   <div class="header-right">
     <div class="status-pill"><div class="pulse-dot"></div>12 Voyages · Jan–Mar 2026</div>
+    <button id="mode-toggle" onclick="toggleLiveMode()" style="
+      padding:5px 12px;border-radius:20px;border:1px solid var(--border);
+      background:var(--bg3);color:var(--text2);font-size:11px;font-weight:600;
+      cursor:pointer;font-family:var(--mono);letter-spacing:.05em;transition:all .15s;
+    ">SIM MODE</button>
     <div class="date-display" id="sim-date-header">—</div>
   </div>
 </header>
@@ -1206,9 +1211,114 @@ function renderAll(){
   renderRiskAssessment(dateStr);
 }
 
+// ── LIVE MODE INTEGRATION (SKL-154 + SKL-155) ────────────────────────────────
+
+let liveMode = false;
+let apiConnector = null;
+let aisAdapter = null;
+let liveData = null;
+
+function toggleLiveMode() {
+  const btn = document.getElementById('mode-toggle');
+  if (!liveMode) {
+    const key = prompt('Enter Datalastic API key (or cancel for simulation):');
+    if (!key) return;
+    enableLiveMode(key);
+  } else {
+    disableLiveMode();
+  }
+}
+
+function enableLiveMode(apiKey) {
+  liveMode = true;
+  const btn = document.getElementById('mode-toggle');
+  btn.textContent = 'LIVE MODE';
+  btn.style.background = 'var(--green-l)';
+  btn.style.borderColor = 'var(--green)';
+  btn.style.color = 'var(--green)';
+
+  // Initialize connector (SKL-154)
+  if (typeof PfcApiConnector !== 'undefined') {
+    const config = {
+      '@id': 'pf:api:datalastic-ais',
+      displayName: 'Datalastic AIS',
+      endpoint: 'https://api.datalastic.com/api/v0/vessel',
+      authMethod: 'query-param',
+      authParamName: 'api-key',
+      pollingIntervalSec: 300,
+      rateLimitPerMin: 10,
+      retryPolicy: { maxRetries: 3, backoffMs: 2000 }
+    };
+    apiConnector = new PfcApiConnector(config);
+    apiConnector.setApiKey(apiKey);
+
+    // Initialize adapter (SKL-155)
+    if (typeof W4mLscAisAdapter !== 'undefined' && typeof WWG_CONTAINER_MMSI_MAP !== 'undefined') {
+      aisAdapter = new W4mLscAisAdapter(WWG_CONTAINER_MMSI_MAP, 'datalastic');
+    }
+
+    // Start polling
+    apiConnector.startPolling({}, (result) => {
+      if (result.success && aisAdapter) {
+        liveData = aisAdapter.transform(result);
+        console.log('[LIVE] Fleet update:', liveData.containersMatched, 'containers matched');
+        applyLiveData();
+      }
+    });
+
+    console.log('[LIVE] Mode enabled. Polling every 300s.');
+  } else {
+    // Scripts not loaded — show inline simulation of live mode
+    console.log('[LIVE] Connector scripts not loaded. Live mode visual enabled (data still simulated).');
+  }
+}
+
+function disableLiveMode() {
+  liveMode = false;
+  liveData = null;
+  const btn = document.getElementById('mode-toggle');
+  btn.textContent = 'SIM MODE';
+  btn.style.background = 'var(--bg3)';
+  btn.style.borderColor = 'var(--border)';
+  btn.style.color = 'var(--text2)';
+
+  if (apiConnector) {
+    apiConnector.stopPolling();
+    apiConnector = null;
+  }
+  aisAdapter = null;
+  console.log('[LIVE] Mode disabled. Back to simulation.');
+  renderAll();
+}
+
+function applyLiveData() {
+  if (!liveData || !liveData.containers || !liveData.containers.length) return;
+
+  // Overlay live positions onto current simulation state
+  const dateStr = currentDate();
+  liveData.containers.forEach(lc => {
+    const voyage = VOYAGES.find(v => v.def.id === lc.id);
+    if (!voyage) return;
+    const rec = getDayRecord(voyage, dateStr);
+    if (!rec) return;
+
+    // Override with live data
+    if (lc.lat !== null) rec.lat = lc.lat;
+    if (lc.lon !== null) rec.lon = lc.lon;
+    if (lc.sog > 0) rec.sog = lc.sog;
+    if (lc.etaRevised) rec.etaDate = lc.etaRevised;
+    if (lc.status) rec.status = lc.status;
+  });
+
+  renderAll();
+}
+
 // ── INIT ──────────────────────────────────────────────────────────────────────
 renderAll();
 
 </script>
+<!-- SKL-154 + SKL-155: Load API connector and AIS adapter (graceful degradation if not available) -->
+<script src="../../instance-data/skills/pfc-api-connector/api-connector.js" onerror="console.log('[SKL-154] api-connector.js not found — live mode will prompt for scripts')"></script>
+<script src="../../instance-data/skills/w4m-lsc-ais-adapter/ais-adapter.js" onerror="console.log('[SKL-155] ais-adapter.js not found — live mode will use visual toggle only')"></script>
 </body>
 </html>

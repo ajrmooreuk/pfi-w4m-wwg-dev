@@ -1,0 +1,38 @@
+{
+  "@context": {
+    "api": "https://oaa-ontology.org/v6/api-connector/"
+  },
+  "@type": "api:IntegrationConfig",
+  "@id": "pf:api:vesselfinder-ais",
+  "displayName": "VesselFinder AIS Positions",
+  "endpoint": "https://api.vesselfinder.com/vessels",
+  "authMethod": "query-param",
+  "authParamName": "userkey",
+  "secretRef": "VESSELFINDER_API_KEY",
+  "pollingIntervalSec": 600,
+  "rateLimitPerMin": 5,
+  "retryPolicy": {
+    "maxRetries": 2,
+    "backoffMs": 5000
+  },
+  "responseMapping": {
+    "vessels": "$.AIS",
+    "fields": {
+      "mmsi": "$.AIS[*].MMSI",
+      "lat": "$.AIS[*].LATITUDE",
+      "lon": "$.AIS[*].LONGITUDE",
+      "speed": "$.AIS[*].SPEED",
+      "heading": "$.AIS[*].HEADING",
+      "destination": "$.AIS[*].DESTINATION",
+      "eta": "$.AIS[*].ETA",
+      "navStatus": "$.AIS[*].NAVSTAT",
+      "vesselName": "$.AIS[*].SHIPNAME",
+      "imo": "$.AIS[*].IMO",
+      "lastUpdate": "$.AIS[*].TIMESTAMP"
+    }
+  },
+  "notes": "Satellite AIS = 10 credits/position (mid-ocean vessels out of terrestrial range)",
+  "owningPfi": "W4M-WWG",
+  "cascadeTier": "PFI",
+  "version": "1.0.0"
+}

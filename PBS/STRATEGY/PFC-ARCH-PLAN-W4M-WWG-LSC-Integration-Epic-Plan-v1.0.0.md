@@ -354,11 +354,11 @@ Browser QA for tracker              SKILL_STANDALONE
 | SKL-118 | pfc-component-scaffold | SKILL_STANDALONE | PFC | E65 | F65.11 | Adopted |
 | SKL-119 | pfc-view-register | SKILL_STANDALONE | PFC | E65 | F65.12 | Adopted |
 | SKL-121 | pfc-app-skeleton-pipeline | AGENT_ORCHESTRATOR | PFC | E65 | F65.13 | Adopted |
-| **SKL-154** | **pfc-api-connector** | **SKILL_STANDALONE** | **PFC** | **E90** | **F90.1** | **Candidate** |
-| **SKL-155** | **w4m-lsc-ais-adapter** | **SKILL_STANDALONE** | **PFI** | **E90** | **F90.2** | **Candidate** |
-| **SKL-156** | **pfc-qvf-lsc-spoilage** | **SKILL_STANDALONE** | **PFC** | **E90** | **F90.9** | **Candidate** |
-| **SKL-157** | **pfc-qvf-lsc-demurrage** | **SKILL_STANDALONE** | **PFC** | **E90** | **F90.9** | **Candidate** |
-| **SKL-158** | **pfc-qvf-lsc-impact** | **SKILL_STANDALONE** | **PFC** | **E90** | **F90.9** | **Candidate** |
+| **SKL-154** | **pfc-api-connector** | **SKILL_STANDALONE** | **PFC** | **E90** | **F90.1** | **Registered (Candidate, G1 PASS)** |
+| **SKL-155** | **w4m-lsc-ais-adapter** | **SKILL_STANDALONE** | **PFI** | **E90** | **F90.2** | **Registered (Candidate, G1 PASS)** |
+| **SKL-156** | **pfc-qvf-lsc-spoilage** | **SKILL_STANDALONE** | **PFC** | **E90** | **F90.9** | **Registered (Candidate, G1 PASS)** |
+| **SKL-157** | **pfc-qvf-lsc-demurrage** | **SKILL_STANDALONE** | **PFC** | **E90** | **F90.9** | **Registered (Candidate, G1 PASS)** |
+| **SKL-158** | **pfc-qvf-lsc-impact** | **SKILL_STANDALONE** | **PFC** | **E90** | **F90.9** | **Registered (Candidate, G1 PASS)** |
 
 ---
 

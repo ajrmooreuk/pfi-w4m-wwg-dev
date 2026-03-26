@@ -1,0 +1,130 @@
+{
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "MeatTrackAI Inbound Reefer Tracker",
+  "dateModified": "2026-03-26T06:45:07.108349+00:00",
+  "numberOfItems": 3,
+  "itemListElement": [
+    {
+      "@type": "Trip",
+      "identifier": "MRKU4821073",
+      "provider": {
+        "name": "Maersk"
+      },
+      "vessel": {
+        "name": "MV Maersk Hobart",
+        "imoNumber": "9541234"
+      },
+      "cargo": {
+        "name": "Frozen Beef BMB",
+        "productType": "frozen",
+        "grossWeightKg": 24840
+      },
+      "departureLocation": {
+        "locode": "AUMEL",
+        "name": "Melbourne"
+      },
+      "arrivalLocation": {
+        "locode": "GBTIL",
+        "name": "Tilbury"
+      },
+      "departuretime": "2026-01-14T08:00:00Z",
+      "etaOriginal": "2026-03-22",
+      "etaCurrent": "2026-03-26",
+      "etaDeltaDays": 4.5,
+      "delayReason": "Rerouted Cape of Good Hope due to Red Sea/Houthi risk. +8 days; partially offset by speed increase.",
+      "voyageStatus": "Port Approach",
+      "riskLevel": "MEDIUM",
+      "coldChain": {
+        "breachActive": false,
+        "cumulativeBreachHours": 0
+      },
+      "notificationLog": [],
+      "alertLog": [],
+      "eventLog": []
+    },
+    {
+      "@type": "Trip",
+      "identifier": "HLXU9901234",
+      "provider": {
+        "name": "Hapag-Lloyd"
+      },
+      "vessel": {
+        "name": "MV Hapag San Francisco",
+        "imoNumber": "9789012"
+      },
+      "cargo": {
+        "name": "Chilled Beef Premium",
+        "productType": "chilled",
+        "grossWeightKg": 20900
+      },
+      "departureLocation": {
+        "locode": "AUSYD",
+        "name": "Sydney"
+      },
+      "arrivalLocation": {
+        "locode": "GBTIL",
+        "name": "Tilbury"
+      },
+      "departuretime": "2026-02-05T14:00:00Z",
+      "etaOriginal": "2026-04-10",
+      "etaCurrent": "2026-04-16",
+      "etaDeltaDays": 6,
+      "delayReason": "Port Louis (Mauritius) congestion 3 days + reefer compressor fault. Temperature drifted +2.8\u00b0C vs +1\u00b0C set point.",
+      "voyageStatus": "At Sea \u2014 ALERT",
+      "riskLevel": "CRITICAL",
+      "coldChain": {
+        "breachActive": true,
+        "cumulativeBreachHours": 150,
+        "supplyAirTempCelsius": 2.8,
+        "setPointCelsius": 1.0
+      },
+      "notificationLog": [],
+      "alertLog": [],
+      "eventLog": []
+    },
+    {
+      "@type": "Trip",
+      "identifier": "TCKU8820445",
+      "provider": {
+        "name": "CMA CGM"
+      },
+      "vessel": {
+        "name": "MV CMA CGM Libert\u00e9",
+        "imoNumber": "9701234"
+      },
+      "cargo": {
+        "name": "Frozen Lamb",
+        "productType": "frozen",
+        "grossWeightKg": 19500
+      },
+      "departureLocation": {
+        "locode": "AUADL",
+        "name": "Adelaide"
+      },
+      "arrivalLocation": {
+        "locode": "GBTIL",
+        "name": "Tilbury"
+      },
+      "departuretime": "2026-01-28T10:00:00Z",
+      "etaOriginal": "2026-04-08",
+      "etaCurrent": "2026-04-15",
+      "etaDeltaDays": 7,
+      "delayReason": "Carrier slow-steaming order \u2014 bunker optimisation. SOG reduced 18 \u2192 12.8 knots from day 10.",
+      "voyageStatus": "At Sea",
+      "riskLevel": "MEDIUM",
+      "coldChain": {
+        "breachActive": false,
+        "cumulativeBreachHours": 0
+      },
+      "notificationLog": [],
+      "alertLog": [],
+      "eventLog": []
+    }
+  ],
+  "_meta": {
+    "version": "1.0",
+    "last_pdf_processed": "2026-03-26T06:45:07.108382+00:00",
+    "notification_queue": []
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "generatedAt": "2026-03-26T06:45:08.413768+00:00",
+  "totalVoyages": 3,
+  "impactAnalysis": {
+    "totalOrders": 5,
+    "critical": 0,
+    "significant": 2,
+    "delay": 3,
+    "onTime": 0
+  },
+  "notificationsGenerated": 4,
+  "impacts": [
+    {
+      "container": "MRKU4821073",
+      "order_id": "ORD-2241",
+      "customer": "Tesco Distribution Ltd",
+      "email": "logistics@tesco.example.com",
+      "impact": "DELAY",
+      "delta": 4.5,
+      "breach": false,
+      "delivery_due": "2026-03-24",
+      "eta_current": "2026-03-26",
+      "delay_reason": "Rerouted Cape of Good Hope due to Red Sea/Houthi risk. +8 days; partially offset...",
+      "action": "Notify customer. Confirm revised delivery window."
+    },
+    {
+      "container": "MRKU4821073",
+      "order_id": "ORD-2244",
+      "customer": "Brakes Group",
+      "email": "supply@brakes.example.com",
+      "impact": "DELAY",
+      "delta": 4.5,
+      "breach": false,
+      "delivery_due": "2026-03-26",
+      "eta_current": "2026-03-26",
+      "delay_reason": "Rerouted Cape of Good Hope due to Red Sea/Houthi risk. +8 days; partially offset...",
+      "action": "Notify customer. Confirm revised delivery window."
+    },
+    {
+      "container": "HLXU9901234",
+      "order_id": "ORD-2271",
+      "customer": "Tesco Distribution Ltd",
+      "email": "logistics@tesco.example.com",
+      "impact": "SIGNIFICANT",
+      "delta": 6,
+      "breach": true,
+      "delivery_due": "2026-04-11",
+      "eta_current": "2026-04-16",
+      "delay_reason": "Port Louis (Mauritius) congestion 3 days + reefer compressor fault. Temperature ...",
+      "action": "Urgent customer notification. Reschedule delivery."
+    },
+    {
+      "container": "HLXU9901234",
+      "order_id": "ORD-2272",
+      "customer": "Co-op Foods",
+      "email": "buying@coop.example.com",
+      "impact": "SIGNIFICANT",
+      "delta": 6,
+      "breach": true,
+      "delivery_due": "2026-04-13",
+      "eta_current": "2026-04-16",
+      "delay_reason": "Port Louis (Mauritius) congestion 3 days + reefer compressor fault. Temperature ...",
+      "action": "Urgent customer notification. Reschedule delivery."
+    },
+    {
+      "container": "TCKU8820445",
+      "order_id": "ORD-2260",
+      "customer": "Iceland Foods",
+      "email": "procurement@iceland.example.com",
+      "impact": "DELAY",
+      "delta": 7,
+      "breach": false,
+      "delivery_due": "2026-04-09",
+      "eta_current": "2026-04-15",
+      "delay_reason": "Carrier slow-steaming order \u2014 bunker optimisation. SOG reduced 18 \u2192 12.8 knots f...",
+      "action": "Notify customer. Confirm revised delivery window."
+    }
+  ]
+}

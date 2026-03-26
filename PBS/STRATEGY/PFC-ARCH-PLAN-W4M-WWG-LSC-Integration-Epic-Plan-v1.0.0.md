@@ -62,6 +62,7 @@ Epic 34 (#518) — Platform Strategy [CLOSED]
 - Microsoft environment integration — Teams, Outlook, SharePoint embedding
 - Live data pipeline — Datalastic AIS → tracker → dashboard
 - VE/QVF value realisation metrics
+- PDF shipping status, risk assessment, impact assessment, and RAID log reports
 
 ---
 
@@ -175,6 +176,77 @@ Z-WWG-106  PfcStatusBar          Management zone (operational)
 | S90.6.3 | QVF financial model — demurrage avoidance | Port delay cost baseline vs early-warning benefit |
 | S90.6.4 | KPI dashboard — LSC operational metrics | 6 KPIs: ETA accuracy, temp compliance, alert response time, spoilage rate, demurrage cost, shelf-life utilisation |
 | S90.6.5 | BSC integration — 4-perspective scorecard | Financial (margin), Customer (OTIF), Process (alert latency), Learning (scenario coverage) |
+
+---
+
+#### F90.7 — PDF Shipping Status & Risk/Impact Assessment Report
+
+**Cascade Tier:** PFI (W4M-WWG) — reusable pattern for other PFI instances
+**Cross-ref:** LSC-ONT scenarios, OFM-ONT margin impacts, KPI-ONT metrics, RAID-ONT (GRC-Series)
+
+| Story | Title | Acceptance Criteria |
+|-------|-------|---------------------|
+| S90.7.1 | Fleet Status PDF — point-in-time snapshot | Generate branded PDF of current fleet state: all 12 containers, status, ETA, delay, temp, route. Includes SVG map render and fleet snapshot stats |
+| S90.7.2 | Container Detail PDF — single container deep-dive | Per-container report: voyage timeline, temperature chart, ETA revision chart, alert history, compliance status. Exportable from container detail panel |
+| S90.7.3 | Risk Assessment section — geopolitical & operational | Active risk events table (severity, zone, duration, affected containers). LSC-ONT scenario cross-reference. Cascade effect chains (delay → storage → spoilage → customer breach) |
+| S90.7.4 | Impact Assessment section — financial & operational | QVF-derived cost impact per delay event: spoilage (product type x days x temp), demurrage (£/day x overstay), customer penalty (SLA breach), insurance exposure. OFM-ONT margin impact waterfall |
+| S90.7.5 | RAID Log — per-voyage risks, assumptions, issues, dependencies | Auto-generated from tracker data: Risks (active risk events + temp breaches), Assumptions (route holds, carrier commitments), Issues (current delays, AIS gaps), Dependencies (BTOM clearance, warehouse slots, customer windows) |
+| S90.7.6 | Requirements Traceability — VP/RRR alignment in PDF | Requirements table linking vp:Solution → rrr:Requirement, current status (met/at-risk/breached), evidence reference |
+| S90.7.7 | Scheduled PDF generation — daily/weekly fleet report | Power Automate trigger: daily 06:00 fleet status PDF to distribution list. Weekly Friday 17:00 risk summary PDF to management |
+| S90.7.8 | PDF branding — DS-ONT token application | WWG brand tokens applied (Pink/Magenta header, Royal Blue accents, Jura typeface). PFC logo + W4M-WWG instance branding. Consistent with App Skeleton DS-ONT cascade |
+
+**PDF Report Structure:**
+
+```
++--------------------------------------------------+
+|  HEADER: W4M-WWG Fleet Intelligence Report       |
+|  Date: 2026-03-26  |  Period: Jan-Mar 2026       |
+|  Report Type: [Fleet Status / Container Detail]   |
++--------------------------------------------------+
+|                                                    |
+|  1. EXECUTIVE SUMMARY                             |
+|     Fleet snapshot (active/delayed/alerts/arrived) |
+|     Key risks and financial exposure               |
+|                                                    |
+|  2. FLEET STATUS                                   |
+|     SVG route map (rendered to PNG for PDF)        |
+|     Container status table (all 12)                |
+|     ETA variance summary                          |
+|                                                    |
+|  3. RISK ASSESSMENT                                |
+|     3.1 Active Geopolitical Risks                  |
+|         (Red Sea, Hormuz, weather, port strikes)   |
+|     3.2 Container-Level Risks                      |
+|         (temp breaches, AIS gaps, route changes)   |
+|     3.3 Cascade Effect Analysis                    |
+|         (delay → storage → spoilage → customer)   |
+|                                                    |
+|  4. IMPACT ASSESSMENT                              |
+|     4.1 Financial Impact Summary                   |
+|         (spoilage, demurrage, penalty, insurance)  |
+|     4.2 Per-Container Cost Waterfall               |
+|     4.3 Margin Impact vs Baseline                  |
+|                                                    |
+|  5. RAID LOG                                       |
+|     5.1 Risks (R)                                  |
+|     5.2 Assumptions (A)                            |
+|     5.3 Issues (I)                                 |
+|     5.4 Dependencies (D)                           |
+|                                                    |
+|  6. REQUIREMENTS TRACEABILITY                      |
+|     VP-RRR alignment table                         |
+|     Requirement status (met/at-risk/breached)      |
+|                                                    |
+|  7. APPENDIX                                       |
+|     Temperature charts per container               |
+|     ETA revision histories                         |
+|     Compliance gate status                         |
+|                                                    |
++--------------------------------------------------+
+|  FOOTER: Confidential | Generated by MeatTrackAI  |
+|  Page X of Y | Report ID: RPT-WWG-2026-0326-001   |
++--------------------------------------------------+
+```
 
 ---
 
@@ -304,10 +376,11 @@ Browser QA for tracker              SKILL_STANDALONE
 | F90.4 | Live Dashboard Deployment | `type:feature`, `deploy:pages` |
 | F90.5 | Microsoft Environment Integration | `type:feature`, `platform:microsoft` |
 | F90.6 | VE/QVF Value Realisation Metrics | `type:feature`, `ve:qvf` |
+| F90.7 | PDF Shipping Status & Risk/Impact Assessment Report | `type:feature`, `report:pdf` |
 
 ### 4.3 Story Issues
 
-33 stories across 6 features (S90.1.1–S90.6.5) as detailed in section 3.2.
+41 stories across 7 features (S90.1.1–S90.7.8) as detailed in section 3.2.
 
 ---
 
@@ -325,10 +398,12 @@ Phase 2: Components & Dashboard (F90.3, F90.4)
   |  Deploy to GitHub Pages
   |  Depends: Epic 65 F65.4 wrapper components, Epic 44 DS tokens
   |
-Phase 3: Microsoft & Value (F90.5, F90.6)
+Phase 3: Microsoft, Value & Reporting (F90.5, F90.6, F90.7)
   |  Teams/Outlook/SharePoint embedding
-  |  VP/QVF/KPI instances
-  |  BSC integration
+  |  VP/QVF/KPI instances, BSC integration
+  |  PDF shipping status & risk/impact reports
+  |  RAID log auto-generation from tracker data
+  |  Scheduled PDF distribution via Power Automate
   |  Depends: Phase 2 complete
   |
 Phase 4: Adoption (cross-epic)
@@ -353,4 +428,118 @@ Phase 4: Adoption (cross-epic)
 
 ---
 
-*Plan generated from Dtree evaluation (decision-tree.js v1.0.0), Epic 45 deliverables, Epic 65 component framework, and PFC-PFI cascade architecture.*
+## 7. Requirements Register
+
+### 7.1 Functional Requirements
+
+| REQ-ID | Requirement | Source (VP) | RRR Alignment | Feature | Priority | Status |
+|--------|------------|-------------|---------------|---------|----------|--------|
+| REQ-001 | System shall display real-time vessel positions updated every 5 minutes | vp:Solution S1 | rrr:Requirement (live AIS tracking) | F90.1, F90.2 | Must Have | Candidate |
+| REQ-002 | System shall monitor reefer temperature against set-point and alert on deviation > 0.5C | vp:Solution S2 | rrr:Requirement (cold-chain monitoring) | F90.3 S90.3.5 | Must Have | Candidate |
+| REQ-003 | System shall track and display ETA revision history with delay accumulation | vp:Solution S3 | rrr:Requirement (ETA management) | F90.3 S90.3.6 | Must Have | Candidate |
+| REQ-004 | System shall integrate IPAFFS/BTOM compliance status per container | vp:Solution S4 | rrr:Requirement (regulatory compliance) | F90.4 S90.4.6 | Should Have | Planned |
+| REQ-005 | System shall quantify financial impact per delay event (spoilage, demurrage, penalty) | vp:Solution S5 | rrr:Requirement (financial visibility) | F90.6 S90.6.2, S90.6.3 | Should Have | Planned |
+| REQ-006 | System shall provide pre-modelled geopolitical disruption scenarios with cascade effects | vp:Solution S6 | rrr:Requirement (scenario planning) | F90.3 S90.3.8 | Should Have | In Progress (6 scenarios in LSC-ONT) |
+| REQ-007 | Dashboard shall be embeddable as Microsoft Teams tab with SSO | vp:Solution (Microsoft) | rrr:Requirement (enterprise deployment) | F90.5 S90.5.1 | Should Have | Planned |
+| REQ-008 | System shall send Outlook actionable notifications on ETA shift > 24hrs or temp breach | vp:Solution (Microsoft) | rrr:Requirement (automated alerting) | F90.5 S90.5.2 | Should Have | Planned |
+| REQ-009 | System shall generate branded PDF fleet status report on demand and on schedule | vp:Solution (reporting) | rrr:Requirement (stakeholder reporting) | F90.7 S90.7.1, S90.7.7 | Must Have | Planned |
+| REQ-010 | PDF report shall include risk assessment with geopolitical and container-level risks | vp:Solution (risk visibility) | rrr:Requirement (risk management) | F90.7 S90.7.3 | Must Have | Planned |
+| REQ-011 | PDF report shall include financial impact assessment with cost waterfall per container | vp:Solution (financial case) | rrr:Requirement (impact quantification) | F90.7 S90.7.4 | Must Have | Planned |
+| REQ-012 | PDF report shall include auto-generated RAID log from tracker data | vp:Solution (governance) | rrr:Requirement (RAID governance) | F90.7 S90.7.5 | Must Have | Planned |
+| REQ-013 | System shall support config-driven API source switching (Datalastic ↔ VesselFinder) | Architecture | rrr:Requirement (resilience) | F90.1, F90.2 | Must Have | Candidate |
+| REQ-014 | PDF report shall include requirements traceability (VP-RRR alignment status) | Governance | rrr:Requirement (traceability) | F90.7 S90.7.6 | Should Have | Planned |
+| REQ-015 | All panels shall support fullscreen expand/close toggle | UX | rrr:Requirement (usability) | F90.4 S90.4.4 | Must Have | Complete |
+| REQ-016 | System shall export fleet status to Excel (.xlsx) on demand | vp:Solution (Microsoft) | rrr:Requirement (data portability) | F90.5 S90.5.5 | Could Have | Planned |
+
+### 7.2 Non-Functional Requirements
+
+| REQ-ID | Requirement | Category | Feature | Priority |
+|--------|------------|----------|---------|----------|
+| NFR-001 | API polling shall not exceed rate limits (configurable per source) | Performance | F90.1 | Must Have |
+| NFR-002 | Dashboard shall render within 2 seconds on desktop, 4 seconds on mobile | Performance | F90.4 | Must Have |
+| NFR-003 | PDF generation shall complete within 10 seconds per report | Performance | F90.7 | Should Have |
+| NFR-004 | System shall gracefully degrade to simulation mode if API unavailable | Resilience | F90.1, F90.4 | Must Have |
+| NFR-005 | All API credentials shall be stored as environment secrets, never in source | Security | F90.1 | Must Have |
+| NFR-006 | Dashboard shall be responsive across mobile/tablet/desktop breakpoints | Usability | F90.3, F90.4 | Must Have |
+| NFR-007 | PDF report shall conform to W4M-WWG DS-ONT brand tokens | Branding | F90.7 | Should Have |
+| NFR-008 | System shall support 12+ concurrent containers without performance degradation | Scalability | F90.3 | Must Have |
+
+---
+
+## 8. RAID Log
+
+### 8.1 Risks (R)
+
+| RAID-ID | Risk | Likelihood | Impact | Severity | Mitigation | Owner | Feature |
+|---------|------|-----------|--------|----------|-----------|-------|---------|
+| R-001 | Datalastic API discontinued or pricing changes materially | Low | High | HIGH | Config-driven design enables source switch to VesselFinder in < 1 day. api-config.jsonld pattern isolates transport from transform | PFC | F90.1 |
+| R-002 | AIS satellite coverage gaps for mid-ocean AU→UK vessels | Medium | Medium | MEDIUM | VesselFinder satellite tier (10 credits/position). Position age displayed in UI. Fallback to carrier portal for confirmation | W4M-WWG | F90.2 |
+| R-003 | Red Sea disruption extends beyond simulation period (post-Mar 2026) | High | High | CRITICAL | 6 pre-modelled scenarios in LSC-ONT. Scenario engine extensible. Cape of Good Hope route as permanent alternative | W4M-WWG | F90.3 |
+| R-004 | Reefer temperature data not available via AIS (requires IoT/carrier API) | Medium | High | HIGH | Phase 1 uses simulated temp data. Future: carrier reefer API integration as additional adapter skill (same SKL-154 pattern) | W4M-WWG | F90.2 |
+| R-005 | Microsoft Teams embedding blocked by customer tenant policies | Medium | Medium | MEDIUM | SharePoint page as alternative. GitHub Pages hosted version always available as fallback. PDF reports as offline alternative | W4M-WWG | F90.5 |
+| R-006 | UK BTOM enforcement changes (tighter or relaxed) | Medium | Medium | MEDIUM | Compliance overlay is modular (F90.4 S90.4.6). Rules configurable. Relaxation reduces value of compliance feature but core tracking remains valuable | W4M-WWG | F90.4 |
+| R-007 | PDF generation performance with large fleet (50+ containers) | Low | Medium | LOW | Pagination. Server-side generation for large fleets. Client-side adequate for 12-container demo | W4M-WWG | F90.7 |
+| R-008 | Geopolitical normalisation reduces perceived urgency | Low | Medium | LOW | Platform value extends beyond geopolitics — operational efficiency, compliance, financial visibility remain compelling. Kano: Must-Be features retain value regardless | W4M-WWG | F90.6 |
+| R-009 | Competitor (project44, FourKites) enters mid-market with Microsoft integration | Medium | High | HIGH | First-mover advantage. Domain-specific (meat/seafood) moat. QVF financial overlay as differentiator. Config-driven cost advantage | W4M-WWG | F90.5 |
+| R-010 | Epic 65 F65.4 (PFC Wrapper Components) delayed, blocking App Skeleton version | Medium | High | HIGH | HTML standalone version (lsc-shipping-tracker.html) remains functional and demo-ready. GitHub Pages deployment independent of App Skeleton | PFC | F90.3, F90.4 |
+
+### 8.2 Assumptions (A)
+
+| RAID-ID | Assumption | Confidence | Impact if Wrong | Feature |
+|---------|-----------|-----------|----------------|---------|
+| A-001 | Datalastic API trial key available for development and testing | High | Development blocked — switch to VesselFinder trial | F90.1, F90.2 |
+| A-002 | Target customers operate Microsoft 365 (Teams, Outlook, SharePoint) | High (95%+ UK mid-market) | Reduce Microsoft integration priority, focus on standalone dashboard | F90.5 |
+| A-003 | AIS vessel position data is sufficient for importer decision-making (vs container-level GPS) | High | Container-level tracking requires carrier API partnerships — significantly more complex | F90.2 |
+| A-004 | 5-minute polling interval is adequate for operational decisions | High | Increase polling frequency (higher API cost) or add webhook support | F90.1 |
+| A-005 | 12 containers is representative demo scale; production will handle 50–500 | Medium | Performance testing needed for larger fleets. Pagination for PDF reports | F90.4, F90.7 |
+| A-006 | Epic 44 (WWG Design System) will deliver DS-ONT tokens before F90.3 App Skeleton components | Medium | Use PFC default tokens. Apply WWG brand tokens as override when available | F90.3 |
+| A-007 | UK BTOM pre-notification API (IPAFFS) is accessible for integration | Medium | Manual compliance status entry as fallback. Gov.uk API documentation review needed | F90.4 |
+| A-008 | PDF generation can use client-side HTML-to-PDF (jsPDF/html2canvas) for 12-container scale | High | Server-side Puppeteer/Playwright if client-side insufficient for larger fleets | F90.7 |
+
+### 8.3 Issues (I)
+
+| RAID-ID | Issue | Status | Impact | Resolution | Feature |
+|---------|-------|--------|--------|-----------|---------|
+| I-001 | PROMOTION_PAT secrets not set on W4M-WWG triad repos | OPEN | Blocks dev→test→prod promotion pipeline | Manual admin action required to set PAT secrets | All |
+| I-002 | Epic 44 (#631) WWG Design System in P0 Backlog — not actively in progress | OPEN | F90.3 components will use PFC default tokens until DS-ONT re-extraction complete | Proceed with PFC defaults, apply brand override post-Epic 44 | F90.3 |
+| I-003 | S45.2.x — 4 LSC corridor files not yet merged into unified instance | DEFERRED | Dashboard must query 4 separate files instead of 1. Performance acceptable at current scale | Deferred pending EMC composition engine (F19.2) | F90.3 |
+| I-004 | No CLAUDE.md in pfi-w4m-wwg-dev repo | OPEN | Agent context incomplete for automated workflows | S40.28.2 (#976) — create CLAUDE.md | All |
+| I-005 | Reefer temperature data not available from AIS API — AIS provides vessel position only | KNOWN LIMITATION | Temperature monitoring in Phase 1 uses simulated/set-point data. Live temp requires carrier IoT API | Carrier API adapter skill (future) | F90.2, F90.7 |
+
+### 8.4 Dependencies (D)
+
+| RAID-ID | Dependency | Type | Dependent Feature | Providing Feature/Epic | Status |
+|---------|-----------|------|------------------|----------------------|--------|
+| D-001 | Epic 65 F65.4 — PFC Wrapper Components | Technical | F90.3 (App Skeleton LSC components) | Epic 65 (#1106) | 3/7 complete |
+| D-002 | Epic 77 — URG Skill Intake Path | Process | F90.1, F90.2 (skill registration) | Epic 77 (#1204) | In Progress |
+| D-003 | Epic 44 — WWG Design System tokens | Visual | F90.3 S90.3.10, F90.7 S90.7.8 (branding) | Epic 44 (#631) | P0 Backlog |
+| D-004 | Datalastic API trial key provisioning | External | F90.1, F90.2 (live data) | External vendor | Not started |
+| D-005 | Microsoft Graph API access (tenant) | External | F90.5 (Teams/Outlook/SharePoint) | Customer tenant admin | Not started |
+| D-006 | IPAFFS/Gov.uk API documentation review | External | F90.4 S90.4.6 (compliance overlay) | UK Government | Not started |
+| D-007 | PFI triad PAT secrets | Infrastructure | All (promotion pipeline) | Admin action | OPEN (I-001) |
+| D-008 | Power Automate licence (customer tenant) | External | F90.5 S90.5.4, F90.7 S90.7.7 (scheduled flows) | Customer M365 licence | Assumed available (E3/E5) |
+
+---
+
+## 9. RAID Summary Matrix
+
+```
+                HIGH Impact               LOW Impact
+              +-------------------------+-------------------------+
+ HIGH         |  R-003 Red Sea extends  |  R-006 BTOM changes     |
+ Likelihood   |  R-009 Competitor entry |  R-008 Geo normalise    |
+              |  R-010 E65 F65.4 delay  |                         |
+              +-------------------------+-------------------------+
+ LOW          |  R-001 API discontinue  |  R-007 PDF performance  |
+ Likelihood   |  R-004 Reefer data gap  |                         |
+              |  R-005 Teams tenant     |                         |
+              +-------------------------+-------------------------+
+
+ Critical Path Dependencies: D-001 (E65 wrappers) → D-003 (DS tokens) → D-002 (URG intake)
+ External Dependencies:      D-004 (Datalastic key) → D-005 (MS Graph) → D-006 (IPAFFS)
+ Blockers:                   I-001 (PAT secrets), I-004 (CLAUDE.md)
+```
+
+---
+
+*Plan generated from Dtree evaluation (decision-tree.js v1.0.0), Epic 45 deliverables, Epic 65 component framework, and PFC-PFI cascade architecture. RAID log aligned to RAID-ONT (GRC-Series). Requirements traced to VP-ONT ↔ RRR-ONT alignment convention (JP-VP-RRR-001).*

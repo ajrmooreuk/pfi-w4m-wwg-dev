@@ -296,12 +296,23 @@ Documents supporting registered skill families. These follow the PFC naming conv
 
 ---
 
+## W4M-WWG Instance Documents (PFI-scoped, created in W4M-WWG repo)
+
+| Current Filename | Type | Product | Epic/Feature | Status |
+|---|---|---|---|---|
+| `PFC-STRAT-BRIEF-W4M-WWG-Microsoft-VE-QVF-Strategy-v1.0.0.md` | BRIEF | STRAT | [Epic 90 (#39)](https://github.com/ajrmooreuk/pfi-w4m-wwg-dev/issues/39) | For Decision |
+| `PFC-ARCH-PLAN-W4M-WWG-LSC-Integration-Epic-Plan-v1.0.0.md` | PLAN | ARCH | [Epic 90 (#39)](https://github.com/ajrmooreuk/pfi-w4m-wwg-dev/issues/39) | For Decision |
+| `PFC-ARCH-BRIEF-API-Integration-Skill-Dtree-Review-v1.0.0.md` | BRIEF | ARCH | [F90.1 (#40)](https://github.com/ajrmooreuk/pfi-w4m-wwg-dev/issues/40), [F90.2 (#41)](https://github.com/ajrmooreuk/pfi-w4m-wwg-dev/issues/41) | Active |
+| `PFC-ARCH-NOTES-Sage-200-Self-Hosted-Integrations-v1.0.0.md` | NOTES | ARCH | [Epic 91 (#51)](https://github.com/ajrmooreuk/pfi-w4m-wwg-dev/issues/51) | For Decision |
+
+---
+
 ## Summary Statistics
 
 | Category | Count |
 |---|---|
-| **Total documents** | 97 |
-| **Compliant (new convention)** | 12 (created compliant) |
+| **Total documents** | 101 |
+| **Compliant (new convention)** | 16 (created compliant, incl. 4 W4M-WWG instance) |
 | **Renamed to convention (2026-03-07)** | 64 (batches B0–B6) |
 | **Ephemeral (no rename needed)** | 2 |
 | **Remaining legacy** | 1 (`BRIEFING-PFC-SlideDeck-Capability-Strategy-v1.0.0.md`) |
@@ -335,4 +346,4 @@ Documents supporting registered skill families. These follow the PFC naming conv
 
 *PFC-STRAT: Document Register — Strategy, Architecture & Governance*
 *This register is the source of truth for all PBS/STRATEGY/ documents.*
-*Updated: 2026-03-07 — All legacy docs renamed to PFC convention (64 files, batches B0–B6). Cross-refs fixed in 23 files. Trace log: `PFC-PBS-TRACE-Document-Rename-Log-v1.0.0.json`*
+*Updated: 2026-03-27 — Added W4M-WWG instance documents section (4 docs). Epic 91 ARCH Note added. All legacy docs renamed to PFC convention (64 files, batches B0–B6). Cross-refs fixed in 23 files. Trace log: `PFC-PBS-TRACE-Document-Rename-Log-v1.0.0.json`*

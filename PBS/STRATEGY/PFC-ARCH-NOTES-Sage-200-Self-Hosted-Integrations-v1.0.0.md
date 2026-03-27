@@ -6,8 +6,8 @@
 > **Status:** For Decision
 > **Date:** 2026-03-27
 > **PFI Instance:** W4M-WWG (World Wide Gourmet)
-> **Epic Ref:** Epic 91 (W4M-WWG) — AI & LSC-SOP-OFM AI Augmented Solution with Sage 200 & MS365 Integration
-> **Cross-ref:** PFC-STRAT-BRIEF-W4M-WWG-Microsoft-VE-QVF-Strategy-v1.0.0.md, PFC-ARCH-PLAN-W4M-WWG-LSC-Integration-Epic-Plan-v1.0.0.md, F90.11 (#50)
+> **Epic Ref:** [Epic 91 (#51)](https://github.com/ajrmooreuk/pfi-w4m-wwg-dev/issues/51) — AI & LSC-SOP-OFM AI Augmented Solution with Sage 200 & MS365 Integration
+> **Cross-ref:** [PFC-STRAT-BRIEF-W4M-WWG-Microsoft-VE-QVF-Strategy-v1.0.0.md](https://github.com/ajrmooreuk/pfi-w4m-wwg-dev/blob/main/PBS/STRATEGY/PFC-STRAT-BRIEF-W4M-WWG-Microsoft-VE-QVF-Strategy-v1.0.0.md), [PFC-ARCH-PLAN-W4M-WWG-LSC-Integration-Epic-Plan-v1.0.0.md](https://github.com/ajrmooreuk/pfi-w4m-wwg-dev/blob/main/PBS/STRATEGY/PFC-ARCH-PLAN-W4M-WWG-LSC-Integration-Epic-Plan-v1.0.0.md), [F90.11 (#50)](https://github.com/ajrmooreuk/pfi-w4m-wwg-dev/issues/50)
 > **Cascade Target:** PFI-W4M-WWG → `PBS/STRATEGY/`
 
 ---

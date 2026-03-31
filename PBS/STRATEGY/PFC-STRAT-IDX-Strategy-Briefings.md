@@ -304,6 +304,7 @@ Documents supporting registered skill families. These follow the PFC naming conv
 | `PFC-ARCH-PLAN-W4M-WWG-LSC-Integration-Epic-Plan-v1.0.0.md` | PLAN | ARCH | [Epic 90 (#39)](https://github.com/ajrmooreuk/pfi-w4m-wwg-dev/issues/39) | For Decision |
 | `PFC-ARCH-BRIEF-API-Integration-Skill-Dtree-Review-v1.0.0.md` | BRIEF | ARCH | [F90.1 (#40)](https://github.com/ajrmooreuk/pfi-w4m-wwg-dev/issues/40), [F90.2 (#41)](https://github.com/ajrmooreuk/pfi-w4m-wwg-dev/issues/41) | Active |
 | `PFC-ARCH-NOTES-Sage-200-Self-Hosted-Integrations-v1.0.0.md` | NOTES | ARCH | [Epic 91 (#51)](https://github.com/ajrmooreuk/pfi-w4m-wwg-dev/issues/51) | For Decision |
+| `PFC-ARCH-NOTES-WWG-Database-MVP-Deployment-v1.0.0.md` | NOTES | ARCH | [Epic 90 (#39)](https://github.com/ajrmooreuk/pfi-w4m-wwg-dev/issues/39) | Active |
 
 ---
 
@@ -311,8 +312,8 @@ Documents supporting registered skill families. These follow the PFC naming conv
 
 | Category | Count |
 |---|---|
-| **Total documents** | 101 |
-| **Compliant (new convention)** | 16 (created compliant, incl. 4 W4M-WWG instance) |
+| **Total documents** | 102 |
+| **Compliant (new convention)** | 17 (created compliant, incl. 5 W4M-WWG instance) |
 | **Renamed to convention (2026-03-07)** | 64 (batches B0–B6) |
 | **Ephemeral (no rename needed)** | 2 |
 | **Remaining legacy** | 1 (`BRIEFING-PFC-SlideDeck-Capability-Strategy-v1.0.0.md`) |

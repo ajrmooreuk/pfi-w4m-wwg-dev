@@ -1,0 +1,1740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MeatTrackAI — Fleet Intelligence | 3-Month AU→UK Tracker [DB]</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+:root {
+  --teal:#0A7A8A; --teal-d:#065F6B; --teal-l:#E0F7FA; --teal-b:rgba(10,122,138,0.18);
+  --amber:#B45309; --amber-l:#FEF3C7; --amber-b:rgba(180,83,9,0.2);
+  --red:#C0392B;   --red-l:#FEE2E2;   --red-b:rgba(192,57,43,0.2);
+  --green:#16A34A; --green-l:#DCFCE7; --green-b:rgba(22,163,74,0.2);
+  --purple:#7C3AED;--purple-l:#EDE9FE;--purple-b:rgba(124,58,237,0.2);
+  --navy:#0F2744;  --slate:#334155;   --muted:#64748B; --faint:#94A3B8;
+  --bg:#F8FAFC; --bg2:#FFFFFF; --bg3:#F1F5F9; --bg4:#E8EEF5;
+  --border:#CBD5E1; --border-l:#E2E8F0;
+  --text:#1E293B; --text2:#475569; --text3:#64748B;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.05);
+  --shadow-md:0 4px 8px rgba(0,0,0,.08),0 2px 4px rgba(0,0,0,.05);
+  --mono:'IBM Plex Mono',monospace; --sans:'DM Sans',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden}
+
+/* ── HEADER ── */
+header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;height:58px;
+  border-bottom:2px solid var(--border);
+  background:var(--bg2);box-shadow:var(--shadow);
+  position:sticky;top:0;z-index:500;
+}
+.logo-block{display:flex;align-items:center;gap:12px}
+.hex{width:32px;height:32px;background:var(--teal);clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%)}
+.logo-name{font-family:var(--mono);font-size:16px;font-weight:700;color:var(--teal)}
+.logo-sub{font-size:10px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin-top:1px}
+.header-right{display:flex;align-items:center;gap:14px}
+.status-pill{
+  display:flex;align-items:center;gap:6px;
+  padding:5px 12px;border-radius:20px;
+  background:var(--green-l);border:1px solid var(--green-b);
+  font-size:11px;color:var(--green);letter-spacing:.07em;text-transform:uppercase;font-weight:600;
+}
+.pulse-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pd 2s infinite}
+@keyframes pd{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.5)}}
+.date-display{font-family:var(--mono);font-size:12px;color:var(--text2);font-weight:600}
+
+/* ── APP LAYOUT ── */
+.app{display:grid;grid-template-columns:300px 1fr;height:calc(100vh - 58px);overflow:hidden}
+.sidebar{border-right:1px solid var(--border);overflow-y:auto;background:var(--bg2)}
+.main-content{display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
+
+/* ── SCROLLBARS ── */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg3)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--teal)}
+
+/* ── SIDEBAR SECTIONS ── */
+.sb-section{padding:14px 16px;border-bottom:1px solid var(--border-l)}
+.sb-title{
+  font-size:10px;text-transform:uppercase;letter-spacing:.14em;
+  color:var(--teal);font-weight:700;margin-bottom:10px;font-family:var(--mono);
+}
+
+/* Playback */
+.playback{display:flex;flex-direction:column;gap:8px}
+.pb-info{display:flex;justify-content:space-between;align-items:center}
+.pb-date{font-family:var(--mono);font-size:16px;font-weight:700;color:var(--navy)}
+.pb-day{font-size:11px;color:var(--text3)}
+.pb-controls{display:flex;gap:5px}
+.pb-btn{
+  background:var(--bg3);border:1px solid var(--border);color:var(--text2);
+  width:30px;height:30px;border-radius:6px;cursor:pointer;font-size:13px;
+  display:flex;align-items:center;justify-content:center;transition:all .15s;
+}
+.pb-btn:hover,.pb-btn.active{background:var(--teal-l);border-color:var(--teal);color:var(--teal)}
+.pb-slider{
+  width:100%;height:4px;-webkit-appearance:none;appearance:none;
+  background:linear-gradient(90deg,var(--teal) var(--val,0%),var(--border) var(--val,0%));
+  border-radius:2px;cursor:pointer;outline:none;
+}
+.pb-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;width:14px;height:14px;
+  border-radius:50%;background:var(--teal);cursor:pointer;
+  box-shadow:0 0 0 3px var(--teal-l);
+}
+.pb-speed{display:flex;gap:4px;align-items:center}
+.spd-btn{
+  background:var(--bg3);border:1px solid var(--border);color:var(--text3);
+  padding:3px 8px;border-radius:4px;cursor:pointer;font-size:10px;
+  font-family:var(--mono);transition:all .12s;font-weight:600;
+}
+.spd-btn.active{background:var(--teal);border-color:var(--teal-d);color:#fff}
+
+/* Fleet stats */
+.fleet-stats{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.fs-card{
+  background:var(--bg3);border-radius:6px;padding:10px 12px;
+  border:1px solid var(--border-l);border-top:3px solid;
+}
+.fs-card.teal{border-top-color:var(--teal)}
+.fs-card.amber{border-top-color:var(--amber)}
+.fs-card.red{border-top-color:var(--red)}
+.fs-card.green{border-top-color:var(--green)}
+.fs-val{font-size:24px;font-weight:700;font-family:var(--mono);line-height:1}
+.fs-val.teal{color:var(--teal)}.fs-val.amber{color:var(--amber)}
+.fs-val.red{color:var(--red)}.fs-val.green{color:var(--green)}
+.fs-lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-top:3px;font-weight:600}
+
+/* Container list */
+.c-item{
+  padding:10px 16px;border-bottom:1px solid var(--border-l);
+  cursor:pointer;transition:background .1s;
+}
+.c-item:hover{background:var(--teal-l)}
+.c-item.selected{background:var(--teal-l);border-left:3px solid var(--teal)}
+.c-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px}
+.c-id{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--teal)}
+.c-status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.c-middle{display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-bottom:4px}
+.c-bottom{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+.c-tag{
+  font-size:10px;padding:1px 6px;border-radius:3px;
+  text-transform:uppercase;letter-spacing:.05em;border:1px solid;font-weight:600;
+}
+.c-tag.frozen{background:var(--teal-l);border-color:var(--teal-b);color:var(--teal-d)}
+.c-tag.chilled{background:#E0F2FE;border-color:rgba(2,132,199,.2);color:#0369A1}
+.c-tag.fresh{background:var(--green-l);border-color:var(--green-b);color:var(--green)}
+.c-delay{font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;border:1px solid}
+.c-delay.pos{background:var(--amber-l);color:var(--amber);border-color:var(--amber-b)}
+.c-delay.crit{background:var(--red-l);color:var(--red);border-color:var(--red-b)}
+.c-delay.ok{background:var(--green-l);color:var(--green);border-color:var(--green-b)}
+
+/* Alert items */
+.alert-item{padding:8px 10px;border-radius:6px;margin-bottom:6px;border-left:3px solid}
+.alert-item.CRITICAL{background:var(--red-l);border-color:var(--red)}
+.alert-item.HIGH{background:var(--amber-l);border-color:var(--amber)}
+.alert-item.MEDIUM{background:#FFFBEB;border-color:#D97706}
+.alert-item.LOW{background:var(--green-l);border-color:var(--green)}
+.alert-title{font-size:11px;font-weight:700;color:var(--text);line-height:1.3}
+.alert-date{font-size:10px;color:var(--text3);margin-top:2px;font-family:var(--mono)}
+.alert-detail{font-size:10px;color:var(--text2);margin-top:3px;line-height:1.4}
+
+/* ── MAIN PANELS ── */
+.top-row{
+  display:grid;grid-template-columns:1fr 340px;
+  border-bottom:1px solid var(--border);
+  height:370px;min-height:370px;flex-shrink:0;
+}
+.bottom-row{
+  flex:1;display:grid;grid-template-columns:1fr 1fr;overflow:hidden;
+}
+
+/* Map panel */
+.map-panel{position:relative;overflow:hidden;background:var(--bg3);border-right:1px solid var(--border-l)}
+#world-map{width:100%;height:100%}
+.map-overlay{
+  position:absolute;top:12px;left:12px;
+  background:rgba(255,255,255,.92);backdrop-filter:blur(8px);
+  border:1px solid var(--border);border-radius:6px;padding:8px 12px;
+  box-shadow:var(--shadow);
+}
+.map-title{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--teal);font-weight:700;font-family:var(--mono)}
+.map-sub{font-size:10px;color:var(--text3);margin-top:2px}
+
+/* Timeline panel */
+.timeline-panel{
+  border-left:1px solid var(--border);overflow-y:auto;padding:14px;
+  background:var(--bg2);
+}
+.tp-title{
+  font-size:10px;text-transform:uppercase;letter-spacing:.12em;
+  color:var(--teal);font-weight:700;margin-bottom:14px;font-family:var(--mono);
+}
+.tl-event{display:flex;gap:10px;margin-bottom:12px;position:relative}
+.tl-event::before{content:'';position:absolute;left:11px;top:24px;bottom:-12px;width:1px;background:var(--border-l)}
+.tl-event:last-child::before{display:none}
+.tl-dot{
+  width:22px;height:22px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:700;z-index:1;
+}
+.tl-dot.done{background:var(--green-l);border:2px solid var(--green);color:var(--green)}
+.tl-dot.active{background:var(--teal-l);border:2px solid var(--teal);color:var(--teal);animation:tl-glow 2s infinite}
+.tl-dot.pending{background:var(--bg3);border:2px solid var(--border);color:var(--faint)}
+.tl-dot.alert{background:var(--red-l);border:2px solid var(--red);color:var(--red)}
+@keyframes tl-glow{0%,100%{box-shadow:0 0 0 0 rgba(10,122,138,.3)}50%{box-shadow:0 0 0 5px rgba(10,122,138,0)}}
+.tl-body{flex:1;padding-top:1px}
+.tl-evt-title{font-size:12px;font-weight:600;color:var(--text)}
+.tl-evt-meta{font-family:var(--mono);font-size:10px;color:var(--text3);margin-top:1px}
+.tl-evt-note{font-size:10px;color:var(--text2);margin-top:3px;font-style:italic;line-height:1.4}
+
+/* Detail panel */
+.detail-panel{overflow-y:auto;padding:14px;border-right:1px solid var(--border);background:var(--bg2)}
+.dp-title{
+  font-size:10px;text-transform:uppercase;letter-spacing:.12em;
+  color:var(--teal);font-weight:700;margin-bottom:12px;font-family:var(--mono);
+}
+.dp-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+.dp-stat{
+  background:var(--bg3);border-radius:6px;padding:9px 11px;
+  border:1px solid var(--border-l);
+}
+.dp-val{font-size:15px;font-weight:700;color:var(--text);font-family:var(--mono)}
+.dp-lbl{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.09em;margin-top:2px;font-weight:600}
+
+/* Chart panel */
+.temp-chart-panel{overflow-y:auto;padding:14px;background:var(--bg2)}
+.tc-title{
+  font-size:10px;text-transform:uppercase;letter-spacing:.12em;
+  color:var(--teal);font-weight:700;margin-bottom:10px;font-family:var(--mono);
+}
+
+/* Status bar */
+.status-bar{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(10px,1fr));gap:2px;
+  padding:8px 14px;border-top:1px solid var(--border);background:var(--bg2);
+  min-height:38px;align-items:center;
+}
+.day-block{height:20px;border-radius:3px;cursor:pointer;transition:transform .1s;position:relative}
+.day-block:hover{transform:scaleY(1.2);z-index:1}
+
+/* ── FULLSCREEN PANEL ── */
+.panel-header{display:flex;justify-content:space-between;align-items:center}
+.fs-btn{
+  background:var(--bg3);border:1px solid var(--border);color:var(--text3);
+  width:24px;height:24px;border-radius:4px;cursor:pointer;font-size:12px;
+  display:flex;align-items:center;justify-content:center;transition:all .15s;
+  flex-shrink:0;line-height:1;
+}
+.fs-btn:hover{background:var(--teal-l);border-color:var(--teal);color:var(--teal)}
+.panel-fullscreen{
+  position:fixed!important;top:0!important;left:0!important;
+  width:100vw!important;height:100vh!important;
+  z-index:9999!important;border:none!important;border-radius:0!important;
+  overflow-y:auto!important;padding:20px!important;
+  box-shadow:none!important;
+  grid-column:1/-1!important;grid-row:1/-1!important;
+}
+.panel-fullscreen .fs-btn{
+  position:sticky;top:0;right:0;z-index:10000;
+  width:32px;height:32px;font-size:16px;
+  background:var(--bg2);box-shadow:var(--shadow-md);
+}
+.panel-fullscreen .dp-grid{grid-template-columns:1fr 1fr 1fr 1fr}
+.panel-fullscreen .dp-val{font-size:22px}
+.panel-fullscreen .tl-evt-title{font-size:15px}
+.panel-fullscreen .tl-evt-meta{font-size:12px}
+.panel-fullscreen .tl-evt-note{font-size:12px}
+.panel-fullscreen canvas{max-height:300px}
+
+/* ── LEGEND FILTER ── */
+.legend-bar{
+  display:flex;gap:12px;align-items:center;flex-wrap:wrap;
+  padding:6px 14px;border-top:1px solid var(--border);background:var(--bg2);
+  min-height:34px;
+}
+.legend-item{
+  display:flex;align-items:center;gap:5px;cursor:pointer;
+  padding:3px 10px;border-radius:12px;border:1.5px solid transparent;
+  font-size:11px;font-weight:600;color:var(--text2);transition:all .15s;
+  user-select:none;
+}
+.legend-item:hover{background:var(--bg3)}
+.legend-item.active{border-color:currentColor;background:var(--bg3)}
+.legend-item.dimmed{opacity:.35}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.legend-count{font-family:var(--mono);font-size:10px;color:var(--text3);margin-left:2px}
+.filter-label{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);font-weight:700;font-family:var(--mono)}
+.filter-clear{
+  font-size:9px;color:var(--teal);cursor:pointer;text-decoration:underline;
+  margin-left:auto;font-weight:600;
+}
+.filter-clear:hover{color:var(--teal-d)}
+
+/* ── RISK ASSESSMENT PANEL ── */
+.risk-band{
+  padding:10px 12px;border-radius:6px;margin-bottom:6px;
+  border-left:4px solid;cursor:pointer;transition:all .15s;
+}
+.risk-band:hover{box-shadow:var(--shadow-md);transform:translateX(2px)}
+.risk-band.CRITICAL{background:var(--red-l);border-color:var(--red)}
+.risk-band.HIGH{background:var(--amber-l);border-color:var(--amber)}
+.risk-band.MEDIUM{background:#FFFBEB;border-color:#D97706}
+.risk-band.LOW{background:var(--green-l);border-color:var(--green)}
+.risk-band-header{display:flex;justify-content:space-between;align-items:center}
+.risk-band-severity{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+.risk-band-score{font-family:var(--mono);font-size:13px;font-weight:700}
+.risk-band-title{font-size:11px;font-weight:600;color:var(--text);margin-top:4px}
+.risk-band-detail{font-size:10px;color:var(--text2);margin-top:4px;line-height:1.5;display:none}
+.risk-band.expanded .risk-band-detail{display:block}
+.risk-band-reasoning{font-size:9px;color:var(--text3);margin-top:4px;padding-top:4px;border-top:1px solid var(--border-l);display:none}
+.risk-band.expanded .risk-band-reasoning{display:block}
+.risk-band-containers{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px}
+.risk-container-chip{
+  font-family:var(--mono);font-size:9px;padding:2px 6px;border-radius:3px;
+  background:rgba(0,0,0,.06);color:var(--text2);cursor:pointer;
+}
+.risk-container-chip:hover{background:var(--teal-l);color:var(--teal)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-block">
+    <div class="hex"></div>
+    <div>
+      <div class="logo-name">MeatTrackAI</div>
+      <div class="logo-sub">Fleet Intelligence · 3-Month AU→UK Tracker</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="status-pill"><div class="pulse-dot"></div>12 Voyages · Jan–Mar 2026</div>
+    <button onclick="generatePdfReport()" style="
+      padding:5px 12px;border-radius:20px;border:1px solid var(--border);
+      background:var(--bg3);color:var(--text2);font-size:11px;font-weight:600;
+      cursor:pointer;font-family:var(--mono);letter-spacing:.05em;transition:all .15s;
+    " title="Generate PDF Report">PDF REPORT</button>
+    <button id="mode-toggle" onclick="toggleLiveMode()" style="
+      padding:5px 12px;border-radius:20px;border:1px solid var(--border);
+      background:var(--bg3);color:var(--text2);font-size:11px;font-weight:600;
+      cursor:pointer;font-family:var(--mono);letter-spacing:.05em;transition:all .15s;
+    ">SIM MODE</button>
+    <span id="db-badge" style="
+      padding:3px 10px;border-radius:12px;font-size:10px;font-weight:700;
+      font-family:var(--mono);letter-spacing:.1em;
+      background:var(--green);color:#fff;display:none;
+    ">DB</span>
+    <div class="date-display" id="sim-date-header">—</div>
+  </div>
+</header>
+
+<div class="app">
+
+<!-- ── SIDEBAR ── -->
+<aside class="sidebar">
+
+  <div class="sb-section">
+    <div class="sb-title">Simulation Playback</div>
+    <div class="playback">
+      <div class="pb-info">
+        <div>
+          <div class="pb-date" id="pb-date-display">2026-01-14</div>
+          <div class="pb-day" id="pb-day-label">Day 0 of simulation</div>
+        </div>
+        <div class="pb-controls">
+          <button class="pb-btn" onclick="stepDate(-7)" title="−7 days">«</button>
+          <button class="pb-btn" onclick="stepDate(-1)" title="−1 day">‹</button>
+          <button class="pb-btn" id="play-btn" onclick="togglePlay()">▶</button>
+          <button class="pb-btn" onclick="stepDate(1)" title="+1 day">›</button>
+          <button class="pb-btn" onclick="stepDate(7)" title="+7 days">»</button>
+        </div>
+      </div>
+      <input type="range" class="pb-slider" id="date-slider" min="0" max="100" value="0" oninput="onSlider(this.value)">
+      <div class="pb-speed">
+        <span style="font-size:10px;color:var(--text3);font-weight:600">Speed:</span>
+        <button class="spd-btn active" onclick="setSpeed(1,this)">1×</button>
+        <button class="spd-btn" onclick="setSpeed(3,this)">3×</button>
+        <button class="spd-btn" onclick="setSpeed(7,this)">7×</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sb-section">
+    <div class="sb-title">Fleet Snapshot</div>
+    <div class="fleet-stats">
+      <div class="fs-card teal"><div class="fs-val teal" id="stat-active">—</div><div class="fs-lbl">Active</div></div>
+      <div class="fs-card amber"><div class="fs-val amber" id="stat-delayed">—</div><div class="fs-lbl">Delayed</div></div>
+      <div class="fs-card red"><div class="fs-val red" id="stat-alerts">—</div><div class="fs-lbl">Alerts</div></div>
+      <div class="fs-card green"><div class="fs-val green" id="stat-arrived">—</div><div class="fs-lbl">Arrived</div></div>
+    </div>
+  </div>
+
+  <div class="sb-section">
+    <div class="sb-title">Active Risk Events</div>
+    <div id="active-alerts"><div style="font-size:11px;color:var(--text3)">No active alerts</div></div>
+  </div>
+
+  <div class="sb-section" style="padding-bottom:0;border-bottom:none">
+    <div class="sb-title">Containers</div>
+  </div>
+  <div id="container-list"></div>
+
+</aside>
+
+<!-- ── MAIN ── -->
+<div class="main-content">
+
+  <div class="top-row">
+    <div class="map-panel" id="panel-map">
+      <div class="map-overlay" style="display:flex;align-items:flex-start;gap:8px">
+        <div><div class="map-title">AU → UK Route Map</div>
+        <div class="map-sub" id="map-subtitle">All vessels · current positions</div></div>
+        <button class="fs-btn" onclick="toggleFullscreen('panel-map')" title="Toggle fullscreen">⛶</button>
+      </div>
+      <svg id="world-map" viewBox="0 0 900 450" xmlns="http://www.w3.org/2000/svg">
+        <!-- Ocean -->
+        <rect width="900" height="450" fill="#EFF6FF"/>
+        <!-- Land masses -->
+        <path d="M380,60 L430,55 L445,70 L440,85 L420,90 L415,105 L400,110 L385,95 L375,80 Z" fill="#D1FAE5" stroke="#A7F3D0" stroke-width="0.8"/>
+        <path d="M375,55 L380,50 L392,52 L394,65 L385,68 L375,62 Z" fill="#D1FAE5" stroke="#A7F3D0" stroke-width="0.8"/>
+        <path d="M390,120 L420,115 L440,135 L445,180 L430,220 L415,240 L405,235 L395,210 L385,180 L380,150 L385,130 Z" fill="#D1FAE5" stroke="#A7F3D0" stroke-width="0.8"/>
+        <path d="M450,95 L480,90 L495,105 L490,120 L470,125 L455,115 Z" fill="#D1FAE5" stroke="#A7F3D0" stroke-width="0.8"/>
+        <path d="M530,105 L555,100 L565,125 L555,150 L540,155 L530,140 L525,120 Z" fill="#D1FAE5" stroke="#A7F3D0" stroke-width="0.8"/>
+        <path d="M620,100 L650,95 L660,110 L645,120 L625,118 Z" fill="#D1FAE5" stroke="#A7F3D0" stroke-width="0.8"/>
+        <path d="M680,240 L740,230 L770,245 L775,275 L755,300 L720,305 L695,290 L675,265 Z" fill="#D1FAE5" stroke="#A7F3D0" stroke-width="0.8"/>
+        <path d="M240,150 L270,140 L280,165 L275,220 L260,250 L245,240 L235,210 L230,180 Z" fill="#D1FAE5" stroke="#A7F3D0" stroke-width="0.8"/>
+        <path d="M150,50 L220,45 L235,70 L220,95 L185,100 L155,80 Z" fill="#D1FAE5" stroke="#A7F3D0" stroke-width="0.8"/>
+        <!-- Risk zones -->
+        <ellipse cx="450" cy="130" rx="25" ry="40" fill="rgba(220,38,38,0.07)" stroke="rgba(220,38,38,0.35)" stroke-width="1.2" stroke-dasharray="4,2"/>
+        <text x="480" y="128" font-size="8" fill="rgba(185,28,28,.8)" font-family="sans-serif" font-weight="600">Red Sea</text>
+        <ellipse cx="493" cy="108" rx="12" ry="10" fill="rgba(124,58,237,0.08)" stroke="rgba(124,58,237,0.35)" stroke-width="1" stroke-dasharray="3,2"/>
+        <text x="507" y="106" font-size="7" fill="rgba(109,40,217,.8)" font-family="sans-serif" font-weight="600">Hormuz</text>
+        <ellipse cx="628" cy="112" rx="14" ry="8" fill="rgba(10,122,138,0.06)" stroke="rgba(10,122,138,0.3)" stroke-width="0.8" stroke-dasharray="3,2"/>
+        <text x="612" y="127" font-size="7" fill="rgba(7,89,133,.7)" font-family="sans-serif">Malacca</text>
+        <ellipse cx="398" cy="235" rx="15" ry="12" fill="rgba(22,163,74,0.06)" stroke="rgba(22,163,74,0.3)" stroke-width="0.8" stroke-dasharray="3,2"/>
+        <text x="415" y="240" font-size="7" fill="rgba(21,128,61,.7)" font-family="sans-serif">Cape</text>
+        <ellipse cx="449" cy="100" rx="10" ry="18" fill="rgba(10,122,138,0.05)" stroke="rgba(10,122,138,0.2)" stroke-width="0.6" stroke-dasharray="3,2"/>
+        <text x="461" y="98" font-size="7" fill="rgba(7,89,133,.6)" font-family="sans-serif">Suez</text>
+        <!-- Reference routes -->
+        <path d="M720,262 Q650,310 420,240 Q360,220 340,190 Q310,160 385,135 L385,108" fill="none" stroke="rgba(10,122,138,0.15)" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <path d="M648,108 Q590,100 530,120 Q490,130 450,115 Q448,100 448,85 Q440,70 383,62" fill="none" stroke="rgba(10,122,138,0.12)" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <!-- Port markers -->
+        <circle cx="720" cy="262" r="5" fill="#0A7A8A" opacity=".8"/>
+        <text x="728" y="260" font-size="8" fill="#0A7A8A" font-family="sans-serif" font-weight="600">MEL/SYD</text>
+        <circle cx="700" cy="248" r="4" fill="#0A7A8A" opacity=".6"/>
+        <text x="707" y="246" font-size="8" fill="#0A7A8A" font-family="sans-serif">FRE</text>
+        <circle cx="383" cy="62" r="5" fill="#B45309" opacity=".8"/>
+        <text x="365" y="57" font-size="8" fill="#B45309" font-family="sans-serif" font-weight="600">TIL/SOT</text>
+        <!-- Dynamic layers -->
+        <g id="vessel-trails"></g>
+        <g id="vessel-dots"></g>
+        <!-- Legend moved to interactive HTML bar below map -->
+      </svg>
+    </div>
+    <div class="timeline-panel" id="panel-timeline">
+      <div class="panel-header"><div class="tp-title" id="timeline-header" style="margin-bottom:0">Select container for voyage timeline</div><button class="fs-btn" onclick="toggleFullscreen('panel-timeline')" title="Toggle fullscreen">⛶</button></div>
+      <div id="timeline-content"><div style="color:var(--text3);font-size:12px;padding:16px 0;line-height:1.6">Click any container in the sidebar to view its full voyage timeline, milestone events, and delay history.</div></div>
+    </div>
+  </div>
+
+  <div class="bottom-row">
+    <div class="detail-panel" id="panel-detail">
+      <div class="panel-header"><div class="dp-title" id="detail-header" style="margin-bottom:0">Fleet Position Overview</div><button class="fs-btn" onclick="toggleFullscreen('panel-detail')" title="Toggle fullscreen">⛶</button></div>
+      <div id="detail-content"></div>
+    </div>
+    <div class="temp-chart-panel" id="panel-charts">
+      <div class="panel-header"><div class="tc-title" style="margin-bottom:0">Temperature &amp; ETA Tracking</div><button class="fs-btn" onclick="toggleFullscreen('panel-charts')" title="Toggle fullscreen">⛶</button></div>
+      <div id="chart-container">
+        <div style="color:var(--text3);font-size:12px;padding:16px 0;line-height:1.6">Select a container to view temperature vs set point and ETA revision charts.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="legend-bar" id="legend-bar">
+    <span class="filter-label">Filter:</span>
+    <div class="legend-item" data-filter="at-sea" onclick="toggleFilter('at-sea')"><div class="legend-dot" style="background:#0A7A8A"></div>At Sea<span class="legend-count" id="lc-at-sea">0</span></div>
+    <div class="legend-item" data-filter="delayed" onclick="toggleFilter('delayed')"><div class="legend-dot" style="background:#B45309"></div>Delayed<span class="legend-count" id="lc-delayed">0</span></div>
+    <div class="legend-item" data-filter="alert" onclick="toggleFilter('alert')"><div class="legend-dot" style="background:#C0392B"></div>Alert<span class="legend-count" id="lc-alert">0</span></div>
+    <div class="legend-item" data-filter="arrived" onclick="toggleFilter('arrived')"><div class="legend-dot" style="background:#16A34A"></div>Arrived<span class="legend-count" id="lc-arrived">0</span></div>
+    <div class="legend-item" data-filter="booked" onclick="toggleFilter('booked')"><div class="legend-dot" style="background:#94A3B8"></div>Booked<span class="legend-count" id="lc-booked">0</span></div>
+    <span class="filter-clear" id="filter-clear" onclick="clearFilter()" style="display:none">Clear filter</span>
+  </div>
+
+  <div id="risk-assessment-panel" style="display:none;padding:10px 14px;border-top:1px solid var(--border);background:var(--bg2);max-height:200px;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div class="dp-title" style="margin-bottom:0">Risk Assessment — Filtered Containers</div>
+      <button class="fs-btn" onclick="toggleFullscreen('risk-assessment-panel')" title="Toggle fullscreen">⛶</button>
+    </div>
+    <div id="risk-assessment-content"></div>
+  </div>
+
+  <div class="status-bar" id="status-bar"></div>
+
+</div>
+</div>
+
+<script type="module">
+
+// ── SUPABASE DATA LAYER ──────────────────────────────────────────────────────
+// DB version: loads data from wwg_lsc_instances / wwg_ofm_instances
+// Falls back to embedded simulation data if Supabase unavailable
+
+const SUPABASE_URL = 'https://jhlugiprdwgzshxctbdj.supabase.co';
+const SUPABASE_ANON_KEY = ''; // Set before demo — Supabase anon key
+
+let supabase = null;
+let dataSource = 'SIM';
+
+async function initSupabase() {
+  if (!SUPABASE_ANON_KEY) return false;
+  try {
+    const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
+    supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    return true;
+  } catch (e) {
+    console.warn('[DB] Supabase client init failed:', e);
+    return false;
+  }
+}
+
+async function loadFromDB() {
+  // Fetch shipments (lsc:Shipment instances)
+  const { data: shipments, error: sErr } = await supabase
+    .from('wwg_lsc_instances')
+    .select('instance_data')
+    .eq('entity_type', 'lsc:Shipment');
+  if (sErr) throw sErr;
+
+  CONTAINER_DEFS = shipments.map(s => {
+    const d = s.instance_data;
+    return {
+      id: d.shipmentId,
+      carrier: (d.carrier && d.carrier['@id']) ? d.carrier['@id'].replace('lsc:party-','') : '',
+      vessel: d.vessel || '',
+      voyage: d.voyage || '',
+      origin: (d.origin && d.origin['@id']) ? d.origin['@id'].replace('lsc:node-','') : '',
+      dest: (d.destination && d.destination['@id']) ? d.destination['@id'].replace('lsc:node-','') : '',
+      dep: d.departureDate,
+      product: (d.commodity && d.commodity.product) ? d.commodity.product : '',
+      type: (d.coldChain && d.coldChain.type) ? d.coldChain.type : 'frozen',
+      sp: (d.coldChain && d.coldChain.setPoint != null) ? d.coldChain.setPoint : -18,
+      route: (d.route && d.route.current) ? d.route.current : 'CAPE',
+      scenario: d.scenario || 'NORMAL',
+      baseTransit: d.baseTransitDays || 35
+    };
+  });
+
+  // Fetch risk events (lsc:Incident instances)
+  const { data: incidents, error: iErr } = await supabase
+    .from('wwg_lsc_instances')
+    .select('instance_data')
+    .eq('entity_type', 'lsc:Incident');
+  if (iErr) throw iErr;
+
+  RISK_EVENTS = incidents.map(i => {
+    const d = i.instance_data;
+    return {
+      date: d.eventDate,
+      type: d.incidentType,
+      zone: d.zone,
+      severity: d.severity,
+      title: d.title,
+      detail: d.detail,
+      active_until: d.activeUntil || null
+    };
+  });
+
+  dataSource = 'DB';
+  console.log(`[DB] Loaded ${CONTAINER_DEFS.length} shipments, ${RISK_EVENTS.length} incidents from Supabase`);
+}
+
+// P2: API Integration — write live AIS positions back to DB
+async function writeLivePositionToDB(containerId, position) {
+  if (!supabase) return;
+  try {
+    await supabase.from('wwg_lsc_instances').upsert({
+      instance_id: 'lsc:live-' + containerId + '-' + position.date,
+      entity_type: 'lsc:ShipmentLeg',
+      pfi_instance: 'pfi-w4m-wwg',
+      instance_data: {
+        '@context': { lsc: 'https://oaa-ontology.org/v7/lsc/' },
+        '@id': 'lsc:live-' + containerId + '-' + position.date,
+        '@type': 'lsc:ShipmentLeg',
+        'oaa:schemaVersion': '7.0.0',
+        shipmentRef: { '@id': 'lsc:shipment-' + containerId },
+        eventDate: position.date,
+        position: { lat: position.lat, lon: position.lon },
+        sogKnots: position.sog,
+        status: position.status,
+        source: 'live-ais'
+      },
+      entity_status: position.status,
+      parent_ref: 'lsc:shipment-' + containerId,
+      ont_version: '1.2.0',
+      origin_db: 'wwg-live'
+    }, { onConflict: 'instance_id' });
+  } catch (e) {
+    console.warn('[DB] Live position write failed:', e);
+  }
+}
+
+// ── EMBED SIMULATION DATA (fallback) ─────────────────────────────────────────
+
+let RISK_EVENTS = [
+  {date:"2026-01-08",type:"GEOPOLITICAL",zone:"RED_SEA",severity:"HIGH",title:"Houthi Attack — MV Nordic Star",detail:"Ballistic missile strike. Maersk/MSC/CMA CGM suspend Red Sea transits. Cape of Good Hope reroute mandated.",active_until:"2026-03-31"},
+  {date:"2026-01-22",type:"GEOPOLITICAL",zone:"STRAIT_OF_HORMUZ",severity:"CRITICAL",title:"Iran Naval Exercise — Hormuz Closure",detail:"IRGC exercises 22-28 Jan. UK FCDO advises avoidance. Vessels held at Jebel Ali or diverted Muscat.",active_until:"2026-01-28"},
+  {date:"2026-02-14",type:"PORT_CONGESTION",zone:"MAURITIUS",severity:"MEDIUM",title:"Port Louis Terminal Strike",detail:"Stevedore strike — 3-5 day berth delays. Carriers rerouting direct to Cape where possible.",active_until:"2026-02-20"},
+  {date:"2026-02-28",type:"WEATHER",zone:"SOUTHERN_OCEAN",severity:"MEDIUM",title:"Storm System — Southern Indian Ocean",detail:"Deep low pressure (925 hPa). Vessels on Cape route diverted 200nm north. 2-3 day delay.",active_until:"2026-03-05"},
+  {date:"2026-03-10",type:"PORT_CONGESTION",zone:"TILBURY",severity:"LOW",title:"Tilbury BCP Inspection Backlog",detail:"BTOM documentary checks causing 24-36hr delays. Pre-notifications must be 72hrs before arrival.",active_until:"2026-03-25"},
+  {date:"2026-03-18",type:"GEOPOLITICAL",zone:"RED_SEA",severity:"MEDIUM",title:"Ceasefire — Red Sea Partial Reopening",detail:"Yemen ceasefire. US/UK naval corridor operations. CMA CGM/Evergreen resuming Suez transits.",active_until:null},
+];
+
+// Waypoints: [lat, lon, name] projected to SVG coords
+// SVG is 900x450, lon: -30 to 160 maps to x:0-900, lat: 60 to -60 maps to y:0-450
+function latLonToSVG(lat, lon) {
+  const x = (lon + 30) / 190 * 900;
+  const y = (60 - lat) / 120 * 450;
+  return [Math.round(x), Math.round(y)];
+}
+
+// Generate full voyage data inline
+let CONTAINER_DEFS = [
+  {id:"MRKU4821073",carrier:"Maersk",vessel:"MV Maersk Hobart",voyage:"426W",origin:"AUMEL",dest:"GBTIL",dep:"2026-01-14",product:"Frozen Beef BMB",type:"frozen",sp:-18,route:"CAPE",scenario:"CAPE_REROUTE",baseTransit:38},
+  {id:"MRKU7734901",carrier:"Maersk",vessel:"MV Sealand Michigan",voyage:"514E",origin:"AUBNE",dest:"GBSOU",dep:"2026-01-20",product:"Chilled Lamb",type:"chilled",sp:2,route:"CAPE",scenario:"NORMAL",baseTransit:36},
+  {id:"TCKU8820445",carrier:"CMA CGM",vessel:"MV CMA CGM Liberté",voyage:"103AU",origin:"AUADL",dest:"GBTIL",dep:"2026-01-28",product:"Frozen Lamb",type:"frozen",sp:-20,route:"SUEZ",scenario:"SUEZ_THEN_CAPE",baseTransit:33},
+  {id:"HLXU9901234",carrier:"Hapag-Lloyd",vessel:"MV Hapag San Francisco",voyage:"214WB",origin:"AUSYD",dest:"GBTIL",dep:"2026-02-05",product:"Chilled Beef Premium",type:"chilled",sp:1,route:"CAPE",scenario:"TEMP_BREACH",baseTransit:36},
+  {id:"MSCU5512087",carrier:"MSC",vessel:"MV MSC Beatrice",voyage:"716AU",origin:"AUFRE",dest:"GBSOU",dep:"2026-02-10",product:"Frozen Beef Whole Muscle",type:"frozen",sp:-18,route:"CAPE",scenario:"WEATHER_DELAY",baseTransit:34},
+  {id:"OOLU6634128",carrier:"OOCL",vessel:"MV OOCL London",voyage:"802EU",origin:"AUMEL",dest:"GBTIL",dep:"2026-02-15",product:"Fresh Lamb CA",type:"fresh",sp:0,route:"SUEZ",scenario:"HORMUZ_DIVERT",baseTransit:30},
+  {id:"MSDU3310092",carrier:"MSC",vessel:"MV MSC Aurora",voyage:"719AU",origin:"AUADL",dest:"GBSOU",dep:"2026-02-20",product:"Frozen Beef Chuck",type:"frozen",sp:-18,route:"CAPE",scenario:"NORMAL",baseTransit:35},
+  {id:"CMAU7712034",carrier:"CMA CGM",vessel:"MV CMA CGM Roussillon",voyage:"108AU",origin:"AUBNE",dest:"GBTIL",dep:"2026-02-25",product:"Frozen Lamb Trim",type:"frozen",sp:-20,route:"SUEZ",scenario:"ROUTE_CHANGE",baseTransit:33},
+  {id:"HASU4490012",carrier:"Hapag-Lloyd",vessel:"MV Hamburg Express",voyage:"221WB",origin:"AUMEL",dest:"GBSOU",dep:"2026-03-01",product:"Chilled Beef Striploin",type:"chilled",sp:1,route:"CAPE",scenario:"SLOW_STEAM",baseTransit:36},
+  {id:"MRKU3319021",carrier:"Maersk",vessel:"MV Maersk Hobart",voyage:"427W",origin:"AUSYD",dest:"GBTIL",dep:"2026-03-05",product:"Frozen Beef Ribeye",type:"frozen",sp:-18,route:"CAPE",scenario:"NORMAL",baseTransit:35},
+  {id:"EVRU8821100",carrier:"Evergreen",vessel:"MV Ever Summit",voyage:"AU22E",origin:"AUMEL",dest:"GBTIL",dep:"2026-03-10",product:"Chilled Lamb Rack",type:"chilled",sp:2,route:"SUEZ",scenario:"CEASEFIRE_BENEFIT",baseTransit:28},
+  {id:"COSU6678234",carrier:"COSCO",vessel:"MV COSCO Pride",voyage:"AEU14",origin:"AUFRE",dest:"GBSOU",dep:"2026-03-15",product:"Frozen Beef Mixed",type:"frozen",sp:-18,route:"CAPE",scenario:"NORMAL",baseTransit:34},
+];
+
+// Route waypoints [lat, lon]
+const WP = {
+  AUMEL:[-37.82,144.93],AUSYD:[-33.86,151.21],AUBNE:[-27.38,153.17],AUFRE:[-32.05,115.74],AUADL:[-34.92,138.60],
+  MALACCA:[1.35,103.82],SRI_LANKA:[7.87,80.77],ADEN:[12.78,44.99],HORMUZ:[26.57,56.24],MUSCAT:[23.61,58.59],
+  PORT_SAID:[31.26,32.28],RED_SEA_N:[22.5,37.0],RED_SEA_S:[12.6,43.5],
+  CAPE_GOOD_HOPE:[-34.36,18.47],CAPE_TOWN:[-33.92,18.42],MID_ATLANTIC:[-10.0,-15.0],CANARIES:[28.1,-15.4],
+  GBTIL:[51.45,0.37],GBSOU:[50.90,-1.40],MUPLU:[-20.16,57.50],
+};
+
+function getRoute(origin, dest, routeType) {
+  const starts = {AUMEL:["AUMEL","MALACCA"],AUSYD:["AUSYD","MALACCA"],AUBNE:["AUBNE","MALACCA"],AUFRE:["AUFRE"],AUADL:["AUADL","AUFRE"]};
+  const s = starts[origin] || [origin];
+  let mid;
+  if(routeType==="SUEZ") mid=["SRI_LANKA","ADEN","RED_SEA_S","RED_SEA_N","PORT_SAID"];
+  else if(routeType==="CAPE") mid=origin==="AUFRE"||origin==="AUADL"?["CAPE_GOOD_HOPE","MID_ATLANTIC"]:["SRI_LANKA","MUPLU","CAPE_GOOD_HOPE","MID_ATLANTIC"];
+  else mid=["SRI_LANKA","CAPE_GOOD_HOPE","MID_ATLANTIC"];
+  const ends = {GBTIL:["GBTIL"],GBSOU:["GBSOU"]};
+  return [...s,...mid,...(ends[dest]||[dest])];
+}
+
+function interpPos(segs, frac) {
+  if(frac<=0){const w=WP[segs[0]];return[w[0],w[1],segs[0]]}
+  if(frac>=1){const w=WP[segs[segs.length-1]];return[w[0],w[1],segs[segs.length-1]]}
+  const n=segs.length-1;const sp=frac*n;const si=Math.floor(sp);const sf=sp-si;
+  const w1=WP[segs[Math.min(si,n-1)]];const w2=WP[segs[Math.min(si+1,n)]];
+  return[w1[0]+(w2[0]-w1[0])*sf, w1[1]+(w2[1]-w1[1])*sf, segs[Math.min(si,n-1)]];
+}
+
+// Generate all daily records
+function genVoyage(def) {
+  const dep=new Date(def.dep+'T00:00:00Z');
+  let route=def.route, delay=0;
+  const days=[];
+  const alerts=[];
+  const segs=getRoute(def.origin,def.dest,def.route);
+  let curSegs=segs;
+
+  for(let d=-1;d<def.baseTransit+20;d++){
+    const dt=new Date(dep.getTime()+d*86400000);
+    if(dt.getFullYear()>2026||(dt.getMonth()>2&&dt.getDate()>28)) break;
+
+    let tempBreachActive=false, tempVal=null, alertObj=null, riskLevel="LOW", aisGap=false;
+    const sc=def.scenario, depDate=dep;
+
+    // Scenario logic
+    if(sc==="CAPE_REROUTE"){
+      const rd=Math.round((new Date('2026-01-08')-depDate)/86400000);
+      if(d>=rd&&rd>0){delay=8;route="CAPE";curSegs=getRoute(def.origin,def.dest,"CAPE");riskLevel="MEDIUM";
+        if(d===rd) alertObj={type:"ROUTE_CHANGE",title:"Red Sea Suspended → Cape Reroute",detail:"Houthi attack. ETA +8 days.",severity:"HIGH"}}
+    } else if(sc==="SUEZ_THEN_CAPE"){
+      if(d>=5){delay=7;route="CAPE";curSegs=getRoute(def.origin,def.dest,"CAPE");
+        if(d===5) alertObj={type:"ROUTE_CHANGE",title:"Suez → Cape Reroute (Red Sea risk)",detail:"Precautionary. ETA +7 days.",severity:"HIGH"}}
+    } else if(sc==="TEMP_BREACH"){
+      const mupluD=11;const faultD=14;
+      if(d>=mupluD&&d<mupluD+4){delay=4;riskLevel="MEDIUM";
+        if(d===mupluD) alertObj={type:"PORT_DELAY",title:"Port Louis Congestion — 4-day delay",detail:"Stevedore strike.",severity:"MEDIUM"}}
+      if(d>=faultD){delay=6;tempBreachActive=true;tempVal=parseFloat((1+Math.min(1.8,(d-faultD)*0.18)).toFixed(1));riskLevel="CRITICAL";
+        if(d===faultD) alertObj={type:"TEMP_BREACH",title:"⚠ CRITICAL: Reefer Fault — Temp Deviation",detail:`Supply air ${tempVal}°C vs set point ${def.sp}°C.`,severity:"CRITICAL"}}
+    } else if(sc==="WEATHER_DELAY"){
+      const sd=Math.round((new Date('2026-02-28')-depDate)/86400000);
+      if(sd>0&&d>=sd&&d<sd+5){delay=3;riskLevel="MEDIUM";
+        if(d===sd) alertObj={type:"WEATHER",title:"Storm Diversion — S. Indian Ocean",detail:"200nm diversion. ETA +3 days.",severity:"MEDIUM"}}
+      else if(sd>0&&d>=sd+5) delay=3;
+    } else if(sc==="HORMUZ_DIVERT"){
+      const hd=Math.round((new Date('2026-01-22')-depDate)/86400000);
+      if(hd>0&&d>=hd){delay=4;route="CAPE";curSegs=getRoute(def.origin,def.dest,"CAPE");aisGap=(d>=hd&&d<hd+2);
+        if(d===hd) alertObj={type:"GEOPOLITICAL",title:"HORMUZ CLOSED — IRGC Exercise",detail:"Vessel diverted via Muscat/Cape. ETA +4 days.",severity:"CRITICAL"}}
+    } else if(sc==="ROUTE_CHANGE"){
+      const cd=Math.round((new Date('2026-03-18')-depDate)/86400000);
+      if(d>=4&&(cd<=0||d<cd)){delay=7;route="CAPE";curSegs=getRoute(def.origin,def.dest,"CAPE");
+        if(d===4) alertObj={type:"ROUTE_CHANGE",title:"Red Sea Risk → Cape Reroute",detail:"CMA CGM precautionary. ETA +7 days.",severity:"HIGH"}}
+      else if(cd>0&&d>=cd){delay=3;route="SUEZ";curSegs=getRoute(def.origin,def.dest,"SUEZ");
+        if(d===cd) alertObj={type:"ROUTE_RESTORED",title:"Ceasefire — CMA CGM Back to Suez",detail:"ETA improved. +3 days vs original (was +7).",severity:"LOW"}}
+    } else if(sc==="SLOW_STEAM"){
+      if(d>=10){delay=7;riskLevel="MEDIUM";
+        if(d===10) alertObj={type:"CARRIER_DECISION",title:"Slow-Steam Order — Bunker Opt.",detail:"SOG reduced 18→12.5 kts. ETA +7 days.",severity:"MEDIUM"}}
+    } else if(sc==="CEASEFIRE_BENEFIT"){
+      const cd=Math.round((new Date('2026-03-18')-depDate)/86400000);
+      if(cd>0&&d>=cd){delay=-2;
+        if(d===cd) alertObj={type:"ROUTE_RESTORED",title:"Suez Confirmed — Ceasefire",detail:"Evergreen maintains Suez. ETA improved -2 days.",severity:"LOW"}}
+    }
+
+    const effectiveTransit=def.baseTransit+delay;
+    const arrivalDay=effectiveTransit;
+    let status,sog=0;
+
+    if(d<0) status="Booked";
+    else if(d===0) status="Loaded/Departed";
+    else if(d>=arrivalDay+3) status="Gate Out";
+    else if(d>=arrivalDay+1) status="BTOM Cleared";
+    else if(d>=arrivalDay) status="Discharged";
+    else if(d>=arrivalDay-2) status="Port Approach";
+    else if(tempBreachActive) status="At Sea — ALERT";
+    else status="At Sea";
+
+    if(status==="At Sea"||status==="At Sea — ALERT"||status==="Port Approach"){
+      sog=sc==="SLOW_STEAM"&&d>10?parseFloat((12+Math.random()).toFixed(1)):parseFloat((14.5+Math.random()*3.2).toFixed(1));
+    }
+
+    const progress=d<0?0:Math.min(1,d/effectiveTransit);
+    let lat,lon,posName;
+    if(d<0){const w=WP[def.origin];lat=w[0];lon=w[1];posName=def.origin;}
+    else{const p=interpPos(curSegs,progress);lat=p[0]+((Math.random()-0.5)*0.4);lon=p[1]+((Math.random()-0.5)*0.5);posName=p[2];}
+
+    let temp;
+    if(d<0||status==="BTOM Cleared"||status==="Gate Out") temp=def.sp;
+    else if(tempBreachActive) temp=tempVal||parseFloat((def.sp+1+Math.random()*0.5).toFixed(1));
+    else temp=parseFloat((def.sp+((Math.random()-0.5)*0.4)).toFixed(1));
+
+    const etaDate=new Date(dep.getTime()+effectiveTransit*86400000);
+
+    days.push({
+      date:dt.toISOString().substring(0,10), dayOfVoyage:d,
+      status,route,lat:parseFloat(lat.toFixed(3)),lon:parseFloat(lon.toFixed(3)),
+      posName,sog,temp,tempBreach:tempBreachActive,riskLevel,
+      delay,etaDate:etaDate.toISOString().substring(0,10),aisGap,alert:alertObj
+    });
+    if(alertObj) alerts.push({...alertObj,date:dt.toISOString().substring(0,10),containerId:def.id,carrier:def.carrier});
+  }
+  return {def, days, alerts};
+}
+
+let VOYAGES = CONTAINER_DEFS.map(genVoyage);
+const ALL_DATES = [];
+const startDate = new Date('2026-01-14T00:00:00Z');
+const endDate   = new Date('2026-03-31T00:00:00Z');
+for(let d=new Date(startDate);d<=endDate;d=new Date(d.getTime()+86400000)) ALL_DATES.push(d.toISOString().substring(0,10));
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let currentDateIdx = 0;
+let selectedContainerId = null;
+let playInterval = null;
+let playSpeed = 1;
+
+function dateToIdx(dateStr){ return ALL_DATES.indexOf(dateStr) }
+function currentDate(){ return ALL_DATES[currentDateIdx] }
+
+function getDayRecord(voyage, dateStr){
+  return voyage.days.find(d=>d.date===dateStr) || null;
+}
+
+function getStatusColor(status, riskLevel){
+  if(riskLevel==="CRITICAL"||status==="At Sea — ALERT") return "var(--red)";
+  if(riskLevel==="HIGH"||status==="Delayed") return "var(--amber)";
+  if(status==="Booked") return "var(--text3)";
+  if(status==="Discharged"||status==="BTOM Cleared"||status==="Gate Out") return "var(--green)";
+  if(status==="Port Approach") return "var(--purple)";
+  return "var(--teal)";
+}
+
+// ── MAP RENDERING ─────────────────────────────────────────────────────────────
+
+function renderMap(dateStr){
+  const trails = document.getElementById('vessel-trails');
+  const dots   = document.getElementById('vessel-dots');
+  trails.innerHTML = ''; dots.innerHTML = '';
+
+  VOYAGES.forEach(v=>{
+    const visible=isContainerVisible(v,dateStr);
+    const rec = getDayRecord(v, dateStr);
+    if(!rec || rec.status==="Booked"||rec.dayOfVoyage<0) {
+      // Show at origin with grey
+      const w=WP[v.def.origin]; if(!w) return;
+      const [sx,sy]=latLonToSVG(w[0],w[1]);
+      const dot=document.createElementNS("http://www.w3.org/2000/svg","circle");
+      dot.setAttribute("cx",sx);dot.setAttribute("cy",sy);dot.setAttribute("r","4");
+      dot.setAttribute("fill",v.def.id===selectedContainerId?"#0A7A8A":"#94A3B8");
+      dot.setAttribute("opacity",visible?"0.5":"0.1");
+      dot.style.cursor="pointer";
+      dot.onclick=()=>selectContainer(v.def.id);
+      dots.appendChild(dot);
+      return;
+    }
+
+    // Draw trail (last 7 days)
+    const trailDays = v.days.filter(d=>d.date<=dateStr&&d.dayOfVoyage>=0).slice(-7);
+    if(trailDays.length>1){
+      const pts=trailDays.map(d=>latLonToSVG(d.lat,d.lon).join(",")).join(" ");
+      const tl=document.createElementNS("http://www.w3.org/2000/svg","polyline");
+      tl.setAttribute("points",pts);
+      tl.setAttribute("fill","none");
+      const col=getStatusColor(rec.status,rec.riskLevel).replace("var(--","").replace(")","");
+      const colMap={"teal":"#0A7A8A","amber":"#B45309","red":"#C0392B","green":"#16A34A","text3":"#94A3B8","purple":"#7C3AED"};
+      tl.setAttribute("stroke",colMap[col]||"#0ABFCC");
+      tl.setAttribute("stroke-width","1.5");
+      tl.setAttribute("stroke-opacity","0.5");
+      tl.setAttribute("stroke-dasharray","3,2");
+      trails.appendChild(tl);
+    }
+
+    // Vessel dot
+    const [sx,sy]=latLonToSVG(rec.lat,rec.lon);
+    const col=getStatusColor(rec.status,rec.riskLevel);
+    const isSelected=v.def.id===selectedContainerId;
+    const r=isSelected?7:5;
+
+    if(rec.status.includes("At Sea")||rec.status==="Port Approach"){
+      const glow=document.createElementNS("http://www.w3.org/2000/svg","circle");
+      glow.setAttribute("cx",sx);glow.setAttribute("cy",sy);glow.setAttribute("r",r+4);
+      glow.setAttribute("fill",col);glow.setAttribute("opacity","0.15");
+      dots.appendChild(glow);
+    }
+    const dot=document.createElementNS("http://www.w3.org/2000/svg","circle");
+    dot.setAttribute("cx",sx);dot.setAttribute("cy",sy);dot.setAttribute("r",r.toString());
+    dot.setAttribute("fill",col);dot.setAttribute("stroke",isSelected?"#0F2744":"none");
+    dot.setAttribute("stroke-width","1.5");dot.setAttribute("opacity",visible?"1":"0.15");
+    dot.style.cursor="pointer";
+    dot.setAttribute("title",`${v.def.id} | ${rec.status} | ${rec.posName}`);
+    dot.onclick=()=>selectContainer(v.def.id);
+    dots.appendChild(dot);
+
+    // ID label for selected
+    if(isSelected){
+      const lbl=document.createElementNS("http://www.w3.org/2000/svg","text");
+      lbl.setAttribute("x",sx+10);lbl.setAttribute("y",sy+4);
+      lbl.setAttribute("font-size","8");lbl.setAttribute("fill","#0F2744");lbl.setAttribute("font-family","monospace");
+      lbl.textContent=v.def.id;
+      dots.appendChild(lbl);
+    }
+  });
+}
+
+// ── CONTAINER LIST ────────────────────────────────────────────────────────────
+
+function renderContainerList(dateStr){
+  const el=document.getElementById('container-list');
+  el.innerHTML=VOYAGES.map(v=>{
+    const visible=isContainerVisible(v,dateStr);
+    const rec=getDayRecord(v,dateStr);
+    const status=rec?rec.status:"Booked";
+    const delay=rec?rec.delay:0;
+    const col=getStatusColor(status,rec?.riskLevel||"LOW");
+    const sel=v.def.id===selectedContainerId;
+    if(!visible) return `<div class="c-item" style="opacity:0.2;pointer-events:none"><div class="c-top"><span class="c-id">${v.def.id}</span><div class="c-status-dot" style="background:${col}"></div></div></div>`;
+    const etaStr=rec?rec.etaDate.substring(5):"—";
+    const delayClass=delay>5?"crit":delay>0?"pos":"ok";
+    const delayLbl=delay>0?`+${delay}d`:delay<0?`${delay}d`:"On time";
+    return `<div class="c-item${sel?" selected":""}" onclick="selectContainer('${v.def.id}')">
+      <div class="c-top">
+        <span class="c-id">${v.def.id}</span>
+        <div class="c-status-dot" style="background:${col}"></div>
+      </div>
+      <div class="c-middle">
+        <span class="c-vessel">${v.def.carrier}</span>
+        <span class="c-eta">ETA ${etaStr}</span>
+      </div>
+      <div class="c-bottom">
+        <span class="c-tag ${v.def.type}">${v.def.type}</span>
+        <span class="c-delay ${delayClass}">${delayLbl}</span>
+        ${rec?.tempBreach?'<span style="color:var(--red);font-size:8px">⚠TEMP</span>':''}
+        ${rec?.aisGap?'<span style="color:var(--purple);font-size:8px">AIS GAP</span>':''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── FLEET STATS ───────────────────────────────────────────────────────────────
+
+function renderStats(dateStr){
+  let active=0,delayed=0,alerts=0,arrived=0;
+  VOYAGES.forEach(v=>{
+    const r=getDayRecord(v,dateStr);
+    if(!r) return;
+    if(["At Sea","At Sea — ALERT","Port Approach","Loaded/Departed"].includes(r.status)){
+      active++;
+      if(r.delay>0) delayed++;
+      if(r.tempBreach||r.riskLevel==="CRITICAL") alerts++;
+    }
+    if(["Discharged","BTOM Cleared","Gate Out"].includes(r.status)) arrived++;
+  });
+  document.getElementById('stat-active').textContent=active;
+  document.getElementById('stat-delayed').textContent=delayed;
+  document.getElementById('stat-alerts').textContent=alerts;
+  document.getElementById('stat-arrived').textContent=arrived;
+}
+
+// ── ACTIVE ALERTS ─────────────────────────────────────────────────────────────
+
+function renderActiveAlerts(dateStr){
+  const el=document.getElementById('active-alerts');
+  const active=RISK_EVENTS.filter(e=>e.date<=dateStr&&(e.active_until===null||e.active_until>=dateStr));
+  // Also check container alerts on this date
+  const contAlerts=[];
+  VOYAGES.forEach(v=>{const r=getDayRecord(v,dateStr);if(r?.alert) contAlerts.push({...r.alert,containerId:v.def.id})});
+
+  el.innerHTML=[...contAlerts.map(a=>`
+    <div class="alert-item ${a.severity}">
+      <div class="alert-title">⚡ ${a.title}</div>
+      <div class="alert-date">${a.containerId}</div>
+      <div class="alert-detail">${a.detail}</div>
+    </div>`),
+    ...active.map(e=>`
+    <div class="alert-item ${e.severity}">
+      <div class="alert-title">${e.title}</div>
+      <div class="alert-date">${e.date} · ${e.zone.replace(/_/g,' ')}</div>
+      <div class="alert-detail">${e.detail.substring(0,100)}${e.detail.length>100?'…':''}</div>
+    </div>`)].join('') || '<div style="color:var(--text3);font-size:9px">No active alerts</div>';
+}
+
+// ── TIMELINE ──────────────────────────────────────────────────────────────────
+
+function renderTimeline(containerId, dateStr){
+  if(!containerId) return;
+  const v=VOYAGES.find(x=>x.def.id===containerId);
+  if(!v) return;
+  document.getElementById('timeline-header').textContent=`// ${containerId} · Voyage Timeline`;
+  const rec=getDayRecord(v,dateStr);
+  const pastDays=v.days.filter(d=>d.date<=dateStr&&d.dayOfVoyage>=0);
+  const alertDays=v.days.filter(d=>d.alert);
+  // Build milestone events
+  const milestones=[];
+  const dep=v.days.find(d=>d.dayOfVoyage===0);
+  if(dep) milestones.push({date:dep.date,title:"Departed "+v.def.origin,note:"ATD confirmed",done:dep.date<=dateStr,active:false});
+  alertDays.forEach(d=>milestones.push({date:d.date,title:d.alert.title,note:d.alert.detail,done:d.date<=dateStr,active:false,isAlert:true,severity:d.alert.severity}));
+  const portAppr=v.days.find(d=>d.status==="Port Approach");
+  if(portAppr) milestones.push({date:portAppr.date,title:"Port Approach — "+v.def.dest,note:"Pilot station approach",done:portAppr.date<=dateStr});
+  const disc=v.days.find(d=>d.status==="Discharged");
+  if(disc) milestones.push({date:disc.date,title:"Discharged",note:"Container available at terminal",done:disc.date<=dateStr});
+  const btom=v.days.find(d=>d.status==="BTOM Cleared");
+  if(btom) milestones.push({date:btom.date,title:"BTOM Cleared",note:"UK BCP inspection passed",done:btom.date<=dateStr});
+  const gate=v.days.find(d=>d.status==="Gate Out");
+  if(gate) milestones.push({date:gate.date,title:"Gate Out",note:"Cold store delivery",done:gate.date<=dateStr});
+  if(!disc) milestones.push({date:rec?.etaDate||"—",title:"ETA Arrival ("+v.def.dest+")",note:`ETA ${rec?.etaDate||"—"}${rec?.delay?` (+${rec.delay} days)`:""}`,done:false,active:true});
+  milestones.sort((a,b)=>a.date.localeCompare(b.date));
+
+  document.getElementById('timeline-content').innerHTML=milestones.map(m=>{
+    const dotClass=m.isAlert?(m.severity==="CRITICAL"?"alert":m.severity==="HIGH"?"alert":"done"):m.done?"done":m.active?"active":"pending";
+    const icon=m.isAlert?"!":(m.done?"✓":m.active?"▶":"○");
+    return `<div class="tl-event">
+      <div class="tl-dot ${dotClass}">${icon}</div>
+      <div class="tl-body">
+        <div class="tl-evt-title">${m.title}</div>
+        <div class="tl-evt-meta">${m.date}</div>
+        <div class="tl-evt-note">${m.note||""}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── DETAIL PANEL ──────────────────────────────────────────────────────────────
+
+function renderDetail(dateStr){
+  const el=document.getElementById('detail-content');
+  if(!selectedContainerId){
+    // Fleet overview
+    document.getElementById('detail-header').textContent='// Fleet Position Overview';
+    const rows=VOYAGES.map(v=>{
+      const r=getDayRecord(v,dateStr);if(!r) return '';
+      const col=getStatusColor(r.status,r.riskLevel);
+      return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);font-size:9px">
+        <div style="width:7px;height:7px;border-radius:50%;background:${col};flex-shrink:0"></div>
+        <span style="color:var(--teal);width:95px;flex-shrink:0">${v.def.id}</span>
+        <span style="color:var(--text2);width:100px;flex-shrink:0">${r.status}</span>
+        <span style="color:var(--text3);flex:1">${r.posName}</span>
+        <span style="color:${r.delay>0?"var(--amber)":"var(--text3)"};font-size:9px">${r.delay>0?"+"+r.delay+"d":""}</span>
+      </div>`;
+    }).join('');
+    el.innerHTML=`<div style="font-size:9px;color:var(--text3);margin-bottom:8px">All 12 containers · ${dateStr}</div>${rows}`;
+    return;
+  }
+  const v=VOYAGES.find(x=>x.def.id===selectedContainerId);if(!v) return;
+  const r=getDayRecord(v,dateStr);
+  document.getElementById('detail-header').textContent=`// ${selectedContainerId} · ${v.def.product}`;
+  const col=getStatusColor(r?.status||"Booked",r?.riskLevel||"LOW");
+  el.innerHTML=`
+    <div class="dp-grid">
+      <div class="dp-stat"><div class="dp-val" style="color:${col}">${r?.status||"Booked"}</div><div class="dp-lbl">Status</div></div>
+      <div class="dp-stat"><div class="dp-val" style="color:${r?.delay>0?"var(--amber)":"var(--green)"}">${r?.delay>0?"+"+r.delay+" days":"On Time"}</div><div class="dp-lbl">ETA Delta</div></div>
+      <div class="dp-stat"><div class="dp-val">${r?.etaDate||"—"}</div><div class="dp-lbl">ETA</div></div>
+      <div class="dp-stat"><div class="dp-val" style="color:${r?.tempBreach?"var(--red)":"var(--green)"}">${r?.temp!==undefined?r.temp+"°C":"—"}</div><div class="dp-lbl">Reefer Temp</div></div>
+    </div>
+    ${calcShelfLife(v.def,r)}
+    ${calcBtomStatus(v.def,r)}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:9px;margin-top:6px">
+      ${[
+        ["Carrier",v.def.carrier],["Vessel",v.def.vessel],["Voyage",v.def.voyage],
+        ["Route",r?.route||v.def.route],["SOG",r?.sog?r.sog+" kts":"—"],
+        ["Position",r?.posName||"—"],["Day of Voyage",r?.dayOfVoyage!==undefined?r.dayOfVoyage:"—"],
+        ["Origin",v.def.origin],["Destination",v.def.dest],["Set Point",v.def.sp+"°C"],
+      ].map(([k,val])=>`<div style="background:var(--ink3);border-radius:4px;padding:5px 7px;border:1px solid var(--border)">
+        <div style="color:var(--text3);font-size:8px;text-transform:uppercase;letter-spacing:0.08em">${k}</div>
+        <div style="color:var(--text);margin-top:2px">${val}</div>
+      </div>`).join('')}
+    </div>
+  `;
+}
+
+// ── TEMP & ETA CHARTS (canvas) ────────────────────────────────────────────────
+
+function renderCharts(containerId, dateStr){
+  const el=document.getElementById('chart-container');
+  if(!containerId){el.innerHTML='<div style="color:var(--text3);font-size:10px;padding:20px 0">Select a container to view charts</div>';return;}
+  const v=VOYAGES.find(x=>x.def.id===containerId);if(!v) return;
+  const pastDays=v.days.filter(d=>d.date<=dateStr&&d.dayOfVoyage>=0&&d.status.includes("Sea")||
+    d.date<=dateStr&&d.dayOfVoyage>=0&&d.status==="Port Approach");
+  el.innerHTML=`
+    <div style="font-size:9px;color:var(--text2);margin-bottom:6px">Temperature vs Set Point — voyage to date</div>
+    <canvas id="temp-canvas" style="width:100%;height:120px;display:block"></canvas>
+    <div style="display:flex;gap:10px;margin-top:4px;font-size:8px;color:var(--text3)">
+      <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--teal);margin-right:3px"></span>Supply Air Temp</span>
+      <span><span style="display:inline-block;width:8px;height:3px;background:var(--amber);margin-right:3px;vertical-align:middle"></span>Set Point ${v.def.sp}°C</span>
+    </div>
+    <div style="font-size:9px;color:var(--text2);margin-top:10px;margin-bottom:6px">ETA Revision History</div>
+    <canvas id="eta-canvas" style="width:100%;height:90px;display:block"></canvas>
+  `;
+  // Temp chart
+  const tc=document.getElementById('temp-canvas');
+  const pw=tc.parentElement.clientWidth||300;tc.width=pw*window.devicePixelRatio||pw;tc.height=120*window.devicePixelRatio||120;
+  tc.style.width=pw+'px';tc.style.height='120px';
+  const ctx=tc.getContext('2d');const sc=window.devicePixelRatio||1;ctx.scale(sc,sc);
+  const W=pw,H=120,pad={l:32,r:8,t:8,b:20};
+  const temps=pastDays.map(d=>d.temp);
+  if(!temps.length) return;
+  const sp=v.def.sp;
+  const allT=[...temps,sp-1,sp+3];
+  const minT=Math.min(...allT),maxT=Math.max(...allT);
+  const tRange=maxT-minT||2;
+  const xScale=(W-pad.l-pad.r)/(Math.max(temps.length-1,1));
+  const yScale=(H-pad.t-pad.b)/tRange;
+  // Grid
+  ctx.strokeStyle='rgba(203,213,225,0.8)';ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){const y=pad.t+i*(H-pad.t-pad.b)/4;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke();}
+  // Set point line
+  const spY=pad.t+(maxT-sp)*yScale;
+  ctx.strokeStyle='rgba(180,83,9,0.7)';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+  ctx.beginPath();ctx.moveTo(pad.l,spY);ctx.lineTo(W-pad.r,spY);ctx.stroke();ctx.setLineDash([]);
+  // Temp line
+  ctx.strokeStyle='#0A7A8A';ctx.lineWidth=1.5;ctx.beginPath();
+  temps.forEach((t,i)=>{const x=pad.l+i*xScale,y=pad.t+(maxT-t)*yScale;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});ctx.stroke();
+  // Breach areas
+  const breachDays=pastDays.filter(d=>d.tempBreach);
+  if(breachDays.length){ctx.fillStyle='rgba(192,57,43,0.12)';
+    pastDays.forEach((d,i)=>{if(d.tempBreach){const x=pad.l+i*xScale,y=pad.t+(maxT-d.temp)*yScale;ctx.fillRect(x-2,y-2,4,4);}});}
+  // Dots
+  ctx.fillStyle='#0A7A8A';temps.forEach((t,i)=>{const x=pad.l+i*xScale,y=pad.t+(maxT-t)*yScale;ctx.beginPath();ctx.arc(x,y,2,0,Math.PI*2);ctx.fill();});
+  // Y axis labels
+  ctx.fillStyle='rgba(71,85,105,0.9)';ctx.font='8px IBM Plex Mono,monospace';ctx.textAlign='right';
+  [minT,sp,maxT].forEach(t=>{const y=pad.t+(maxT-t)*yScale;ctx.fillText(t.toFixed(0),pad.l-3,y+3);});
+
+  // ETA chart
+  const ec=document.getElementById('eta-canvas');
+  ec.width=pw*sc;ec.height=90*sc;ec.style.width=pw+'px';ec.style.height='90px';
+  const ectx=ec.getContext('2d');ectx.scale(sc,sc);const EH=90;
+  const allDays=v.days.filter(d=>d.date<=dateStr&&d.dayOfVoyage>=0);
+  if(!allDays.length) return;
+  const delays=allDays.map(d=>d.delay);
+  const maxD=Math.max(...delays,1);
+  const exScale=(W-pad.l-pad.r)/(Math.max(allDays.length-1,1));
+  const eyScale=(EH-pad.t-pad.b)/maxD;
+  // Grid
+  ectx.strokeStyle='rgba(203,213,225,0.8)';ectx.lineWidth=1;
+  ectx.beginPath();ectx.moveTo(pad.l,pad.t+(EH-pad.t-pad.b));ectx.lineTo(W-pad.r,pad.t+(EH-pad.t-pad.b));ectx.stroke();
+  // Fill
+  ectx.fillStyle='rgba(180,83,9,0.10)';
+  ectx.beginPath();ectx.moveTo(pad.l,pad.t+(EH-pad.t-pad.b));
+  delays.forEach((d,i)=>{const x=pad.l+i*exScale,y=pad.t+(EH-pad.t-pad.b)-d*eyScale;ectx.lineTo(x,y);});
+  ectx.lineTo(pad.l+(delays.length-1)*exScale,pad.t+(EH-pad.t-pad.b));ectx.closePath();ectx.fill();
+  // Line
+  ectx.strokeStyle=delays[delays.length-1]>4?"#C0392B":"#B45309";ectx.lineWidth=1.5;ectx.beginPath();
+  delays.forEach((d,i)=>{const x=pad.l+i*exScale,y=pad.t+(EH-pad.t-pad.b)-d*eyScale;i===0?ectx.moveTo(x,y):ectx.lineTo(x,y);});ectx.stroke();
+  // Labels
+  ectx.fillStyle='rgba(71,85,105,0.9)';ectx.font='8px IBM Plex Mono,monospace';ectx.textAlign='right';
+  ectx.fillText('0d',pad.l-3,pad.t+(EH-pad.t-pad.b)+3);
+  if(maxD>0) ectx.fillText('+'+maxD+'d',pad.l-3,pad.t+6);
+}
+
+// ── STATUS BAR ────────────────────────────────────────────────────────────────
+
+function renderStatusBar(dateStr){
+  const el=document.getElementById('status-bar');
+  if(!selectedContainerId){el.innerHTML='';return;}
+  const v=VOYAGES.find(x=>x.def.id===selectedContainerId);if(!v) return;
+  el.innerHTML=v.days.filter(d=>d.dayOfVoyage>=0).map(d=>{
+    const col=getStatusColor(d.status,d.riskLevel).replace('var(--','').replace(')','');
+    const colMap={"teal":"#0A7A8A","amber":"#B45309","red":"#C0392B","green":"#16A34A","text3":"#94A3B8","purple":"#7C3AED"};
+    const bg=colMap[col]||"#0ABFCC";
+    const isCurrent=d.date===dateStr;
+    return `<div class="day-block" style="background:${bg};opacity:${d.date<=dateStr?1:0.25};${isCurrent?'box-shadow:0 0 0 2px #0F2744;':''}" title="${d.date}: ${d.status}" onclick="jumpToDate('${d.date}')"></div>`;
+  }).join('');
+}
+
+// ── COLD-CHAIN SHELF-LIFE CALCULATOR (F90.4 S90.4.5) ─────────────────────────
+
+const SHELF_LIFE = {frozen:{base:365,tempSensitivity:0.08},chilled:{base:28,tempSensitivity:0.25},fresh:{base:14,tempSensitivity:0.35}};
+
+function calcShelfLife(def, rec) {
+  if(!rec || rec.dayOfVoyage<0) return '';
+  const sl = SHELF_LIFE[def.type] || SHELF_LIFE.frozen;
+  const transitDays = Math.max(0, rec.dayOfVoyage);
+  const tempDeviation = Math.max(0, (rec.temp||def.sp) - def.sp);
+  const breachPenaltyDays = rec.tempBreach ? Math.round(tempDeviation * 24 * sl.tempSensitivity) : 0;
+  const remainingDays = Math.max(0, sl.base - transitDays - breachPenaltyDays);
+  const usedPct = Math.round(((sl.base - remainingDays) / sl.base) * 100);
+  const barCol = remainingDays < sl.base*0.15 ? 'var(--red)' : remainingDays < sl.base*0.3 ? 'var(--amber)' : 'var(--green)';
+  const riskLbl = remainingDays < sl.base*0.15 ? 'CRITICAL' : remainingDays < sl.base*0.3 ? 'AT RISK' : 'HEALTHY';
+  const riskCol = remainingDays < sl.base*0.15 ? 'var(--red)' : remainingDays < sl.base*0.3 ? 'var(--amber)' : 'var(--green)';
+
+  return `<div style="background:var(--bg3);border-radius:6px;padding:8px 10px;margin-top:6px;border:1px solid var(--border-l)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3)">Cold-Chain Shelf Life</span>
+      <span style="font-size:10px;font-weight:700;color:${riskCol}">${riskLbl}</span>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px">
+      <div style="flex:1;height:8px;background:var(--border-l);border-radius:4px;overflow:hidden">
+        <div style="width:${usedPct}%;height:100%;background:${barCol};border-radius:4px;transition:width .3s"></div>
+      </div>
+      <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:${barCol};min-width:50px;text-align:right">${remainingDays}d left</span>
+    </div>
+    <div style="display:flex;gap:12px;font-size:9px;color:var(--text3)">
+      <span>Base: ${sl.base}d</span>
+      <span>Transit: ${transitDays}d</span>
+      ${breachPenaltyDays>0?`<span style="color:var(--red)">Breach penalty: -${breachPenaltyDays}d</span>`:''}
+      <span>Used: ${usedPct}%</span>
+    </div>
+  </div>`;
+}
+
+// ── BTOM/IPAFFS COMPLIANCE STATUS (F90.4 S90.4.6) ───────────────────────────
+
+function calcBtomStatus(def, rec) {
+  if(!rec || rec.dayOfVoyage<0) return '';
+  const dep=new Date(def.dep+'T00:00:00Z');
+  const effectiveTransit=def.baseTransit+(rec.delay||0);
+  const etaDate=new Date(dep.getTime()+effectiveTransit*86400000);
+  const preNotifDeadline=new Date(etaDate.getTime()-72*3600000); // 72hrs before ETA
+  const curDate=new Date(rec.date+'T00:00:00Z');
+  const daysToDeadline=Math.round((preNotifDeadline-curDate)/86400000);
+
+  // IPAFFS status based on timeline
+  let ipaffsStatus,ipaffsCol,ipaffsBg;
+  if(["Discharged","BTOM Cleared","Gate Out"].includes(rec.status)){
+    ipaffsStatus="CLEARED"; ipaffsCol="var(--green)"; ipaffsBg="var(--green-l)";
+  } else if(rec.status==="Port Approach"||daysToDeadline<=0){
+    ipaffsStatus="SUBMITTED"; ipaffsCol="var(--green)"; ipaffsBg="var(--green-l)";
+  } else if(daysToDeadline<=3){
+    ipaffsStatus="DUE NOW — "+daysToDeadline+"d to deadline"; ipaffsCol="var(--amber)"; ipaffsBg="var(--amber-l)";
+  } else if(daysToDeadline<=7){
+    ipaffsStatus="DUE SOON — "+daysToDeadline+"d to deadline"; ipaffsCol="var(--text2)"; ipaffsBg="var(--bg3)";
+  } else {
+    ipaffsStatus="NOT YET REQUIRED — "+daysToDeadline+"d to deadline"; ipaffsCol="var(--text3)"; ipaffsBg="var(--bg3)";
+  }
+
+  // BCP port
+  const bcpPort=def.dest==="GBTIL"?"Tilbury BCP":"Southampton BCP";
+
+  // Documentary check risk
+  const tilburyBacklog=rec.date>="2026-03-10"&&rec.date<="2026-03-25";
+  let docCheck,docCol;
+  if(["BTOM Cleared","Gate Out"].includes(rec.status)){
+    docCheck="PASSED"; docCol="var(--green)";
+  } else if(tilburyBacklog&&def.dest==="GBTIL"){
+    docCheck="EXPECT 24-36hr DELAY (backlog)"; docCol="var(--amber)";
+  } else {
+    docCheck="Standard processing"; docCol="var(--text3)";
+  }
+
+  // Physical check risk (based on product type)
+  const physicalRisk=def.type==="chilled"?"MEDIUM (chilled — higher inspection rate)":def.type==="fresh"?"HIGH (fresh — priority inspection)":"LOW (frozen — routine)";
+  const physCol=def.type==="fresh"?"var(--amber)":def.type==="chilled"?"var(--text2)":"var(--text3)";
+
+  return `<div style="background:var(--bg3);border-radius:6px;padding:8px 10px;margin-top:6px;border:1px solid var(--border-l)">
+    <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:6px">BTOM / IPAFFS Compliance</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:9px">
+      <div style="background:${ipaffsBg};border-radius:4px;padding:5px 7px;border:1px solid var(--border-l)">
+        <div style="color:var(--text3);font-size:8px;text-transform:uppercase;letter-spacing:.06em">IPAFFS Pre-Notification</div>
+        <div style="color:${ipaffsCol};font-weight:700;margin-top:2px">${ipaffsStatus}</div>
+      </div>
+      <div style="background:var(--bg);border-radius:4px;padding:5px 7px;border:1px solid var(--border-l)">
+        <div style="color:var(--text3);font-size:8px;text-transform:uppercase;letter-spacing:.06em">BCP Port</div>
+        <div style="color:var(--text);font-weight:600;margin-top:2px">${bcpPort}</div>
+      </div>
+      <div style="background:var(--bg);border-radius:4px;padding:5px 7px;border:1px solid var(--border-l)">
+        <div style="color:var(--text3);font-size:8px;text-transform:uppercase;letter-spacing:.06em">Documentary Check</div>
+        <div style="color:${docCol};font-weight:600;margin-top:2px">${docCheck}</div>
+      </div>
+      <div style="background:var(--bg);border-radius:4px;padding:5px 7px;border:1px solid var(--border-l)">
+        <div style="color:var(--text3);font-size:8px;text-transform:uppercase;letter-spacing:.06em">Physical Check Risk</div>
+        <div style="color:${physCol};font-weight:600;margin-top:2px">${physicalRisk}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── PDF REPORT GENERATION (F90.7) ────────────────────────────────────────────
+
+function generatePdfReport() {
+  const dateStr=currentDate();
+  const w=window.open('','_blank','width=900,height=700');
+  const stats={active:0,delayed:0,alerts:0,arrived:0};
+  const rows=VOYAGES.map(v=>{
+    const r=getDayRecord(v,dateStr);if(!r)return null;
+    if(["At Sea","At Sea — ALERT","Port Approach","Loaded/Departed"].includes(r.status)){stats.active++;if(r.delay>0)stats.delayed++;if(r.tempBreach||r.riskLevel==="CRITICAL")stats.alerts++;}
+    if(["Discharged","BTOM Cleared","Gate Out"].includes(r.status))stats.arrived++;
+    return {def:v.def,rec:r};
+  }).filter(Boolean);
+
+  // Risk assessments
+  const risks=rows.map(({def,rec})=>{
+    const riskItems=[];let severity="LOW",score=1;
+    if(rec.delay>5){severity="HIGH";score=8;riskItems.push("Extended delay: +"+rec.delay+" days");}
+    else if(rec.delay>0){severity="MEDIUM";score=5;riskItems.push("Delay: +"+rec.delay+" days");}
+    if(rec.tempBreach){severity="CRITICAL";score=10;riskItems.push("Temp breach: "+rec.temp+"°C vs "+def.sp+"°C");}
+    if(rec.route!==def.route){score=Math.max(score,6);riskItems.push("Route changed: "+def.route+"→"+rec.route);}
+    if(rec.aisGap){score=Math.max(score,7);riskItems.push("AIS gap detected");}
+    const spoilage=rec.tempBreach?Math.round(15000+rec.delay*3000):rec.delay>3?Math.round(rec.delay*1200):0;
+    const demurrage=rec.delay>0?Math.round(rec.delay*800):0;
+    const penalty=rec.delay>5?Math.round(rec.delay*500):0;
+    return {id:def.id,carrier:def.carrier,product:def.product,severity,score,risks:riskItems,spoilage,demurrage,penalty,total:spoilage+demurrage+penalty};
+  }).sort((a,b)=>b.score-a.score);
+
+  // RAID log
+  const raidRisks=RISK_EVENTS.filter(e=>e.date<=dateStr&&(e.active_until===null||e.active_until>=dateStr));
+
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8">
+<title>MeatTrackAI Fleet Intelligence Report — ${dateStr}</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;color:#1E293B;font-size:12px;line-height:1.5;padding:20mm 15mm;max-width:210mm}
+h1{font-size:20px;color:#0A7A8A;border-bottom:2px solid #0A7A8A;padding-bottom:6px;margin-bottom:12px}
+h2{font-size:14px;color:#0F2744;border-bottom:1px solid #CBD5E1;padding-bottom:4px;margin:18px 0 8px}
+h3{font-size:12px;color:#0A7A8A;margin:12px 0 6px}
+table{border-collapse:collapse;width:100%;font-size:11px;margin-bottom:10px}
+th{background:#F1F5F9;border:1px solid #CBD5E1;padding:5px 8px;text-align:left;font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:#64748B}
+td{border:1px solid #E2E8F0;padding:4px 8px}
+.mono{font-family:'IBM Plex Mono',monospace;font-size:10px}
+.stat-row{display:flex;gap:12px;margin-bottom:14px}
+.stat-box{flex:1;border:1px solid #CBD5E1;border-radius:6px;padding:10px;text-align:center;border-top:3px solid}
+.stat-box.t{border-top-color:#0A7A8A}.stat-box.a{border-top-color:#B45309}.stat-box.r{border-top-color:#C0392B}.stat-box.g{border-top-color:#16A34A}
+.stat-val{font-size:24px;font-weight:700;font-family:'IBM Plex Mono',monospace}
+.stat-val.t{color:#0A7A8A}.stat-val.a{color:#B45309}.stat-val.r{color:#C0392B}.stat-val.g{color:#16A34A}
+.stat-lbl{font-size:9px;color:#64748B;text-transform:uppercase;letter-spacing:.08em;margin-top:2px}
+.sev{font-weight:700;font-size:10px;padding:1px 6px;border-radius:3px;display:inline-block}
+.sev.CRITICAL{background:#FEE2E2;color:#C0392B}.sev.HIGH{background:#FEF3C7;color:#B45309}
+.sev.MEDIUM{background:#FFFBEB;color:#D97706}.sev.LOW{background:#DCFCE7;color:#16A34A}
+.cost{font-family:'IBM Plex Mono',monospace;font-weight:700}
+.cost.r{color:#C0392B}.cost.a{color:#B45309}.cost.g{color:#16A34A}
+.footer{margin-top:20px;padding-top:10px;border-top:1px solid #CBD5E1;font-size:9px;color:#94A3B8;display:flex;justify-content:space-between}
+@media print{body{padding:15mm}h2{page-break-after:avoid}table{page-break-inside:avoid}}
+</style></head><body>
+<h1>MeatTrackAI Fleet Intelligence Report</h1>
+<div style="font-size:11px;color:#64748B;margin-bottom:16px">
+  <strong>Date:</strong> ${dateStr} &nbsp;|&nbsp; <strong>Period:</strong> Jan–Mar 2026 &nbsp;|&nbsp; <strong>Fleet:</strong> 12 containers, 6 carriers &nbsp;|&nbsp; <strong>Route:</strong> AU → UK
+</div>
+
+<h2>1. Executive Summary</h2>
+<div class="stat-row">
+  <div class="stat-box t"><div class="stat-val t">${stats.active}</div><div class="stat-lbl">Active</div></div>
+  <div class="stat-box a"><div class="stat-val a">${stats.delayed}</div><div class="stat-lbl">Delayed</div></div>
+  <div class="stat-box r"><div class="stat-val r">${stats.alerts}</div><div class="stat-lbl">Alerts</div></div>
+  <div class="stat-box g"><div class="stat-val g">${stats.arrived}</div><div class="stat-lbl">Arrived</div></div>
+</div>
+
+<h2>2. Fleet Status</h2>
+<table>
+<thead><tr><th>Container</th><th>Carrier</th><th>Product</th><th>Status</th><th>ETA</th><th>Delay</th><th>Temp</th><th>Route</th></tr></thead>
+<tbody>${rows.map(({def,rec})=>`<tr>
+  <td class="mono">${def.id}</td><td>${def.carrier}</td><td>${def.product}</td>
+  <td>${rec.status}</td><td class="mono">${rec.etaDate}</td>
+  <td style="color:${rec.delay>0?'#B45309':'#16A34A'};font-weight:700">${rec.delay>0?'+'+rec.delay+'d':'On time'}</td>
+  <td style="color:${rec.tempBreach?'#C0392B':'#16A34A'};font-weight:700">${rec.temp}°C</td>
+  <td>${rec.route}</td>
+</tr>`).join('')}</tbody>
+</table>
+
+<h2>3. Risk Assessment</h2>
+<table>
+<thead><tr><th>Severity</th><th>Score</th><th>Container</th><th>Product</th><th>Risk Factors</th></tr></thead>
+<tbody>${risks.filter(r=>r.score>1).map(r=>`<tr>
+  <td><span class="sev ${r.severity}">${r.severity}</span></td>
+  <td class="mono" style="font-weight:700">${r.score}/10</td>
+  <td class="mono">${r.id}</td><td>${r.product}</td>
+  <td>${r.risks.join('; ')||'No active risks'}</td>
+</tr>`).join('')||'<tr><td colspan="5" style="color:#64748B;text-align:center">No active risks</td></tr>'}</tbody>
+</table>
+
+<h2>4. Financial Impact Assessment</h2>
+<table>
+<thead><tr><th>Container</th><th>Spoilage</th><th>Demurrage</th><th>Penalty</th><th>Total Impact</th></tr></thead>
+<tbody>${risks.filter(r=>r.total>0).map(r=>`<tr>
+  <td class="mono">${r.id}</td>
+  <td class="cost ${r.spoilage>0?'r':'g'}">£${r.spoilage.toLocaleString()}</td>
+  <td class="cost ${r.demurrage>0?'a':'g'}">£${r.demurrage.toLocaleString()}</td>
+  <td class="cost ${r.penalty>0?'a':'g'}">£${r.penalty.toLocaleString()}</td>
+  <td class="cost r" style="font-size:12px">£${r.total.toLocaleString()}</td>
+</tr>`).join('')||'<tr><td colspan="5" style="color:#16A34A;text-align:center;font-weight:600">No financial impact — all containers on schedule</td></tr>'}
+${risks.some(r=>r.total>0)?`<tr style="background:#F1F5F9;font-weight:700">
+  <td>TOTAL</td><td class="cost r">£${risks.reduce((s,r)=>s+r.spoilage,0).toLocaleString()}</td>
+  <td class="cost a">£${risks.reduce((s,r)=>s+r.demurrage,0).toLocaleString()}</td>
+  <td class="cost a">£${risks.reduce((s,r)=>s+r.penalty,0).toLocaleString()}</td>
+  <td class="cost r" style="font-size:13px">£${risks.reduce((s,r)=>s+r.total,0).toLocaleString()}</td>
+</tr>`:''}</tbody>
+</table>
+
+<h2>5. RAID Log</h2>
+<h3>5.1 Risks</h3>
+<table>
+<thead><tr><th>Zone</th><th>Severity</th><th>Event</th><th>Since</th></tr></thead>
+<tbody>${raidRisks.map(e=>`<tr>
+  <td>${e.zone.replace(/_/g,' ')}</td>
+  <td><span class="sev ${e.severity}">${e.severity}</span></td>
+  <td>${e.title}</td><td class="mono">${e.date}</td>
+</tr>`).join('')||'<tr><td colspan="4" style="color:#64748B;text-align:center">No active global risks</td></tr>'}</tbody>
+</table>
+
+<h3>5.2 Assumptions</h3>
+<table>
+<thead><tr><th>ID</th><th>Assumption</th><th>Confidence</th></tr></thead>
+<tbody>
+<tr><td>A-001</td><td>AIS vessel position data sufficient for decision-making</td><td>High</td></tr>
+<tr><td>A-002</td><td>5-minute polling interval adequate for operational decisions</td><td>High</td></tr>
+<tr><td>A-003</td><td>Carrier routing commitments hold for published ETA</td><td>Medium</td></tr>
+<tr><td>A-004</td><td>UK BTOM enforcement continues at current level</td><td>Medium</td></tr>
+</tbody></table>
+
+<h3>5.3 Issues</h3>
+<table>
+<thead><tr><th>Container</th><th>Issue</th><th>Impact</th></tr></thead>
+<tbody>${rows.filter(({rec})=>rec.delay>0||rec.tempBreach||rec.aisGap).map(({def,rec})=>`<tr>
+  <td class="mono">${def.id}</td>
+  <td>${rec.tempBreach?'Temperature breach active':rec.aisGap?'AIS position gap':rec.delay>5?'Extended delay (+'+rec.delay+'d)':'Moderate delay (+'+rec.delay+'d)'}</td>
+  <td>${rec.tempBreach?'Cold-chain compromised — QA assessment required':rec.delay>5?'Warehouse re-booking + customer notification required':'Monitor — escalate if delay increases'}</td>
+</tr>`).join('')||'<tr><td colspan="3" style="color:#16A34A;text-align:center">No active issues</td></tr>'}</tbody>
+</table>
+
+<h3>5.4 Dependencies</h3>
+<table>
+<thead><tr><th>ID</th><th>Dependency</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td>D-001</td><td>IPAFFS pre-notification 72hrs before arrival</td><td style="color:#16A34A;font-weight:600">On track</td></tr>
+<tr><td>D-002</td><td>Warehouse cold storage slot availability</td><td style="color:${stats.delayed>2?'#B45309':'#16A34A'};font-weight:600">${stats.delayed>2?'At risk — '+stats.delayed+' delayed':'Available'}</td></tr>
+<tr><td>D-003</td><td>Customer delivery window compliance</td><td style="color:${stats.delayed>3?'#C0392B':'#16A34A'};font-weight:600">${stats.delayed>3?'Breached — re-negotiate':'On track'}</td></tr>
+</tbody></table>
+
+<div class="footer">
+  <span>Confidential — MeatTrackAI Fleet Intelligence</span>
+  <span>Generated: ${new Date().toISOString().substring(0,19)} | Report: RPT-WWG-${dateStr.replace(/-/g,'')}</span>
+</div>
+</body></html>`);
+  w.document.close();
+  // Auto-trigger print dialog
+  setTimeout(()=>w.print(),500);
+}
+
+// ── LEGEND FILTER & RISK ASSESSMENT ──────────────────────────────────────────
+
+let activeFilter = null;
+
+function getFilterCategory(status, riskLevel, delay) {
+  if(riskLevel==="CRITICAL"||status==="At Sea — ALERT") return "alert";
+  if(status==="Booked") return "booked";
+  if(["Discharged","BTOM Cleared","Gate Out"].includes(status)) return "arrived";
+  if(delay>0) return "delayed";
+  if(["At Sea","Loaded/Departed","Port Approach"].includes(status)) return "at-sea";
+  return "at-sea";
+}
+
+function toggleFilter(category) {
+  if(activeFilter===category) { clearFilter(); return; }
+  activeFilter=category;
+  document.querySelectorAll('.legend-item').forEach(el=>{
+    el.classList.toggle('active',el.dataset.filter===category);
+    el.classList.toggle('dimmed',el.dataset.filter!==category);
+  });
+  document.getElementById('filter-clear').style.display='inline';
+  document.getElementById('risk-assessment-panel').style.display='block';
+  renderAll();
+}
+
+function clearFilter() {
+  activeFilter=null;
+  document.querySelectorAll('.legend-item').forEach(el=>{
+    el.classList.remove('active','dimmed');
+  });
+  document.getElementById('filter-clear').style.display='none';
+  document.getElementById('risk-assessment-panel').style.display='none';
+  renderAll();
+}
+
+function isContainerVisible(voyage, dateStr) {
+  if(!activeFilter) return true;
+  const r=getDayRecord(voyage, dateStr);
+  if(!r) return activeFilter==="booked";
+  return getFilterCategory(r.status, r.riskLevel, r.delay)===activeFilter;
+}
+
+function renderLegendCounts(dateStr) {
+  const counts={"at-sea":0,"delayed":0,"alert":0,"arrived":0,"booked":0};
+  VOYAGES.forEach(v=>{
+    const r=getDayRecord(v,dateStr);
+    if(!r){counts.booked++;return;}
+    counts[getFilterCategory(r.status,r.riskLevel,r.delay)]++;
+  });
+  Object.entries(counts).forEach(([k,v])=>{
+    const el=document.getElementById('lc-'+k);
+    if(el) el.textContent=v;
+  });
+}
+
+function renderRiskAssessment(dateStr) {
+  const el=document.getElementById('risk-assessment-content');
+  if(!activeFilter){el.innerHTML='';return;}
+
+  const filtered=VOYAGES.filter(v=>isContainerVisible(v,dateStr));
+  if(!filtered.length){el.innerHTML='<div style="color:var(--text3);font-size:11px">No containers match this filter</div>';return;}
+
+  // Build risk assessments per container
+  const assessments=filtered.map(v=>{
+    const r=getDayRecord(v,dateStr);
+    if(!r) return null;
+    const risks=[];
+    let severity="LOW", score=1, reasoning=[];
+
+    // Delay risk
+    if(r.delay>5){severity="HIGH";score=Math.max(score,8);risks.push("Extended delay: +"+r.delay+" days");reasoning.push("Transit delay exceeds 5-day threshold. Spoilage risk elevated for "+v.def.type+" product (set point "+v.def.sp+"°C). Demurrage accruing at £500-£1,200/day.");}
+    else if(r.delay>0){if(severity!=="HIGH")severity="MEDIUM";score=Math.max(score,5);risks.push("Moderate delay: +"+r.delay+" days");reasoning.push("Delay within manageable range but warehouse slot re-booking may be required. Monitor ETA revisions.");}
+
+    // Temperature risk
+    if(r.tempBreach){severity="CRITICAL";score=10;risks.push("Reefer temperature breach: "+r.temp+"°C vs set point "+v.def.sp+"°C");reasoning.push("CRITICAL: Supply air temperature deviating from set point. Cold-chain integrity compromised. Product quality at risk. Insurance claim evidence being recorded. Estimated spoilage cost: £"+Math.round(12000+r.delay*2000).toLocaleString()+".");}
+
+    // Route change risk
+    if(r.route!==v.def.route){score=Math.max(score,6);if(severity==="LOW")severity="MEDIUM";risks.push("Route changed: "+v.def.route+" → "+r.route);reasoning.push("Vessel rerouted from "+v.def.route+" to "+r.route+". Transit time extended. Additional fuel cost passed to shipper. Insurance premium adjustment may apply.");}
+
+    // AIS gap risk
+    if(r.aisGap){score=Math.max(score,7);if(severity==="LOW"||severity==="MEDIUM")severity="HIGH";risks.push("AIS position gap detected");reasoning.push("Vessel AIS transponder not reporting. Possible reasons: geopolitical zone transit, equipment failure, or deliberate signal suppression. Position verification via carrier portal recommended.");}
+
+    // Geopolitical risk (check active global events)
+    const activeEvents=RISK_EVENTS.filter(e=>e.date<=dateStr&&(e.active_until===null||e.active_until>=dateStr));
+    activeEvents.forEach(e=>{
+      if(e.severity==="CRITICAL"&&score<9){score=Math.max(score,9);severity="CRITICAL";risks.push("Active: "+e.title);reasoning.push(e.detail);}
+      else if(e.severity==="HIGH"&&score<7){score=Math.max(score,7);severity="HIGH";risks.push("Active: "+e.title);reasoning.push(e.detail);}
+    });
+
+    if(!risks.length){risks.push("No active risks");reasoning.push("Container operating within normal parameters. Temperature stable, ETA on schedule, no geopolitical disruptions affecting route.");}
+
+    // QVF financial impact
+    const spoilageCost=r.tempBreach?Math.round(15000+r.delay*3000):r.delay>3?Math.round(r.delay*1200):0;
+    const demurrageCost=r.delay>0?Math.round(r.delay*800):0;
+    const penaltyCost=r.delay>5?Math.round(r.delay*500):0;
+    const totalImpact=spoilageCost+demurrageCost+penaltyCost;
+
+    return {
+      id:v.def.id, carrier:v.def.carrier, product:v.def.product, type:v.def.type,
+      severity, score, risks, reasoning,
+      qvf:{spoilage:spoilageCost,demurrage:demurrageCost,penalty:penaltyCost,total:totalImpact}
+    };
+  }).filter(Boolean).sort((a,b)=>b.score-a.score);
+
+  const sevColor={"CRITICAL":"var(--red)","HIGH":"var(--amber)","MEDIUM":"#D97706","LOW":"var(--green)"};
+
+  el.innerHTML=assessments.map(a=>`
+    <div class="risk-band ${a.severity}" onclick="this.classList.toggle('expanded')" id="risk-assessment-panel-band">
+      <div class="risk-band-header">
+        <span class="risk-band-severity" style="color:${sevColor[a.severity]}">${a.severity}</span>
+        <span class="risk-band-score" style="color:${sevColor[a.severity]}">${a.score}/10</span>
+      </div>
+      <div class="risk-band-title">${a.id} — ${a.carrier} — ${a.product}</div>
+      <div style="display:flex;gap:6px;margin-top:4px;font-size:9px;flex-wrap:wrap">
+        ${a.risks.map(r=>'<span style="background:rgba(0,0,0,.05);padding:2px 6px;border-radius:3px">'+r+'</span>').join('')}
+      </div>
+      <div class="risk-band-detail">
+        <div style="font-size:10px;font-weight:600;color:var(--text);margin-bottom:4px">QVF Financial Impact</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:4px;font-size:9px">
+          <div style="background:rgba(0,0,0,.04);padding:4px 6px;border-radius:3px"><div style="color:var(--text3);font-size:8px">Spoilage</div><div style="font-weight:700;color:${a.qvf.spoilage>0?"var(--red)":"var(--green)"}">£${a.qvf.spoilage.toLocaleString()}</div></div>
+          <div style="background:rgba(0,0,0,.04);padding:4px 6px;border-radius:3px"><div style="color:var(--text3);font-size:8px">Demurrage</div><div style="font-weight:700;color:${a.qvf.demurrage>0?"var(--amber)":"var(--green)"}">£${a.qvf.demurrage.toLocaleString()}</div></div>
+          <div style="background:rgba(0,0,0,.04);padding:4px 6px;border-radius:3px"><div style="color:var(--text3);font-size:8px">Penalty</div><div style="font-weight:700;color:${a.qvf.penalty>0?"var(--amber)":"var(--green)"}">£${a.qvf.penalty.toLocaleString()}</div></div>
+          <div style="background:rgba(0,0,0,.04);padding:4px 6px;border-radius:3px"><div style="color:var(--text3);font-size:8px">Total Impact</div><div style="font-weight:700;color:${a.qvf.total>0?"var(--red)":"var(--green)"}">£${a.qvf.total.toLocaleString()}</div></div>
+        </div>
+      </div>
+      <div class="risk-band-reasoning">
+        <div style="font-size:10px;font-weight:600;color:var(--text);margin-bottom:3px">Assessment Reasoning</div>
+        ${a.reasoning.map(r=>'<div style="margin-bottom:3px">• '+r+'</div>').join('')}
+      </div>
+      <div style="font-size:8px;color:var(--text3);margin-top:4px;font-style:italic">Click to expand assessment detail and QVF impact</div>
+    </div>
+  `).join('');
+}
+
+// ── FULLSCREEN ────────────────────────────────────────────────────────────────
+
+function toggleFullscreen(panelId){
+  const el=document.getElementById(panelId);
+  if(!el) return;
+  const isFS=el.classList.contains('panel-fullscreen');
+  // Close any other fullscreen panel first
+  document.querySelectorAll('.panel-fullscreen').forEach(p=>{
+    p.classList.remove('panel-fullscreen');
+    const btn=p.querySelector('.fs-btn');
+    if(btn) btn.textContent='⛶';
+  });
+  if(!isFS){
+    el.classList.add('panel-fullscreen');
+    const btn=el.querySelector('.fs-btn');
+    if(btn) btn.textContent='✕';
+    // Re-render charts if chart panel goes fullscreen
+    if(panelId==='panel-charts') setTimeout(()=>renderCharts(selectedContainerId,currentDate()),50);
+  }
+}
+
+// ESC key to close fullscreen
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    document.querySelectorAll('.panel-fullscreen').forEach(p=>{
+      p.classList.remove('panel-fullscreen');
+      const btn=p.querySelector('.fs-btn');
+      if(btn) btn.textContent='⛶';
+    });
+  }
+});
+
+// ── CONTROLS ──────────────────────────────────────────────────────────────────
+
+function selectContainer(id){
+  selectedContainerId=selectedContainerId===id?null:id;
+  renderAll();
+}
+
+function jumpToDate(dateStr){
+  const idx=dateToIdx(dateStr);
+  if(idx>=0){currentDateIdx=idx;renderAll();}
+}
+
+function stepDate(n){
+  currentDateIdx=Math.max(0,Math.min(ALL_DATES.length-1,currentDateIdx+n));
+  renderAll();
+}
+
+function onSlider(val){
+  currentDateIdx=Math.round(val/100*(ALL_DATES.length-1));
+  renderAll();
+}
+
+function togglePlay(){
+  if(playInterval){clearInterval(playInterval);playInterval=null;document.getElementById('play-btn').textContent='▶';return;}
+  document.getElementById('play-btn').textContent='⏸';
+  playInterval=setInterval(()=>{
+    if(currentDateIdx>=ALL_DATES.length-1){clearInterval(playInterval);playInterval=null;document.getElementById('play-btn').textContent='▶';return;}
+    currentDateIdx++;renderAll();
+  },800/playSpeed);
+}
+
+function setSpeed(s,btn){
+  playSpeed=s;
+  document.querySelectorAll('.spd-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(playInterval){clearInterval(playInterval);playInterval=null;togglePlay();}
+}
+
+// ── RENDER ALL ────────────────────────────────────────────────────────────────
+
+function renderAll(){
+  const dateStr=currentDate();
+  document.getElementById('pb-date-display').textContent=dateStr;
+  document.getElementById('pb-day-label').textContent=`Day ${currentDateIdx} of ${ALL_DATES.length-1}`;
+  document.getElementById('sim-date-header').textContent=dateStr;
+  const slider=document.getElementById('date-slider');
+  slider.value=Math.round(currentDateIdx/(ALL_DATES.length-1)*100);
+  slider.style.setProperty('--val',slider.value+'%');
+
+  renderMap(dateStr);
+  renderContainerList(dateStr);
+  renderStats(dateStr);
+  renderActiveAlerts(dateStr);
+  renderTimeline(selectedContainerId,dateStr);
+  renderDetail(dateStr);
+  renderCharts(selectedContainerId,dateStr);
+  renderStatusBar(dateStr);
+  renderLegendCounts(dateStr);
+  renderRiskAssessment(dateStr);
+}
+
+// ── LIVE MODE INTEGRATION (SKL-154 + SKL-155) ────────────────────────────────
+
+let liveMode = false;
+let apiConnector = null;
+let aisAdapter = null;
+let liveData = null;
+
+function toggleLiveMode() {
+  const btn = document.getElementById('mode-toggle');
+  if (!liveMode) {
+    const key = prompt('Enter Datalastic API key (or cancel for simulation):');
+    if (!key) return;
+    enableLiveMode(key);
+  } else {
+    disableLiveMode();
+  }
+}
+
+function enableLiveMode(apiKey) {
+  liveMode = true;
+  const btn = document.getElementById('mode-toggle');
+  btn.textContent = 'LIVE MODE';
+  btn.style.background = 'var(--green-l)';
+  btn.style.borderColor = 'var(--green)';
+  btn.style.color = 'var(--green)';
+
+  // Initialize connector (SKL-154)
+  if (typeof PfcApiConnector !== 'undefined') {
+    const config = {
+      '@id': 'pf:api:datalastic-ais',
+      displayName: 'Datalastic AIS',
+      endpoint: 'https://api.datalastic.com/api/v0/vessel',
+      authMethod: 'query-param',
+      authParamName: 'api-key',
+      pollingIntervalSec: 300,
+      rateLimitPerMin: 10,
+      retryPolicy: { maxRetries: 3, backoffMs: 2000 }
+    };
+    apiConnector = new window.PfcApiConnector(config);
+    apiConnector.setApiKey(apiKey);
+
+    // Initialize adapter (SKL-155)
+    if (typeof W4mLscAisAdapter !== 'undefined' && typeof WWG_CONTAINER_MMSI_MAP !== 'undefined') {
+      aisAdapter = new window.W4mLscAisAdapter(window.WWG_CONTAINER_MMSI_MAP, 'datalastic');
+    }
+
+    // Start polling
+    apiConnector.startPolling({}, (result) => {
+      if (result.success && aisAdapter) {
+        liveData = aisAdapter.transform(result);
+        console.log('[LIVE] Fleet update:', liveData.containersMatched, 'containers matched');
+        applyLiveData();
+      }
+    });
+
+    console.log('[LIVE] Mode enabled. Polling every 300s.');
+  } else {
+    // Scripts not loaded — show inline simulation of live mode
+    console.log('[LIVE] Connector scripts not loaded. Live mode visual enabled (data still simulated).');
+  }
+}
+
+function disableLiveMode() {
+  liveMode = false;
+  liveData = null;
+  const btn = document.getElementById('mode-toggle');
+  btn.textContent = 'SIM MODE';
+  btn.style.background = 'var(--bg3)';
+  btn.style.borderColor = 'var(--border)';
+  btn.style.color = 'var(--text2)';
+
+  if (apiConnector) {
+    apiConnector.stopPolling();
+    apiConnector = null;
+  }
+  aisAdapter = null;
+  console.log('[LIVE] Mode disabled. Back to simulation.');
+  renderAll();
+}
+
+function applyLiveData() {
+  if (!liveData || !liveData.containers || !liveData.containers.length) return;
+
+  // Overlay live positions onto current simulation state
+  const dateStr = currentDate();
+  liveData.containers.forEach(lc => {
+    const voyage = VOYAGES.find(v => v.def.id === lc.id);
+    if (!voyage) return;
+    const rec = getDayRecord(voyage, dateStr);
+    if (!rec) return;
+
+    // Override with live data
+    if (lc.lat !== null) rec.lat = lc.lat;
+    if (lc.lon !== null) rec.lon = lc.lon;
+    if (lc.sog > 0) rec.sog = lc.sog;
+    if (lc.etaRevised) rec.etaDate = lc.etaRevised;
+    if (lc.status) rec.status = lc.status;
+  });
+
+  renderAll();
+}
+
+// ── EXPOSE FUNCTIONS TO WINDOW (required for type="module" + onclick) ────────
+window.generatePdfReport = generatePdfReport;
+window.toggleLiveMode = toggleLiveMode;
+window.toggleFullscreen = toggleFullscreen;
+window.selectContainer = selectContainer;
+window.jumpToDate = jumpToDate;
+window.stepDate = stepDate;
+window.togglePlay = togglePlay;
+window.setSpeed = setSpeed;
+window.onSlider = onSlider;
+window.toggleFilter = toggleFilter;
+window.clearFilter = clearFilter;
+window.enableLiveMode = enableLiveMode;
+window.disableLiveMode = disableLiveMode;
+window.renderAll = renderAll;
+
+// ── INIT (DB version — async with fallback) ─────────────────────────────────
+async function boot() {
+  const sbReady = await initSupabase();
+  if (sbReady) {
+    try {
+      await loadFromDB();
+      // Regenerate voyages from DB data
+      VOYAGES.length = 0;
+      CONTAINER_DEFS.forEach(d => VOYAGES.push(genVoyage(d)));
+    } catch (e) {
+      console.warn('[DB] Load failed, using simulation data:', e);
+      dataSource = 'SIM';
+    }
+  }
+  // Show data source badge
+  const badge = document.getElementById('db-badge');
+  if (badge) {
+    badge.style.display = 'inline';
+    badge.textContent = dataSource;
+    badge.style.background = dataSource === 'DB' ? 'var(--green)' : 'var(--amber)';
+  }
+  renderAll();
+}
+boot();
+
+</script>
+<!-- SKL-154 + SKL-155: Load API connector and AIS adapter (graceful degradation if not available) -->
+<script src="../../instance-data/skills/pfc-api-connector/api-connector.js" onerror="console.log('[SKL-154] api-connector.js not found — live mode will prompt for scripts')"></script>
+<script src="../../instance-data/skills/w4m-lsc-ais-adapter/ais-adapter.js" onerror="console.log('[SKL-155] ais-adapter.js not found — live mode will use visual toggle only')"></script>
+</body>
+</html>

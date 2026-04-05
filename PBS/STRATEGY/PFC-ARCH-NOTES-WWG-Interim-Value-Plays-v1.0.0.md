@@ -1,326 +1,211 @@
-# PFC-ARCH-NOTES-WWG-Interim-Value-Plays-v1.0.0
+# PFC-ARCH-NOTES-WWG-Interim-Value-Plays-v1.1.0
 
 | Field | Value |
 |---|---|
-| **Document** | PFC-ARCH-NOTES-WWG-Interim-Value-Plays-v1.0.0 |
+| **Document** | PFC-ARCH-NOTES-WWG-Interim-Value-Plays-v1.1.0 |
 | **Product Code** | PFC-ARCH |
 | **Type** | Architecture Notes (NOTES) |
 | **Status** | For Discussion |
 | **PFI** | W4M-WWG |
 | **Date** | 2026-04-05 |
-| **Context** | Addendum to PFC-ARCH-NOTES-WWG-MSAF-AIGRC-Sage-Assessment-v1.0.0 — interim value within Sage 200 constraints |
+| **Version** | v1.1.0 — corrected: operations and LSC work from Sage downloads, API is parallel track |
+| **Context** | Addendum to PFC-ARCH-NOTES-WWG-MSAF-AIGRC-Sage-Assessment-v1.0.0 |
 
 ---
 
-## 1. The Reframe
+## 1. The Correction
 
-The previous assessment positioned MS AF and AI GRC as Phase 5+ for WWG. That's correct for **wholesale adoption**. But there are smart interim plays that extract value from MS AF, AI GRC, and Claude capabilities **by working WITH the Sage 200 constraints**, not waiting for them to disappear.
+v1.0.0 treated Sage 200 API gaps as blockers that Claude agents needed to "bridge" with inference. That's overthinking it.
 
-> **Principle: Sage 200 API gaps are not just blockers — they're the first use cases for Claude agent value.**
+**Reality: Operations and LSC already work from Sage 200 data downloads (CSV, Excel exports).** This is how the business runs today. The API integration is a parallel engineering track — important, but NOT a prerequisite for Claude agent value.
 
-Sage 200 can't do GRN properly via API. Sage 200 can't do customs. Sage 200 webhooks are unreliable. Instead of building SDK workarounds or database-level hacks, Claude agents can bridge these gaps intelligently.
+> **Sage downloads = immediate data. Sage API = parallel improvement. Don't conflate them.**
 
----
-
-## 2. Six Interim Value Plays
-
-### Play 1: Claude as Sage 200 API Gap Bridge (Epic 91 Phase 1 Enhancement)
-
-**The constraint:** Sage 200 REST API has partial coverage for GRN (goods receipt) and dispatch notes — the two operations most critical to LSC corridor management.
-
-**The smart move:** Instead of building Sage 200 SDK (.NET) or direct DB workarounds, use Claude via the MCP Server as an **intelligent inference layer** that reconstructs what the API doesn't directly expose.
-
-| Operation | Sage 200 API Gap | Claude Bridge |
-|---|---|---|
-| **Goods Receipt (GRN)** | No dedicated GRN endpoint. Stock transactions exist but aren't linked to PO receipt workflow | Claude agent reads: PO (confirmed) + stock transaction (goods-in type) + supplier invoice (matched). **Infers** GRN: which PO lines were received, quantities, dates, variances. Writes GRN record to MeatTrackAI |
-| **Dispatch Notes** | SO→dispatch→invoice flow exists in Sage app but API only partially exposes dispatch | Claude agent reads: SO (allocated) + stock transaction (goods-out type) + carrier data. **Generates** dispatch record with line-level detail. Financial posting stays in Sage |
-| **Customs Intelligence** | Not in Sage 200 at all | Claude agent owns customs entirely in MeatTrackAI. Per-corridor rules (AU/NZ/IS/IE). Financial duty/tariff summary syncs back to Sage as journal entries |
-
-**VE-QVF check:**
-- **FIT**: ✅ Solves documented Sage API gaps in Epic 91
-- **MATTER**: ✅ Without GRN/dispatch, corridor tracking is incomplete
-- **VALUE**: ✅ Claude inference vs Sage SDK development — faster, more flexible, lower maintenance
-- **ADVANTAGE**: ✅ Intelligent gap-bridging is a capability, not a workaround. Competitors building Sage SDK integrations get brittle connectors. Claude agents adapt when Sage data shapes change
-
-**Kano**: Performance — directly improves data completeness without waiting for Sage API improvements.
-
-**What's needed**: SKL-160/161 MCP Server operational (Phase 1 prerequisite), Claude API key, agent tool definitions for Sage read operations. No MS AF runtime required — Claude Code or basic agent script is sufficient.
-
-**MS AF enhancement (optional)**: If using MS AF, the GRN inference becomes a durable task with checkpoint. If Claude is mid-inference and the Sage API rate-limits, checkpoint → retry → resume. Without MS AF, it's a script that retries or fails.
+This means Claude + MS AF + AI GRC value can land **immediately** on exported Sage data, while the API work (SKL-160/161 MCP Server, GRN/dispatch gaps, webhooks) proceeds independently.
 
 ---
 
-### Play 2: Customs as MeatTrackAI-Native Intelligence (Parallel to Epic 91 Phase 1)
-
-**The constraint:** Sage 200 has no native customs/duty handling. AU/NZ/IS/IE all have different regimes. Waiting for Sage X3 upgrade is not realistic.
-
-**The smart move:** Don't fight Sage. Build customs intelligence as a **MeatTrackAI-native capability** owned by Claude agents, with financial summaries posted back to Sage.
+## 2. Two Parallel Tracks
 
 ```
-┌────────────────────────────────────────────────┐
-│ Customs Intelligence (MeatTrackAI-native)      │
-│                                                │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐     │
-│  │ AU Rules │  │ NZ Rules │  │ IS Rules │ ... │
-│  │ (YAML)   │  │ (YAML)   │  │ (YAML)   │     │
-│  └────┬─────┘  └────┬─────┘  └────┬─────┘     │
-│       └──────────────┼──────────────┘           │
-│                      ▼                          │
-│         ┌────────────────────┐                  │
-│         │ Claude Agent       │                  │
-│         │ (customs reasoning │                  │
-│         │  + tariff lookup   │                  │
-│         │  + duty calc)      │                  │
-│         └─────────┬──────────┘                  │
-│                   │                             │
-│          ┌────────┴────────┐                    │
-│          │ MeatTrackAI DB  │                    │
-│          │ (customs records)│                    │
-│          └────────┬────────┘                    │
-│                   │                             │
-│          ┌────────┴────────┐                    │
-│          │ Sage 200 sync   │                    │
-│          │ (journal entry: │                    │
-│          │  duty/tariff    │                    │
-│          │  financial      │                    │
-│          │  summary only)  │                    │
-│          └─────────────────┘                    │
-└────────────────────────────────────────────────┘
+TRACK A: Operations & LSC Value (NOW)          TRACK B: Sage API Integration (PARALLEL)
+─────────────────────────────────────           ────────────────────────────────────────
+Sage 200 CSV/Excel exports                      SKL-160 pfc-erp-connector
+  → Claude processes downloaded data            SKL-161 w4m-sage200-adapter
+  → MeatTrackAI populated from exports          Sage 200 REST API coverage testing
+  → SOP analysis on real data                   GRN/dispatch API gap workarounds
+  → Customs intelligence per corridor           Webhook/polling patterns
+  → Corridor analytics & anomaly detection      Power Automate event flows
+  → Ontology instances seeded from exports      Live real-time sync
+                                                
+VALUE: Immediate                                VALUE: When ready
+BLOCKER: None — data exists today               BLOCKER: API gaps, SDK evaluation
 ```
 
-**This IS the MS AF declarative agent use case** — but scoped to customs only:
-- 4 corridor YAML configs (AU, NZ, IS, IE) with different tariff codes, duty rates, documentation requirements
-- Same Claude agent engine, different rules per corridor
-- `pip install agent-framework-anthropic --pre` + declarative workflow sample = running prototype
-
-**VE-QVF check:**
-- **FIT**: ✅ Customs is a WWG must-have that Sage 200 can't provide
-- **MATTER**: ✅ International corridors without customs intelligence is a gap competitors won't have
-- **VALUE**: ✅ Building customs as MeatTrackAI-native is permanent value, not a workaround
-- **ADVANTAGE**: ✅ Customs intelligence that adapts per corridor via config, not code — scales to new corridors without development
-
-**Kano**: Must-have (customs capability) delivered as a Delighter (intelligent, per-corridor, adaptive).
+**Track A doesn't wait for Track B.** Track B makes Track A better (live data, real-time, write-back) — but Track A delivers value from day one on data that's already available.
 
 ---
 
-### Play 3: UACL Audit on the MCP Server Layer (Epic 91 Phase 1 — Day One)
+## 3. Revised Interim Value Plays (Download-First)
 
-**The constraint:** AI GRC agent governance seems premature — no deployed agents to govern.
+### Play 1: Claude on Sage Exports — Corridor Intelligence (NOW)
 
-**The reframe:** The SKL-160/161 MCP Server IS the first agent-facing component. Every Sage 200 API call through it is a governable action. Audit the integration layer from day one.
+**What exists:** Sage 200 data can be exported as CSV/Excel — POs, SOs, invoices, stock, contacts, bank transactions. WWG operations already work from these exports.
 
-| What | How | Value |
+**What Claude adds:**
+
+| Input (Sage Export) | Claude Analysis | Output |
 |---|---|---|
-| Every Sage 200 read via MCP Server | UACL hash-chained audit record: who requested, what entity, when, from which corridor context | **Financial data access audit trail from day one** |
-| Every Sage 200 write via MCP Server | UACL record + before/after snapshot | **Change evidence for financial data — compliance requirement** |
-| MCP Server tool calls | Agent OS policy (lightweight): allowed entity types per corridor, read-only vs read-write per role | **Data access governance on the integration layer, not the agent layer** |
+| PO export (CSV) | Cross-corridor PO analysis — spend by corridor, supplier concentration, lead time patterns | Corridor procurement intelligence dashboard data |
+| SO + Invoice export | Revenue by corridor, payment patterns, overdue analysis, margin by product/corridor | Financial corridor performance |
+| Stock export | Stock levels vs demand patterns, slow-moving lines, reorder triggers per corridor | Inventory intelligence with corridor context |
+| Supplier contacts | Supplier risk scoring — concentration, geography, payment history | Supply chain risk per corridor |
+| Bank transactions | Cash flow patterns, FX exposure by corridor (AU$/NZ$/ISK/EUR), reconciliation assistance | Multi-currency treasury view |
 
-**This doesn't require deployed agents.** Even Claude Code calling the MCP Server generates audit records. The UACL skills (pfc-uacl-record, pfc-uacl-verify, pfc-uacl-boundary-check) are already shipped from Epic 97.
+**How:**
+- Export CSVs from Sage 200 (manual or scheduled report)
+- Claude agent reads CSVs, analyses, generates corridor intelligence
+- Results populate MeatTrackAI dashboard components (Epic 90)
 
-**VE-QVF check:**
-- **FIT**: ✅ Financial data access audit is a real requirement for any ERP integration
-- **MATTER**: ✅ "Who accessed what financial data and when" is a compliance question clients will ask
-- **VALUE**: ✅ UACL is already shipped. Minimal integration effort to wrap MCP Server calls
-- **ADVANTAGE**: ✅ Audit-by-design from day one, not bolted on after an incident
+**MS AF angle:** Declarative agent config per analysis type. Schedule-driven (weekly export → process → dashboard refresh). Doesn't need durable tasks — batch processing of static exports is simple.
 
-**Kano**: Must-have (audit) that's invisible until someone asks for it — then it's the difference between "we have evidence" and "we don't know".
+**VE-QVF:**
+- **FIT**: ✅ Operations already works from exports. Claude adds intelligence on top
+- **MATTER**: ✅ Corridor analytics is MeatTrackAI's core product value
+- **VALUE**: ✅ Zero API dependency. Data exists. Claude reads it. Done
+- **ADVANTAGE**: ✅ Intelligent corridor analytics vs spreadsheet reports — product differentiator
+- **Kano**: Performance → Delighter (patterns humans miss in spreadsheets)
 
 ---
 
-### Play 4: SOP-as-Config Before SOP-as-Execution (Parallel — Low Effort)
+### Play 2: Customs Intelligence from Export Data (NOW)
 
-**The constraint:** MS AF SOP execution needs Phase 3 Claude+Sage ops. Can't run durable SOPs without the data pipeline.
+Unchanged from v1.0.0 but simpler — customs rules apply to export data, not API calls.
 
-**The smart move:** Define SOPs as structured YAML configs NOW, even before they execute. The value is in the structure, not the execution.
-
-| Current State | Interim State | Future State |
+| Input | Claude Process | Output |
 |---|---|---|
-| SOPs as Word docs or team knowledge | SOPs as YAML declarative agent configs (versioned, per-corridor) | SOPs executed as MS AF durable workflows |
-| Can't verify SOP was followed | SOP definition is auditable, diff-able, reviewable | SOP execution is checkpointed, auditable, resumable |
-| New corridor = write new document | New corridor = new YAML variant | New corridor = deploy new config |
+| PO export with product codes | Claude applies AU/NZ/IS/IE tariff rules per product line | Duty/tariff estimate per PO per corridor |
+| SO export with destination | Claude identifies customs documentation requirements | Required customs docs per shipment |
+| Historical customs outcomes (if captured) | Pattern analysis — rejections, delays, duty adjustments | Corridor-specific customs risk profile |
 
-**What this looks like:**
+Per-corridor YAML rules (AU, NZ, IS, IE) — same declarative agent pattern. Works on CSV input today, works on live API input later. No architecture change when Track B delivers.
+
+**Kano**: Must-have capability delivered from day one, not waiting for Sage API.
+
+---
+
+### Play 3: UACL Audit on Exports + MCP Server (Layered)
+
+**Immediate (Track A):** UACL audit record when Claude processes a Sage export — who uploaded what file, what analysis was run, what outputs generated. Lightweight but establishes audit chain from the start.
+
+**When Track B delivers:** UACL audit on every MCP Server API call — full transaction-level audit. The audit chain is continuous from export-era through to live-API-era.
+
+**Kano**: Enabler — invisible but creates continuous audit history from day one.
+
+---
+
+### Play 4: SOP-as-Config from Real Operations (NOW)
+
+SOPs defined as structured YAML based on how operations actually works today with Sage exports:
 
 ```yaml
 # sop-goods-receipt-au.yaml
 name: "Goods Receipt — AU Corridor"
 version: "1.0.0"
 corridor: "AU"
+trigger: "PO export shows status change to 'Part Received' or 'Complete'"
+data_source: "sage_export_csv"  # → changes to "sage_api" when Track B delivers
 steps:
-  - id: verify_po
-    agent: claude
-    tool: sage200_read_purchase_order
-    input: "{{po_number}}"
-    validation: "PO status must be 'On Order' or 'Part Received'"
-
-  - id: check_stock_movement
-    agent: claude
-    tool: sage200_read_stock_transactions
-    input: "{{po_number}}"
-    validation: "Goods-in transaction exists matching PO lines"
-
+  - id: match_po_to_stock
+    description: "Match PO lines to stock movement entries in export"
+    input: ["po_export.csv", "stock_export.csv"]
+    
   - id: quality_check
     type: human_in_the_loop
-    prompt: "QC hold/release decision for {{po_number}}"
+    prompt: "QC decision for received goods"
     options: ["release", "hold", "reject"]
-    timeout: "4h"
-    escalation: "ops_manager"
-
-  - id: generate_grn
+    
+  - id: customs_assessment
     agent: claude
-    tool: meattrack_write_grn
-    input:
-      po: "{{po_number}}"
-      stock_movements: "{{check_stock_movement.result}}"
-      qc_decision: "{{quality_check.result}}"
-
-  - id: sage_financial_sync
-    agent: claude
-    tool: sage200_post_journal
-    input: "Duty/tariff journal for {{po_number}} per AU customs rules"
-    condition: "{{quality_check.result}} == 'release'"
+    rules: "customs-rules-au.yaml"
+    input: "{{match_po_to_stock.result}}"
+    
+  - id: record_in_meattrack
+    target: "meattrack_db"
+    data: "GRN record with QC + customs data"
+    
+  - id: sage_financial_note
+    description: "Manual: post duty/tariff journal in Sage"  # → automated when Track B delivers
 ```
 
-**This YAML is human-readable, version-controllable, and will execute on MS AF when the time comes.** But even before execution, it:
-- Documents SOPs precisely (replaces ambiguous Word docs)
-- Enables review/approval via PR (SOP change = code review)
-- Identifies exactly which Sage 200 API endpoints each SOP needs (feeds Sage API gap analysis)
-- Defines HITL gates explicitly (who decides, timeout, escalation)
-- Is per-corridor diffable (AU vs NZ = diff the YAML)
+**Key:** `data_source: "sage_export_csv"` changes to `data_source: "sage_api"` when Track B delivers. Same SOP, same structure, same logic. Only the data source changes.
 
-**VE-QVF check:**
-- **FIT**: ✅ SOPs need to be documented regardless — this is a better format
-- **MATTER**: ✅ Structured SOPs reveal API requirements, HITL gates, and corridor differences before build
-- **VALUE**: ✅ Low effort (writing YAML, not building systems). High preparedness for MS AF execution
-- **ADVANTAGE**: ⚡ Moderate — structured SOPs are better than Word docs but not yet a product differentiator
-
-**Kano**: Performance — better SOP definition reduces Phase 3 implementation risk.
+**Kano**: Performance — structured SOPs now, executable SOPs later. Same YAML both times.
 
 ---
 
-### Play 5: Power Automate + Claude Hybrid (Epic 91 Phase 2 Enhancement)
+### Play 5: Power Automate + Claude Hybrid (Track B Phase 2 — unchanged)
 
-**The constraint:** Power Automate handles simple trigger→action flows. Claude needs sustained context for intelligent operations. They're different tools.
-
-**The smart move:** Use both. Power Automate is the event bus. Claude is the brain.
-
-```
-┌──────────────────────────────────────────────────┐
-│ Hybrid Pattern                                   │
-│                                                  │
-│  Sage 200 ──poll──→ Power Automate               │
-│                        │                         │
-│                    ┌───┴───────────────────┐      │
-│                    │ Simple events:        │      │
-│                    │ notification, logging │      │
-│                    │ → PA handles directly │      │
-│                    └───────────────────────┘      │
-│                        │                         │
-│                    ┌───┴───────────────────┐      │
-│                    │ Complex events:       │      │
-│                    │ SLA breach, spoilage, │      │
-│                    │ BTOM clearance        │      │
-│                    │ → PA triggers Claude  │      │
-│                    │   agent (HTTP call)   │      │
-│                    └───────────────────────┘      │
-│                        │                         │
-│                        ▼                         │
-│               Claude Agent (Azure Function       │
-│               or local endpoint)                 │
-│               - Reads Sage context via MCP       │
-│               - Reasons about the event          │
-│               - Recommends action                │
-│               - Posts back to Sage/MeatTrackAI   │
-└──────────────────────────────────────────────────┘
-```
-
-**Phase 2 scope**: Simple events stay in Power Automate. Complex events route to Claude. This introduces Claude agent value in Phase 2, not Phase 3 — earlier than originally planned.
-
-**The MS AF angle**: When MS AF is adopted later, the Claude agent endpoint becomes a full MS AF durable workflow. The Power Automate trigger stays the same — only the downstream processing upgrades. Clean migration path.
-
-**VE-QVF check:**
-- **FIT**: ✅ Complex events (SLA breach, spoilage) need reasoning, not just notification
-- **MATTER**: ✅ SLA breach with context ("this corridor has had 3 breaches this month, supplier X is pattern") is more valuable than a bare alert
-- **VALUE**: ✅ Power Automate does what it's good at (triggers). Claude does what it's good at (reasoning). Neither is forced into the other's role
-- **ADVANTAGE**: ✅ Intelligent event response vs dumb notification — client-visible quality difference
-
-**Kano**: Performance → approaching Delighter when Claude's contextual reasoning surfaces patterns humans miss.
+Still depends on Track B (Sage API/polling). But when it arrives, the Claude agents from Track A already exist and understand the data patterns from months of processing exports. They're smarter on day one of live data than they would be starting cold.
 
 ---
 
-### Play 6: Corridor Ontology Instances from Sage Data (Parallel — Fills the .gitkeep Gap)
+### Play 6: Ontology Instances from Sage Exports (NOW)
 
-**The constraint:** WWG ontology instances are empty (.gitkeep). No instances promoted. Can't build ontology-driven features without instances.
+Generate ontology instances from Sage export data — same as v1.0.0 but doesn't need the MCP Server:
 
-**The smart move:** Generate ontology instances FROM Sage 200 entity data. Don't manually author what the data already knows.
+| Sage Export | Ontology Target |
+|---|---|
+| Supplier list CSV | `org:supplier-au-*`, `org:supplier-nz-*` etc. |
+| Product catalogue CSV | `func:product-category-*` per corridor |
+| Warehouse list | `func:warehouse-*` with corridor assignment |
+| Customer list CSV | `org:client-*` per corridor |
 
-| Sage 200 Entity | Ontology Target | Instance |
-|---|---|---|
-| Suppliers (AU corridor) | ORG-ONT | `org:supplier-au-*` entities with Sage ID cross-reference |
-| Products (meat categories) | FUNC-ONT domain taxonomy | `func:product-category-*` per corridor |
-| Warehouses | FUNC-ONT location taxonomy | `func:warehouse-*` with corridor assignment |
-| Customer accounts | ORG-ONT | `org:client-*` per corridor |
-| Corridor structure | PFI instance config | `pfi:corridor-au`, `pfi:corridor-nz`, etc. |
+Claude reads CSVs, generates ontology instance files, commits to repo. Fills the .gitkeep gap with real data-derived instances.
 
-**Claude generates these from Sage 200 data via MCP Server.** One-time seed + periodic sync. This fills the .gitkeep gap with real, data-derived instances — not manually authored placeholders.
-
-**VE-QVF check:**
-- **FIT**: ✅ Ontology instances are needed for any ontology-driven feature
-- **MATTER**: ⚡ Moderate — instances enable future features but aren't directly client-visible
-- **VALUE**: ✅ Auto-generation from Sage data vs manual authoring — dramatically lower effort
-- **ADVANTAGE**: ⚡ Moderate — ontology-driven corridor management is architectural preparation
-
-**Kano**: Enabler — invisible but makes everything ontology-driven possible.
+**Kano**: Enabler — seeds the ontology layer from data that exists today.
 
 ---
 
-## 3. Interim Value Timeline — Revised
+## 4. Revised Timeline
 
 ```
-Epic 91 Phase 1                  Phase 1+Plays              Epic 91 Phase 2+Plays
-(Sage MCP Server)                (Parallel interim value)    (Event flows + Claude hybrid)
-     │                                │                          │
-     ├─ SKL-160/161 operational      ├─ Play 1: Claude GRN/     ├─ Play 5: PA+Claude hybrid
-     │                               │  dispatch inference       │  for complex events
-     │                               ├─ Play 2: Customs as      │
-     │                               │  MeatTrackAI-native      ├─ Epic 91 Phase 3 starts
-     │                               ├─ Play 3: UACL on MCP     │  with better foundation
-     │                               │  Server (day one audit)  │
-     │                               ├─ Play 4: SOP YAML        │
-     │                               │  configs (documentation) │
-     │                               ├─ Play 6: Ontology        │
-     │                               │  instances from Sage      │
-     │                               │                          │
-     ▼                               ▼                          ▼
-  FOUNDATION                    INTERIM VALUE                ENHANCED VALUE
-  "Sage data flows"             "Claude bridges gaps,        "Intelligent event
-                                 customs is native,           response, SOP
-                                 audit from day one,          configs ready for
-                                 SOPs structured,             MS AF execution"
-                                 ontology seeded"
+NOW (Track A)                    PARALLEL (Track B)              CONVERGENCE
+─────────────                    ──────────────────              ───────────
+Claude on Sage exports:          SKL-160/161 MCP Server dev     Track A agents switch from
+• Corridor intelligence          • Sage 200 REST API testing      CSV input to API input
+• Customs per corridor           • GRN/dispatch gap analysis    • Same agents, same logic
+• SOP YAML from real ops         • Webhook/polling patterns     • data_source changes
+• UACL on export processing      • Power Automate flows         • Write-back to Sage enabled
+• Ontology instances seeded      • Azure Functions hosting      • Real-time replaces batch
+                                                                
+DELIVERS: Weeks                  DELIVERS: Per Epic 91 phases   DELIVERS: When Track B ready
+BLOCKS ON: Nothing               BLOCKS ON: Sage API gaps       BLOCKS ON: Track B completion
 ```
 
----
-
-## 4. What Changes in the Assessment
-
-| Previous Position | Revised Position | Why |
-|---|---|---|
-| MS AF = Phase 5+ for WWG | MS AF declarative agents = **Phase 1+ for customs** (Play 2). MS AF durable tasks = Phase 3+ | Customs is Sage-absent, not Sage-deferred. MS AF fills a real gap now |
-| AI GRC = post-deployment | UACL audit on MCP Server = **Phase 1 day one** (Play 3). Agent OS policy = Phase 3+ | The integration layer IS the first governable component |
-| Claude agents = Phase 3 | Claude GRN/dispatch inference = **Phase 1+** (Play 1). Claude event reasoning = **Phase 2** (Play 5) | Claude adds value wherever Sage API falls short — that's Phase 1 |
-| Ontology instances = "not started" | Ontology instances seeded from Sage data = **Phase 1+** (Play 6) | The data to generate instances exists in Sage. Don't author manually |
-| SOPs = "define in Phase 3" | SOP YAML configs = **Phase 1+ parallel** (Play 4) | Structure before execution. Reveals requirements before build |
+**The critical insight:** Track A agents learn the data, learn the patterns, learn the corridor differences, learn the SOP structures — all from real export data. When Track B delivers live API access, those agents don't start from scratch. They upgrade from batch to real-time. The intelligence is already built.
 
 ---
 
-## 5. Cross-References
+## 5. What This Changes
+
+| Previous Position | Corrected Position |
+|---|---|
+| Sage MCP Server (Phase 1) must complete before Claude value | Claude value from **day one** on Sage exports. MCP Server improves it, doesn't enable it |
+| GRN/dispatch API gaps block corridor tracking | Corridor tracking from **export data** immediately. API enriches with real-time + write-back |
+| MS AF declarative agents need live API data | Declarative agents work on **CSV input** with same YAML config. `data_source` field changes later |
+| Ontology instances can't be generated without API | Ontology instances generated from **export CSVs**. Same data, different delivery mechanism |
+| Phase 1 → Phase 2 → Phase 3 → Phase 4 → MS AF | Track A (export-based value) + Track B (API engineering) **in parallel**. MS AF enters when it helps, not when API is complete |
+
+---
+
+## 6. Cross-References
 
 | Reference | Relationship |
 |---|---|
-| [PFC-ARCH-NOTES-WWG-MSAF-AIGRC-Sage-Assessment-v1.0.0](https://github.com/ajrmooreuk/pfi-w4m-wwg-dev/blob/main/PBS/STRATEGY/PFC-ARCH-NOTES-WWG-MSAF-AIGRC-Sage-Assessment-v1.0.0.md) | Parent assessment — this addendum revises the timeline |
-| [PFC-ARCH-PLAN-WWG-MSAF-AIGRC-Sage-Assessment-v1.0.0](https://github.com/ajrmooreuk/pfi-w4m-wwg-dev/blob/main/PBS/STRATEGY/PFC-ARCH-PLAN-WWG-MSAF-AIGRC-Sage-Assessment-v1.0.0.md) | Gated plan — Plays 1-6 insert into Phase 0-1 gates |
-| [Epic 91 (#51 WWG)](https://github.com/ajrmooreuk/pfi-w4m-wwg-dev/issues/51) | Sage 200 integration epic — Plays enhance Phase 1-2 |
-| [Epic 90 (#39 WWG)](https://github.com/ajrmooreuk/pfi-w4m-wwg-dev/issues/39) | Live API integration — Play 1 feeds corridor data completeness |
-| [Epic 15 (#75 pfc-dev)](https://github.com/ajrmooreuk/pfc-dev/issues/75) | MS Agent Framework — Play 2 is first concrete use case |
-| [Epic 16 (#77 pfc-dev)](https://github.com/ajrmooreuk/pfc-dev/issues/77) | AI GRC — Play 3 is first concrete use case |
+| [PFC-ARCH-NOTES-WWG-MSAF-AIGRC-Sage-Assessment-v1.0.0](https://github.com/ajrmooreuk/pfi-w4m-wwg-dev/blob/main/PBS/STRATEGY/PFC-ARCH-NOTES-WWG-MSAF-AIGRC-Sage-Assessment-v1.0.0.md) | Parent assessment |
+| [PFC-ARCH-PLAN-WWG-MSAF-AIGRC-Sage-Assessment-v1.0.0](https://github.com/ajrmooreuk/pfi-w4m-wwg-dev/blob/main/PBS/STRATEGY/PFC-ARCH-PLAN-WWG-MSAF-AIGRC-Sage-Assessment-v1.0.0.md) | Gated plan — Track A plays insert before all gates |
+| [Epic 90 (#39 WWG)](https://github.com/ajrmooreuk/pfi-w4m-wwg-dev/issues/39) | LSC components — Track A feeds dashboard data from exports |
+| [Epic 91 (#51 WWG)](https://github.com/ajrmooreuk/pfi-w4m-wwg-dev/issues/51) | Sage integration — Track B. Runs in parallel, not as prerequisite |
+| [Epic 15 (#75 pfc-dev)](https://github.com/ajrmooreuk/pfc-dev/issues/75) | MS Agent Framework — declarative agents usable on CSV data today |
+| [Epic 16 (#77 pfc-dev)](https://github.com/ajrmooreuk/pfc-dev/issues/77) | AI GRC — UACL audit on export processing from day one |

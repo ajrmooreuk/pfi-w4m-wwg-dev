@@ -53,6 +53,7 @@ jobs:
             # pfi-baiv-aiv-dev → BAIV, pfi-w4m-wwg-dev → WWG, pfi-airl-caf-aza-dev → AIRL
             INSTANCE=""
             case "$REPO_NAME" in
+              pfi-commons-*)  INSTANCE="C" ;;
               pfi-baiv-*)    INSTANCE="BAIV" ;;
               pfi-w4m-wwg-*) INSTANCE="WWG" ;;
               pfi-w4m-eoms-*) INSTANCE="EOMS" ;;
@@ -65,8 +66,14 @@ jobs:
             esac
             echo "context=pfi" >> "$GITHUB_OUTPUT"
             echo "instance=$INSTANCE" >> "$GITHUB_OUTPUT"
-            echo "allowed_tiers=PFI-${INSTANCE}|PRD-[A-Z0-9-]+|APP-[A-Z0-9-]+" >> "$GITHUB_OUTPUT"
-            echo "blocked_tiers=PFC" >> "$GITHUB_OUTPUT"
+            if [[ "$INSTANCE" == "C" ]]; then
+              # PFI Commons repos also accept PFC-prefixed docs (synced reference copies)
+              echo "allowed_tiers=PFI-C|PFC|PRD-[A-Z0-9-]+|APP-[A-Z0-9-]+" >> "$GITHUB_OUTPUT"
+              echo "blocked_tiers=" >> "$GITHUB_OUTPUT"
+            else
+              echo "allowed_tiers=PFI-${INSTANCE}|PRD-[A-Z0-9-]+|APP-[A-Z0-9-]+" >> "$GITHUB_OUTPUT"
+              echo "blocked_tiers=PFC" >> "$GITHUB_OUTPUT"
+            fi
           elif [[ "$REPO_NAME" =~ ^azlan-workflow- ]]; then
             echo "context=convention" >> "$GITHUB_OUTPUT"
             echo "instance=" >> "$GITHUB_OUTPUT"
